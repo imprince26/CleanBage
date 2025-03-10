@@ -1,0 +1,125 @@
+<html>
+<head>
+    <title>CLEANBAGE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <script>
+        function toggleForm(formType) {
+            const formContainer = document.getElementById('form-container');
+            const formTitle = document.getElementById('form-title');
+            const formButton = document.getElementById('form-button');
+
+            formContainer.classList.remove('hidden');
+            formTitle.textContent = formType === 'signIn' ? 'Sign In' : 'Sign Up';
+            formButton.textContent = formType === 'signIn' ? 'Sign In' : 'Sign Up';
+        }
+
+        function closeForm() {
+            const formContainer = document.getElementById('form-container');
+            formContainer.classList.add('hidden');
+        }
+
+        function toggleDropdown() {
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            dropdownMenu.classList.toggle('hidden');
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-green-600 text-white p-4 flex justify-between items-center">
+        <div class="text-2xl font-bold">CLEANBAGE</div>
+        <nav class="hidden md:flex text-sm space-x-4">
+            <a href="#" class="hover:underline">About Us</a>
+            <a href="#" class="hover:underline">Contact</a>
+            <a href="#" class="hover:underline">Help</a>
+            <a href="#" class="hover:underline">More</a>
+        </nav>
+        <div class="relative md:hidden">
+            <button onclick="toggleDropdown()" class="text-sm flex items-center space-x-2">
+                <span>Menu</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white bg-opacity-50 backdrop-blur-md rounded-lg shadow-lg hidden">
+                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 bg-opacity-50 rounded">About Us</a>
+                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 bg-opacity-50 rounded">Contact</a>
+                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 bg-opacity-50 rounded">Help</a>
+                <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200 bg-opacity-50 rounded">More</a>
+            </div>
+        </div>
+    </header>
+    <main class="py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold">Welcome to CLEANBAGE</h1>
+            <p class="text-gray-600">Efficient and effective waste management for a cleaner environment.</p>
+        </div>
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <img alt="Admin dashboard with various charts and data" class="w-full h-40 object-cover mb-4 rounded" height="400" src="https://storage.googleapis.com/a1aa/image/LSvUfRjZYpUuIcuNRfKdXqRlwF8Iu3ZGta-HUiXTAeo.jpg" width="600"/>
+                <h2 class="text-xl font-bold mb-2">Admin</h2>
+                <p class="text-gray-600 mb-4">Manage users, view reports, and oversee the entire waste management process.</p>
+                <div class="flex space-x-4">
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signIn')">Sign In</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signUp')">Sign Up</button>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <img alt="People managing household waste" class="w-full h-40 object-cover mb-4 rounded" height="400" src="https://storage.googleapis.com/a1aa/image/yWb5EFsvMDpC11rSSCIhyiui8AV0CJtyUy1l9EK6ijc.jpg" width="600"/>
+                <h2 class="text-xl font-bold mb-2">Household</h2>
+                <p class="text-gray-600 mb-4">Schedule waste pickups, view collection history, and manage your account.</p>
+                <div class="flex space-x-4">
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signIn')">Sign In</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signUp')">Sign Up</button>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <img alt="Waste collector using a mobile app" class="w-full h-40 object-cover mb-4 rounded" height="400" src="https://storage.googleapis.com/a1aa/image/qVdcAUQQLIGXDx3vpBAuxxnSFYeqSw2joXA6ZhqS--M.jpg" width="600"/>
+                <h2 class="text-xl font-bold mb-2">Waste Collectors</h2>
+                <p class="text-gray-600 mb-4">Track collection routes, update statuses, and communicate with the admin.</p>
+                <div class="flex space-x-4">
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signIn')">Sign In</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded font-semibold" onclick="toggleForm('signUp')">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-green-600 text-white text-center p-4">
+        <p>© 2023 CLEANBAGE. All rights reserved.</p>
+    </footer>
+
+    <!-- Form Modal -->
+    <div id="form-container" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="form-title" class="text-2xl font-bold">Sign In</h2>
+                <button onclick="closeForm()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form>
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-700">Email</label>
+                    <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
+                </div>
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700">Username</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-700">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600"/>
+                </div>
+                <button id="form-button" type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">Sign In</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
