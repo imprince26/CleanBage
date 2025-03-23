@@ -44,7 +44,7 @@ SGH_CLEAN/
 ```sh
 cd backend
 npm install
-npm start
+node app.js
 ```
 **Environment Variables (`.env`):**
 ```
@@ -54,8 +54,8 @@ JWT_SECRET=your_secret_key
 ```
 
 ### 2️⃣ Frontend Setup
-```sh
-cd frontend
+```sh 
+cd frontend 
 npm install
 npm run dev
 ```
