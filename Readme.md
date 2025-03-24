@@ -19,6 +19,14 @@ SGH_CLEAN/
 │   ├── package.json    # Backend dependencies
 │
 │── frontend/           # React (Vite) Frontend
+|   |── src/
+|   |   │── assets/         # Images, icons, logos
+|   |   │── components/     # Reusable UI components (Navbar, Footer, Button, etc.)
+|   |   │── context/        # State management (Auth, Theme, etc.)
+|   |   │── styles/         # Global styles (CSS, Tailwind)
+|   |   │── utils/          # Helper functions (API calls, formatting)
+|   |   │── App.jsx         # Main application file
+|   |   │── main.jsx        # Entry file
 │
 │── Readme.md           # Project documentation
 ```
