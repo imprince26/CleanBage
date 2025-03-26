@@ -1,0 +1,9 @@
+@font-face {
+    font-family: wf-sans;
+    src: url(./assets/fonts/WFSans.TTF);
+}
+
+
+body{
+    font-family: wf-sans, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif ;
+}
