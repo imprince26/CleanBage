@@ -1,4 +1,3 @@
-// routes/collectionRoutes.js
 import express from 'express';
 import {
     createCollection,
@@ -9,7 +8,7 @@ import {
     getNearbyCollections,
     assignCollector
 } from '../controllers/collectionController.js';
-import { protect, admin, garbageCollector } from '../middleware/auth.js';
+import { protect, admin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -21,8 +20,8 @@ router.route('/nearby')
     .get(protect, getNearbyCollections); // Resident, Garbage Collector, Admin
 
 router.route('/:id')
-    .get(protect, getCollectionById) // Resident (own), Garbage Collector, Admin
-    .put(protect, updateCollection) // Garbage Collector (status), Admin (full)
+    .get(protect, getCollectionById) 
+    .put(protect, updateCollection) 
     .delete(protect, admin, deleteCollection); // Admin only
 
 router.route('/:id/assign')

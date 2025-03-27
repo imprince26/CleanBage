@@ -1,4 +1,3 @@
-// routes/routeRoutes.js
 import express from 'express';
 import {
     createRoute,
