@@ -25,7 +25,7 @@ const reportSchema = new mongoose.Schema({
         trim: true,
         default: ''
     },
-    rewardPointsAssigned: { // New field to log points given to resident
+    rewardPointsAssigned: {
         type: Number,
         default: 0,
         min: 0
@@ -41,12 +41,11 @@ const reportSchema = new mongoose.Schema({
     }
 });
 
-// Pre-save hook to log reward points when report is created
 reportSchema.pre('save', async function(next) {
-    if (this.isNew) { // Only on creation
+    if (this.isNew) {
         const bin = await mongoose.model('Collection').findById(this.bin);
         if (bin && bin.reportedBy && bin.status === 'collected' && bin.rewardAssigned) {
-            this.rewardPointsAssigned = 10; // Match points from collectionModel
+            this.rewardPointsAssigned = 10;
         }
     }
     next();

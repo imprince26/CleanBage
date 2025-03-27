@@ -66,7 +66,7 @@ const collectionSchema = new mongoose.Schema({
             default: Date.now
         }
     },
-    rewardAssigned: { // New field to track if reward was given
+    rewardAssigned: {
         type: Boolean,
         default: false
     },
@@ -89,7 +89,7 @@ collectionSchema.pre('save', async function(next) {
     if (this.isModified('status') && this.status === 'collected' && !this.rewardAssigned && this.reportedBy) {
         const resident = await User.findById(this.reportedBy);
         if (resident && resident.role === 'resident') {
-            await resident.addRewardPoints(10); // Example: 10 points per collection
+            await resident.addRewardPoints(10);
             this.rewardAssigned = true;
         }
     }

@@ -1,11 +1,10 @@
-// app.js
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
-import authRoutes from './routes/authRoutes.js'; // Assuming this exists
+import authRoutes from './routes/authRoutes.js';
 import collectionRoutes from './routes/collectionRoutes.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
 import routeRoutes from './routes/routeRoutes.js';
@@ -16,9 +15,9 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors()); // Enable CORS for cross-origin requests
-app.use(express.json()); // Parse JSON bodies
-app.use(cookieParser()); // Parse cookies for authentication
+app.use(cors()); 
+app.use(express.json()); 
+app.use(cookieParser()); 
 
 // Root route
 app.get('/', (req, res) => {
