@@ -41,3 +41,14 @@ export const admin = (req, res, next) => {
         });
     }
 };
+
+export const garbageCollector = (req, res, next) => {
+    if (req.user && req.user.role === 'garbage_collector') {
+        next();
+    } else {
+        res.status(403).json({
+            success: false,
+            message: 'Not authorized as a garbage collector'
+        });
+    }
+};

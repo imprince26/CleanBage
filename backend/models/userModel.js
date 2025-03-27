@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Password is required'],
         minlength: [6, 'Password must be at least 6 characters'],
-        select: false 
+        select: false
     },
     role: {
         type: String,
@@ -27,14 +27,19 @@ const userSchema = new mongoose.Schema({
         required: [true, 'Role is required'],
         default: 'resident'
     },
-    address: { // For residents
+    address: {
         type: String,
         trim: true,
         default: null
     },
-    assignedVehicle: { // For garbage collectors
+    assignedVehicle: {
         type: String,
         default: null
+    },
+    rewardPoints: { // New field for resident rewards
+        type: Number,
+        default: 0,
+        min: 0
     },
     createdAt: {
         type: Date,
@@ -42,6 +47,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+// Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
     const salt = await bcrypt.genSalt(10);
@@ -49,8 +55,16 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
+// Method to match password
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Method to add reward points (for residents)
+userSchema.methods.addRewardPoints = async function(points) {
+    if (this.role !== 'resident') return;
+    this.rewardPoints += points;
+    await this.save();
 };
 
 const User = mongoose.model('User', userSchema);
