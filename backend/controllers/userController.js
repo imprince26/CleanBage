@@ -23,7 +23,6 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-// Update authenticated user's profile
 export const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
