@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
     res.send('Welcome to SGH CleanBag API');
 });
 
-// app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 

@@ -1,53 +1,58 @@
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Please enter a name"],
-        trim : true,
-        minlength : [3, "Name must be at least 3 characters long"],
-        maxlength : [20, "Name must be at most 100 characters long"],
+        required: [true, 'Name is required'],
+        trim: true
     },
     email: {
         type: String,
-        required: [true, "Please enter an email"],
+        required: [true, 'Email is required'],
         unique: true,
+        trim: true,
         lowercase: true,
-        trim : true
+        match: [/.+\@.+\..+/, 'Please enter a valid email']
     },
     password: {
         type: String,
-        required: true,
-        minlength : [6, "Password must be at least 6 characters long"],
-        select : false
+        required: [true, 'Password is required'],
+        minlength: [6, 'Password must be at least 6 characters'],
+        select: false 
     },
-    pic: {
+    role: {
         type: String,
-        default:
-            "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
+        enum: ['resident', 'garbage_collector', 'admin'],
+        required: [true, 'Role is required'],
+        default: 'resident'
     },
-    role:{
+    address: { // For residents
         type: String,
-        enum: {
-            values: ["admin", "user","garbage_collector"],
-            message: "Role can only be 'admin', 'user' or 'garbage_collector'",
-        },
-        default: "user",
+        trim: true,
+        default: null
+    },
+    assignedVehicle: { // For garbage collectors
+        type: String,
+        default: null
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-},{
-    timestamps : true
 });
 
-userSchema.pre("save", async function(next){
-    if(!this.isModified("password")){
-        next();
-    }
+userSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
+userSchema.methods.matchPassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 export default User;
