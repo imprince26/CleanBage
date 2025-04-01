@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
+import BlackListToken from "../models/blackListTokenModel.js";
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -111,11 +112,16 @@ export const loginUser = async (req, res) => {
 // Logout user
 export const logoutUser = async (req, res) => {
   try {
+    const token = req.cookies.token;
+
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+
+    await BlackListToken.create({token}) 
+
     res.status(200).json({
       success: true,
       message: "Logged out successfully",
