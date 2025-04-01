@@ -1,13 +1,12 @@
 import React from "react";
-// import "./styles/input.css";
 import { Routes, Route } from "react-router-dom";
-import Landing from "./components/Landing";
-import SignUp from "./components/SignUp";
-import Login from "./components/Login";
+import Register from "@/pages/auth/Register";
+import Login from "@/pages/auth/Login";
+import Home from "@/pages/Home";
 
 const routes = [
-  { path: "/", element: <Landing /> },
-  { path: "/register", element: <SignUp /> },
+  { path: "/", element: <Home /> },
+  { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> }
 ];
 

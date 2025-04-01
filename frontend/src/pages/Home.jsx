@@ -1,15 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { useTheme } from "../context/ThemeContext";
-import Navbar from "./Navbar";
-import HeroSection from "./HeroSection";
-import Footer from "./Footer";
+import { useTheme } from "@/context/ThemeContext";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import Footer from "@/components/Footer";
 import { FaRecycle, FaLeaf, FaTruck, FaMedal } from "react-icons/fa";
 import { TbLoader3 } from "react-icons/tb";
 import { MdSchedule } from "react-icons/md";
 
-const Landing = () => {
+const Home = () => {
   const { darkMode } = useTheme();
 
   const features = [
@@ -158,4 +158,4 @@ const StatsCard = ({ number, label, icon }) => {
   );
 };
 
-export default Landing;
+export default Home;

@@ -21,10 +21,8 @@ export const ThemeContextProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Update localStorage and document class
     localStorage.setItem("theme", darkMode ? "dark" : "light");
     
-    // Update document class for Tailwind dark mode
     if (darkMode) {
       document.documentElement.classList.add("dark");
     } else {
@@ -32,7 +30,6 @@ export const ThemeContextProvider = ({ children }) => {
     }
   }, [darkMode]);
 
-  // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e) => {

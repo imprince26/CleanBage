@@ -274,7 +274,6 @@ const Navbar = () => {
                   className="flex items-center space-x-2 px-3 py-2 rounded-md w-full bg-[#2D6A4F] text-white hover:bg-[#2D6A4F]/90"
                   onClick={() => setIsOpen(false)}
                 >
-                  <LogIn className="h-5 w-5" />
                   <span>Login</span>
                 </Link>
               )}
