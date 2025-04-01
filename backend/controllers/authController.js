@@ -9,7 +9,7 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: "None",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : ''
+  domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : ''
 };
 
 // Register new user
