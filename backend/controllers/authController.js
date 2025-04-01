@@ -1,15 +1,14 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
-import BlackListToken from "../models/blackListTokenModel.js";
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 // Cookie options
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  secure: true,
+  sameSite: "None",
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 // Register new user
@@ -41,8 +40,8 @@ export const registerUser = async (req, res) => {
       assignedVehicle: assignedVehicle || null,
     });
 
-    const token = generateToken(user._id);
-    res.cookie("token", token, cookieOptions);
+    const CleanBageToken = generateToken(user._id);
+    res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
 
     res.status(201).json({
       success: true,
@@ -83,8 +82,8 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    const token = generateToken(user._id);
-    res.cookie("token", token, cookieOptions);
+    const CleanBageToken = generateToken(user._id);
+    res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
 
     res.status(200).json({
       success: true,
@@ -108,15 +107,14 @@ export const loginUser = async (req, res) => {
 // Logout user
 export const logoutUser = async (req, res) => {
   try {
-    const token = req.cookies.token;
 
-    res.clearCookie("token", {
+    res.clearCookie("CleanBageToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: true,
+      sameSite: "None"
     });
 
-    await BlackListToken.create({ token });
+    // await BlackListToken.create({ token });
 
     res.status(200).json({
       success: true,

@@ -1,9 +1,27 @@
 import User from "../models/userModel.js";
 
-// Get authenticated user's profile
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    // Check if user exists in request (added by auth middleware)
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized, no token"
+      });
+    }
+
+    // Find user by ID and exclude password
+    const user = await User.findById(req.user._id).select("-password");
+
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Send response with user data
     res.status(200).json({
       success: true,
       user: {
@@ -13,12 +31,18 @@ export const getUserProfile = async (req, res) => {
         role: user.role,
         address: user.address,
         assignedVehicle: user.assignedVehicle,
-      },
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
     });
+
   } catch (error) {
+    // Handle potential errors
+    console.error("Get user profile error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Error retrieving user profile",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined
     });
   }
 };
