@@ -122,9 +122,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  console.log(user);
-  console.log(isAuthenticated);
-
   const updateProfile = async (updateData) => {
     try {
       const { data } = await api.put("/api/users/profile", updateData);
