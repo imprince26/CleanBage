@@ -1,6 +1,6 @@
 import React from "react";
-import "./styles/input.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import "./styles/input.css";
+import { Routes, Route } from "react-router-dom";
 import Landing from "./components/Landing";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
@@ -13,13 +13,13 @@ const routes = [
 
 const App = () => {
   return (
-    <Router>
       <Routes>
+
         {routes.map((route, index) => (
           <Route key={index} path={route.path} element={route.element} />
         ))}
+
       </Routes>
-    </Router>
   );
 };
 

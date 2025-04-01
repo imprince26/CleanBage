@@ -1,3 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer base {
+  :root {
+    --color-primary: #029C70;
+    --color-secondary: #D1FAE5;
+    --color-background: #FFFFFF;
+    --color-text: #1E3A24;
+    --color-nav: #D1FAE5;
+  }
+
+  .dark {
+    --color-primary: #1E3A24;
+    --color-secondary: #12291B;
+    --color-background: #081C15;
+    --color-text: #D1FAE5;
+    --color-nav: #12291B;
+  }
+} */
+
+/* @layer components {
+  .theme-transition {
+    @apply transition-colors duration-300;
+  }
+} */
+
 @font-face {
     font-family: wf-sans;
     src: url(./assets/fonts/WFSans.TTF);
