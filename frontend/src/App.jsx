@@ -5,13 +5,19 @@ import Landing from "./components/Landing";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
 
+const routes = [
+  { path: "/", element: <Landing /> },
+  { path: "/register", element: <SignUp /> },
+  { path: "/login", element: <Login /> }
+];
+
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/register" element={<SignUp />} />
-        <Route path="/login" element={<Login />} />
+        {routes.map((route, index) => (
+          <Route key={index} path={route.path} element={route.element} />
+        ))}
       </Routes>
     </Router>
   );
