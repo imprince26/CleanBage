@@ -6,9 +6,10 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 // Cookie options
 const cookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: "None",
+  secure: process.env.NODE_ENV === 'production', // Only use HTTPS in production
+  sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : 'localhost'
 };
 
 // Register new user
