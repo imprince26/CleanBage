@@ -2,11 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import BlackListToken from "../models/blackListTokenModel.js";
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
-  });
-};
+const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
 // Cookie options
 const cookieOptions = {
@@ -120,7 +116,7 @@ export const logoutUser = async (req, res) => {
       sameSite: "strict",
     });
 
-    await BlackListToken.create({token}) 
+    await BlackListToken.create({ token });
 
     res.status(200).json({
       success: true,
