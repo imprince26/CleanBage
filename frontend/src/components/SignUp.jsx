@@ -199,7 +199,7 @@ function SignUp() {
         transition={{ duration: 1, ease: "easeOut" }}
       >
         <img
-          src="src/assets/images/cleanerImg.webp"
+          src="/cleanerImg.webp"
           alt="CleanBage"
           className="bg-no-repeat"
         />
