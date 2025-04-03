@@ -6,17 +6,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#15803D", // Green - Eco-friendly theme
-          light: "#4ADE80", // Light green for CTA buttons
-          dark: "#0F6B30", // Dark green for dark mode UI
+          DEFAULT: "#15803D", 
+          light: "#4ADE80", 
+          dark: "#0F6B30",
         },
         background: {
-          light: "#F3F4F6", // Light mode background (gray-100)
-          dark: "#111827", // Dark mode background (gray-900)
+          light: "#F3F4F6", 
+          dark: "#111827",
         },
-        accent: "#3B82F6", // Blue for tech & trust
-        warning: "#EAB308", // Yellow for bin alerts
-        error: "#DC2626", // Red for full-bin warnings
+        accent: "#3B82F6", 
+        warning: "#EAB308", 
+        error: "#DC2626",
       },
     },
   },
