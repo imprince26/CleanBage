@@ -3,13 +3,12 @@ import User from "../models/userModel.js";
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-// Cookie options
 const cookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: "None",
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : ''
+  domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : 'localhost'
 };
 
 // Register new user
