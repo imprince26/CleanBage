@@ -1,14 +1,15 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const generateToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/',
+  path: "/",
 };
 
 // Register new user
@@ -84,11 +85,9 @@ export const loginUser = async (req, res) => {
 
     const CleanBageToken = generateToken(user._id);
 
-    console.log('Setting cookie with options:', cookieOptions);
-res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
-console.log('Cookie set, sending response');
-console.log(CleanBageToken);
-
+    console.log("Setting cookie with options:", cookieOptions);
+    res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
+    console.log("Cookie set, sending response");
 
     res.status(200).json({
       success: true,
@@ -112,11 +111,10 @@ console.log(CleanBageToken);
 // Logout user
 export const logoutUser = async (req, res) => {
   try {
-
     res.clearCookie("CleanBageToken", {
       httpOnly: true,
       secure: true,
-      sameSite: "None"
+      sameSite: "None",
     });
 
     // await BlackListToken.create({ token });
@@ -132,4 +130,3 @@ export const logoutUser = async (req, res) => {
     });
   }
 };
-
