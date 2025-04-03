@@ -30,6 +30,12 @@ app.get('/', (req, res) => {
     res.send('Welcome to SGH CleanBag API');
 });
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', process.env.CLIENT_URL);
+  next();
+});
+
 // API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);

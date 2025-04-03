@@ -8,7 +8,8 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : 'localhost'
+  domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : 'localhost',
+  path: '/',
 };
 
 // Register new user
@@ -83,7 +84,12 @@ export const loginUser = async (req, res) => {
     }
 
     const CleanBageToken = generateToken(user._id);
-    res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
+
+    console.log('Setting cookie with options:', cookieOptions);
+res.cookie("CleanBageToken", CleanBageToken, cookieOptions);
+console.log('Cookie set, sending response');
+console.log(CleanBageToken);
+
 
     res.status(200).json({
       success: true,
@@ -127,3 +133,4 @@ export const logoutUser = async (req, res) => {
     });
   }
 };
+
