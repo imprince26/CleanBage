@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import ThemeContextProvider from "./context/ThemeContext";
 import AuthProvider from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext.jsx";
+import { ReportProvider } from "./context/ReportContext.jsx";
+import { CollectionProvider } from "./context/CollectionContext.jsx";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
@@ -14,8 +16,12 @@ createRoot(document.getElementById("root")).render(
       <ThemeContextProvider>
         <AuthProvider>
           <AppProvider>
-          <Toaster position="top-right" />
-          <App />
+            <ReportProvider>
+              <CollectionProvider>
+                <Toaster position="top-right" />
+                <App />
+              </CollectionProvider>
+            </ReportProvider>
           </AppProvider>
         </AuthProvider>
       </ThemeContextProvider>
