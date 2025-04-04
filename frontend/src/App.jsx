@@ -12,6 +12,7 @@ const ReportBin = lazy(() => import("@/pages/resident/ReportBin"));
 const Dashboard = lazy(() => import("@/pages/resident/Dashboard"));
 const Rewards = lazy(() => import("@/pages/resident/Rewards"));
 const Schedule = lazy(() => import("@/pages/resident/Schedule"));
+const Collections = lazy(() => import("@/pages/collector/Collections"));
 
 
 const routes = [
@@ -20,6 +21,7 @@ const routes = [
   { path: "/resident", element: <Dashboard /> },
   { path: "/resident/rewards", element: <Rewards /> },
   { path: "/resident/schedule", element: <Schedule /> },
+  { path: "/collector/collections", element: <Collections /> },
 ];
 
 const App = () => {
