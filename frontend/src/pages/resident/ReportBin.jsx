@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { MapPin, Trash2, Upload, AlertCircle, CheckCircle, Calendar, Scale, AlertTriangle } from 'lucide-react';
+import { MapPin, Trash2, Upload, AlertCircle, CheckCircle ,Scale, } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useCollection } from '../../context/CollectionContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useCollection } from '@/context/CollectionContext';
+import { useTheme } from '@/context/ThemeContext';
 
 const BinSVG = () => (
   <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
