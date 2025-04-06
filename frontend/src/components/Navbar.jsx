@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import {  AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import { 
-  Menu, X, Sun, Moon, User, LogIn, LogOut,
+  Menu, X, Sun, Moon, User, LogOut,
   Home, Truck, Award, ChevronDown, Bell,
   BarChart2, Users, Settings, MapPin 
 } from "lucide-react";
