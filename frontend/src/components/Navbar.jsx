@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {  AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
-import { 
+import {
   Menu, X, Sun, Moon, User, LogOut,
   Home, Truck, Award, ChevronDown, Bell,
-  BarChart2, Users, Settings, MapPin 
+  BarChart2, Users, Settings, MapPin
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -33,9 +33,9 @@ const navLinks = {
 
 const Navbar = () => {
   const { darkMode, toggleTheme } = useTheme();
-  const { 
-    user, 
-    isAuthenticated, 
+  const {
+    user,
+    isAuthenticated,
     logout,
     notifications = []
   } = useAuth();
@@ -50,7 +50,6 @@ const Navbar = () => {
   const userNotifications = notifications.length;
   const userName = user?.name || '';
 
-  // Update logout handler
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -77,17 +76,16 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled
           ? "bg-white/80 dark:bg-[#081C15]/80 backdrop-blur-md shadow-lg"
           : "bg-white dark:bg-[#081C15]"
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-3 group"
           >
             <div className="relative">
@@ -203,7 +201,6 @@ const Navbar = () => {
                 to="/login"
                 className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-[#2D6A4F] text-white hover:bg-[#2D6A4F]/90 transition-colors"
               >
-                {/* <LogIn className="h-5 w-5" /> */}
                 <span>Login</span>
               </Link>
             )}
