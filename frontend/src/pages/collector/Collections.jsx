@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useCollection } from '../../context/CollectionContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useCollection } from '@/context/CollectionContext';
+import { useTheme } from '@/context/ThemeContext';
 import {
   Trash2, MapPin, Timer, CheckCircle,
   AlertTriangle, RefreshCw, Filter, Search,
