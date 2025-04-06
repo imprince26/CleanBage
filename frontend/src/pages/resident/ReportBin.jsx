@@ -16,10 +16,8 @@ const BinSVG = () => (
 
 const ReportBin = () => {
   const { reportBin, loading, error } = useCollection();
-  const { darkMode } = useTheme();
   const [success, setSuccess] = useState(false);
   
-  // Updated formData to match collectionModel fields
   const [formData, setFormData] = useState({
     binId: '',
     location: {

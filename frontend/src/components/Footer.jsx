@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
 import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
+import { useTheme } from '@/context/ThemeContext';
 
-const Footer = ({ darkMode }) => {
+const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const darkMode = useTheme();
 
   const footerLinks = {
     company: [
@@ -34,9 +36,7 @@ const Footer = ({ darkMode }) => {
   ];
 
   return (
-    <footer className={`w-full ${
-      darkMode ? "bg-[#081C15] text-[#D1FAE5]" : "bg-[#F0FDF4] text-[#1E3A24]"
-    }`}>
+    <footer className={`w-full bg-[#F0FDF4] text-[#1E3A24] dark:bg-[#081C15] dark:text-[#D1FAE5]`}>
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
@@ -113,9 +113,8 @@ const Footer = ({ darkMode }) => {
       </div>
 
       {/* Copyright Bar */}
-      <div className={`border-t ${
-        darkMode ? "border-gray-800" : "border-gray-200"
-      }`}>
+      <div className={`border-t ${darkMode ? "border-gray-800" : "border-gray-200"
+        }`}>
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-600 dark:text-gray-300">
