@@ -1,11 +1,11 @@
 import React from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 import HeroSection from "@/components/HeroSection";
 import { FaRecycle, FaLeaf, FaTruck, FaMedal } from "react-icons/fa";
 import { TbLoader3 } from "react-icons/tb";
 import { MdSchedule } from "react-icons/md";
+import {motion} from "motion/react"
 
 const Home = () => {
   const { darkMode } = useTheme();

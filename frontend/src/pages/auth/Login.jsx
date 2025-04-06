@@ -4,9 +4,10 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { IoIosHeart } from "react-icons/io";
 import { MdCleaningServices } from "react-icons/md";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import {motion} from "motion/react"
+
 
 function Login() {
   const navigate = useNavigate();

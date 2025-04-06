@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import {AnimatePresence} from "motion/react"
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -9,6 +9,8 @@ import {
   BarChart2, Users, Settings, MapPin
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {motion} from "motion/react"
+
 
 const navLinks = {
   resident: [

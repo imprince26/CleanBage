@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Gift, Award, Star } from 'lucide-react';
+import {motion} from "motion/react"
+
 
 const Rewards = () => {
-  const [points, setPoints] = useState(150); // Example points
+  const [points, setPoints] = useState(150);
   const [rewards] = useState([
     {
       id: 1,
