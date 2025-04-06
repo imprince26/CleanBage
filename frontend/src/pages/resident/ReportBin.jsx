@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Trash2, Upload, AlertCircle, CheckCircle ,Scale, } from 'lucide-react';
 import { useCollection } from '@/context/CollectionContext';
-import { useTheme } from '@/context/ThemeContext';
 import {motion} from "motion/react"
 
 

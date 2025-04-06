@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import { Calendar, Clock } from 'lucide-react';
-import { useApp } from '@/context/AppContext';
 import {motion} from "motion/react"
-
+import { useSchedule } from '@/context/ScheduleContext';
 
 const Schedule = () => {
-  const { schedules, fetchSchedules, loading } = useApp();
+  const { schedules, fetchSchedules, loading } = useSchedule();
 
   useEffect(() => {
     fetchSchedules();
