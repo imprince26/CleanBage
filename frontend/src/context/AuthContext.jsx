@@ -1,16 +1,16 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import api from "../utils/api";
+import api from "@/utils/api";
 
 const AuthContext = createContext({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: async () => {},
-  register: async () => {},
-  logout: async () => {},
-  checkUserAuthentication: async () => {},
+  login: async () => { },
+  register: async () => { },
+  logout: async () => { },
+  checkUserAuthentication: async () => { },
 });
 
 
@@ -27,8 +27,8 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuthentication = async () => {
     try {
       const response = await api.get("/api/users/profile");
-        setUser(response.data.user);
-        setIsAuthenticated(true);
+      setUser(response.data.user);
+      setIsAuthenticated(true);
 
     } catch (error) {
       setUser(null);
@@ -42,18 +42,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post("/api/auth/login", credentials);
       console.log(response.data.user);
-        setUser(response.data.user);
-        setIsAuthenticated(true);
+      setUser(response.data.user);
+      setIsAuthenticated(true);
 
-        toast.success("Welcome to CleanBage!", {
-          style: {
-            background: "#2D6A4F",
-            color: "#FFFFFF",
-          },
-        });
-        
-        navigate('/');
-        return response.data;
+      toast.success("Welcome to CleanBage!", {
+        style: {
+          background: "#2D6A4F",
+          color: "#FFFFFF",
+        },
+      });
+
+      navigate('/');
+      return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Invalid credentials";
 
@@ -72,15 +72,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post("/api/auth/register", credentials);
 
-        toast.success("Registration successful! Please login.", {
-          style: {
-            background: "#2D6A4F",
-            color: "#FFFFFF",
-          },
-        });
+      toast.success("Registration successful! Please login.", {
+        style: {
+          background: "#2D6A4F",
+          color: "#FFFFFF",
+        },
+      });
 
-        navigate("/login");
-        return response.data;
+      navigate("/login");
+      return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Registration failed";
 
