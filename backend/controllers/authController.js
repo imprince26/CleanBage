@@ -4,12 +4,9 @@ import { RewardTransaction } from '../models/rewardModel.js';
 import Notification from '../models/notificationModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
-import { sendTokenResponse, generateVerificationToken } from '../utils/tokenUtils.js';
+import { sendTokenResponse } from '../utils/tokenUtils.js';
 import sendEmail from '../utils/emailService.js';
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
 export const registerUser = catchAsync(async (req, res, next) => {
     const { name, email, password, role } = req.body;
 
@@ -99,9 +96,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
     }
 });
 
-// @desc    Verify email
-// @route   GET /api/auth/verify-email/:token
-// @access  Public
+
 export const verifyEmail = catchAsync(async (req, res, next) => {
     // Get hashed token
     const verificationToken = crypto
@@ -136,9 +131,6 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 export const loginUser = catchAsync(async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -187,9 +179,6 @@ export const loginUser = catchAsync(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
-// @desc    Google OAuth callback
-// @route   GET /api/auth/google/callback
-// @access  Public
 export const googleCallback = async (req, res, next) => {
     const token = req.user.getSignedJwtToken();
     res.cookie('CleanBageToken', token, {
@@ -209,9 +198,6 @@ export const googleCallback = async (req, res, next) => {
     res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
 };
 
-// @desc    Logout user / clear cookie
-// @route   GET /api/auth/logout
-// @access  Private
 export const logoutUser = catchAsync(async (req, res, next) => {
     res.cookie('token', 'none', {
         expires: new Date(Date.now() + 10 * 1000),
@@ -224,9 +210,7 @@ export const logoutUser = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
-// @access  Private
+
 export const getMe = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.user.id);
 
@@ -236,9 +220,7 @@ export const getMe = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Update user details
-// @route   PUT /api/auth/updatedetails
-// @access  Private
+
 export const updateDetails = catchAsync(async (req, res, next) => {
     const fieldsToUpdate = {
         name: req.body.name,
@@ -271,9 +253,7 @@ export const updateDetails = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Update password
-// @route   PUT /api/auth/updatepassword
-// @access  Private
+
 export const updatePassword = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.user.id).select('+password');
 
@@ -298,9 +278,7 @@ export const updatePassword = catchAsync(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
-// @desc    Forgot password
-// @route   POST /api/auth/forgotpassword
-// @access  Public
+
 export const forgotPassword = catchAsync(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
@@ -343,9 +321,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     }
 });
 
-// @desc    Reset password
-// @route   PUT /api/auth/resetpassword/:resettoken
-// @access  Public
+
 export const resetPassword = catchAsync(async (req, res, next) => {
     // Get hashed token
     const resetPasswordToken = crypto
@@ -382,9 +358,6 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
-// @desc    Update FCM token for push notifications
-// @route   PUT /api/auth/fcmtoken
-// @access  Private
 export const updateFcmToken = catchAsync(async (req, res, next) => {
     const { fcmToken } = req.body;
 
