@@ -190,12 +190,12 @@ export const loginUser = catchAsync(async (req, res, next) => {
 // @desc    Google OAuth callback
 // @route   GET /api/auth/google/callback
 // @access  Public
-export const googleCallback =async (req, res, next) => {
+export const googleCallback = async (req, res, next) => {
     const token = req.user.getSignedJwtToken();
     res.cookie('CleanBageToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
     });
 
     await Notification.createNotification({
@@ -249,7 +249,7 @@ export const updateDetails = catchAsync(async (req, res, next) => {
     };
 
     // Remove undefined fields
-    Object.keys(fieldsToUpdate).forEach(key => 
+    Object.keys(fieldsToUpdate).forEach(key =>
         fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
 
@@ -366,7 +366,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-    
+
     await user.save();
 
     // Create notification for password reset
@@ -387,17 +387,17 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 // @access  Private
 export const updateFcmToken = catchAsync(async (req, res, next) => {
     const { fcmToken } = req.body;
-    
+
     if (!fcmToken) {
         return next(new ErrorResponse('FCM token is required', 400));
     }
-    
+
     const user = await User.findByIdAndUpdate(
-        req.user.id, 
-        { fcmToken }, 
+        req.user.id,
+        { fcmToken },
         { new: true }
     );
-    
+
     res.status(200).json({
         success: true,
         data: user
