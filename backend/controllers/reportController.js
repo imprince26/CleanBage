@@ -13,20 +13,20 @@ export const getReports = catchAsync(async (req, res, next) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
+
     // Filter
     const filter = {};
-    
+
     // Filter by collector
     if (req.query.collector) {
         filter.collector = req.query.collector;
     }
-    
+
     // Filter by bin
     if (req.query.bin) {
         filter.bin = req.query.bin;
     }
-    
+
     // Filter by date range
     if (req.query.startDate || req.query.endDate) {
         filter.collectionDate = {};
@@ -37,12 +37,12 @@ export const getReports = catchAsync(async (req, res, next) => {
             filter.collectionDate.$lte = new Date(req.query.endDate);
         }
     }
-    
+
     // Filter by status
     if (req.query.status) {
         filter.status = req.query.status;
     }
-    
+
     // Sort
     const sort = {};
     if (req.query.sortBy) {
@@ -51,9 +51,9 @@ export const getReports = catchAsync(async (req, res, next) => {
     } else {
         sort.collectionDate = -1;
     }
-    
+
     const total = await Report.countDocuments(filter);
-    
+
     const reports = await Report.find(filter)
         .populate('bin', 'binId location fillLevel wasteType')
         .populate('collector', 'name avatar')
@@ -61,24 +61,24 @@ export const getReports = catchAsync(async (req, res, next) => {
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
-    
+
     // Pagination result
     const pagination = {};
-    
+
     if (endIndex < total) {
         pagination.next = {
             page: page + 1,
             limit
         };
     }
-    
+
     if (startIndex > 0) {
         pagination.prev = {
             page: page - 1,
             limit
         };
     }
-    
+
     res.status(200).json({
         success: true,
         count: reports.length,
@@ -94,11 +94,11 @@ export const getReport = catchAsync(async (req, res, next) => {
         .populate('bin', 'binId location fillLevel wasteType')
         .populate('collector', 'name avatar')
         .populate('reviewedBy', 'name role');
-    
+
     if (!report) {
         return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
     }
-    
+
     res.status(200).json({
         success: true,
         data: report
@@ -109,33 +109,33 @@ export const getReport = catchAsync(async (req, res, next) => {
 export const createReport = catchAsync(async (req, res, next) => {
     // Add collector
     req.body.collector = req.user.id;
-    
+
     // Check if required fields are provided
     if (!req.body.bin || !req.body.wasteVolume) {
         return next(new ErrorResponse('Please provide bin ID and waste volume', 400));
     }
-    
+
     // Check if user is a garbage collector
     if (req.user.role !== 'garbage_collector') {
         return next(new ErrorResponse('Only garbage collectors can create reports', 403));
     }
-    
+
     // Check if bin exists
     const bin = await Collection.findById(req.body.bin);
     if (!bin) {
         return next(new ErrorResponse(`Bin not found with id of ${req.body.bin}`, 404));
     }
-    
+
     // Check if collector is assigned to the bin
     if (bin.assignedCollector && bin.assignedCollector.toString() !== req.user.id) {
         return next(new ErrorResponse('You are not assigned to this bin', 403));
     }
-    
+
     // Set collection date if not provided
     if (!req.body.collectionDate) {
         req.body.collectionDate = new Date();
     }
-    
+
     // Set start and end time
     if (!req.body.startTime) {
         req.body.startTime = new Date();
@@ -143,26 +143,26 @@ export const createReport = catchAsync(async (req, res, next) => {
     if (!req.body.endTime && req.body.status === 'completed') {
         req.body.endTime = new Date();
     }
-    
+
     // Set fill level before
     if (!req.body.fillLevelBefore) {
         req.body.fillLevelBefore = bin.fillLevel;
     }
-    
+
     // Process before photo
     if (req.files && req.files.photoBefore) {
         const file = req.files.photoBefore;
-        
+
         // Check file type
         if (!file.mimetype.startsWith('image')) {
             return next(new ErrorResponse('Please upload an image file', 400));
         }
-        
+
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
             return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
         }
-        
+
         try {
             // Upload to cloudinary
             const result = await cloudinary.uploader.upload(file.tempFilePath, {
@@ -170,7 +170,7 @@ export const createReport = catchAsync(async (req, res, next) => {
                 width: 800,
                 crop: 'scale'
             });
-            
+
             req.body.photoBefore = {
                 public_id: result.public_id,
                 url: result.secure_url
@@ -180,21 +180,21 @@ export const createReport = catchAsync(async (req, res, next) => {
             return next(new ErrorResponse('Problem with file upload', 500));
         }
     }
-    
+
     // Process after photo
     if (req.files && req.files.photoAfter) {
         const file = req.files.photoAfter;
-        
+
         // Check file type
         if (!file.mimetype.startsWith('image')) {
             return next(new ErrorResponse('Please upload an image file', 400));
         }
-        
+
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
             return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
         }
-        
+
         try {
             // Upload to cloudinary
             const result = await cloudinary.uploader.upload(file.tempFilePath, {
@@ -202,7 +202,7 @@ export const createReport = catchAsync(async (req, res, next) => {
                 width: 800,
                 crop: 'scale'
             });
-            
+
             req.body.photoAfter = {
                 public_id: result.public_id,
                 url: result.secure_url
@@ -212,9 +212,9 @@ export const createReport = catchAsync(async (req, res, next) => {
             return next(new ErrorResponse('Problem with file upload', 500));
         }
     }
-    
+
     const report = await Report.create(req.body);
-    
+
     // Update bin status if report is completed
     if (req.body.status === 'completed') {
         await Collection.findByIdAndUpdate(req.body.bin, {
@@ -222,7 +222,7 @@ export const createReport = catchAsync(async (req, res, next) => {
             fillLevel: req.body.fillLevelAfter || 0,
             lastCollected: req.body.collectionDate
         });
-        
+
         // Create notification for admin
         const admins = await User.find({ role: 'admin' });
         for (const admin of admins) {
@@ -243,7 +243,7 @@ export const createReport = catchAsync(async (req, res, next) => {
                 }
             });
         }
-        
+
         // Create notification for resident if bin was reported
         if (bin.reportedBy) {
             await Notification.createNotification({
@@ -260,7 +260,7 @@ export const createReport = catchAsync(async (req, res, next) => {
             });
         }
     }
-    
+
     res.status(201).json({
         success: true,
         data: report
@@ -270,19 +270,19 @@ export const createReport = catchAsync(async (req, res, next) => {
 
 export const updateReport = catchAsync(async (req, res, next) => {
     let report = await Report.findById(req.params.id);
-    
+
     if (!report) {
         return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is admin or the report creator
     if (req.user.role !== 'admin' && report.collector.toString() !== req.user.id) {
         return next(new ErrorResponse('Not authorized to update this report', 403));
     }
-    
+
     // Fields that can be updated by collector
     let fieldsToUpdate = {};
-    
+
     if (req.user.role === 'garbage_collector') {
         fieldsToUpdate = {
             wasteVolume: req.body.wasteVolume,
@@ -304,39 +304,39 @@ export const updateReport = catchAsync(async (req, res, next) => {
             efficiency: req.body.efficiency
         };
     }
-    
+
     // Remove undefined fields
-    Object.keys(fieldsToUpdate).forEach(key => 
+    Object.keys(fieldsToUpdate).forEach(key =>
         fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
-    
+
     // Process after photo if provided
     if (req.files && req.files.photoAfter) {
         const file = req.files.photoAfter;
-        
+
         // Check file type
         if (!file.mimetype.startsWith('image')) {
             return next(new ErrorResponse('Please upload an image file', 400));
         }
-        
+
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
             return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
         }
-        
+
         try {
             // Delete previous after photo if exists
             if (report.photoAfter && report.photoAfter.public_id) {
                 await cloudinary.uploader.destroy(report.photoAfter.public_id);
             }
-            
+
             // Upload to cloudinary
             const result = await cloudinary.uploader.upload(file.tempFilePath, {
                 folder: 'cleanbag/reports',
                 width: 800,
                 crop: 'scale'
             });
-            
+
             fieldsToUpdate.photoAfter = {
                 public_id: result.public_id,
                 url: result.secure_url
@@ -346,12 +346,12 @@ export const updateReport = catchAsync(async (req, res, next) => {
             return next(new ErrorResponse('Problem with file upload', 500));
         }
     }
-    
+
     report = await Report.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
         new: true,
         runValidators: true
     });
-    
+
     // Update bin status if report status changed to completed
     if (fieldsToUpdate.status === 'completed' && report.status === 'completed') {
         await Collection.findByIdAndUpdate(report.bin, {
@@ -360,7 +360,7 @@ export const updateReport = catchAsync(async (req, res, next) => {
             lastCollected: report.collectionDate
         });
     }
-    
+
     res.status(200).json({
         success: true,
         data: report
@@ -370,16 +370,16 @@ export const updateReport = catchAsync(async (req, res, next) => {
 
 export const deleteReport = catchAsync(async (req, res, next) => {
     const report = await Report.findById(req.params.id);
-    
+
     if (!report) {
         return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is admin
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to delete reports', 403));
     }
-    
+
     // Delete images from cloudinary
     if (report.photoBefore && report.photoBefore.public_id) {
         await cloudinary.uploader.destroy(report.photoBefore.public_id);
@@ -387,9 +387,9 @@ export const deleteReport = catchAsync(async (req, res, next) => {
     if (report.photoAfter && report.photoAfter.public_id) {
         await cloudinary.uploader.destroy(report.photoAfter.public_id);
     }
-    
+
     await report.deleteOne();
-    
+
     res.status(200).json({
         success: true,
         data: {}
@@ -399,31 +399,31 @@ export const deleteReport = catchAsync(async (req, res, next) => {
 
 export const submitFeedback = catchAsync(async (req, res, next) => {
     const { rating, comment } = req.body;
-    
+
     if (!rating) {
         return next(new ErrorResponse('Please provide a rating', 400));
     }
-    
+
     const report = await Report.findById(req.params.id);
-    
+
     if (!report) {
         return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is admin
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to submit feedback on reports', 403));
     }
-    
+
     report.feedback = {
         rating: parseInt(rating),
         comment: comment || '',
         givenBy: req.user.id,
         givenAt: new Date()
     };
-    
+
     await report.save();
-    
+
     // Create notification for collector
     await Notification.createNotification({
         recipient: report.collector,
@@ -436,7 +436,7 @@ export const submitFeedback = catchAsync(async (req, res, next) => {
             report: report._id
         }
     });
-    
+
     res.status(200).json({
         success: true,
         data: report
@@ -449,7 +449,7 @@ export const getReportStats = catchAsync(async (req, res, next) => {
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to access this data', 403));
     }
-    
+
     // Get total collected waste volume
     const totalWaste = await Report.aggregate([
         {
@@ -464,7 +464,7 @@ export const getReportStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get average efficiency score
     const avgEfficiency = await Report.aggregate([
         {
@@ -479,7 +479,7 @@ export const getReportStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get collections by waste category
     const wasteCategories = await Report.aggregate([
         {
@@ -498,7 +498,7 @@ export const getReportStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get top collectors
     const topCollectors = await Report.aggregate([
         {
@@ -520,19 +520,19 @@ export const getReportStats = catchAsync(async (req, res, next) => {
             $limit: 5
         }
     ]);
-    
+
     // Get collector details
     const populatedCollectors = await User.populate(topCollectors, {
         path: '_id',
         select: 'name avatar'
     });
-    
+
     const formattedCollectors = populatedCollectors.map(item => ({
         collector: item._id,
         collectionCount: item.collectionCount,
         totalVolume: item.totalVolume
     }));
-    
+
     res.status(200).json({
         success: true,
         data: {
