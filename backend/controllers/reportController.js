@@ -6,9 +6,7 @@ import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import cloudinary from '../utils/cloudinary.js';
 
-// @desc    Get all reports
-// @route   GET /api/reports
-// @access  Private
+
 export const getReports = catchAsync(async (req, res, next) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
@@ -90,9 +88,7 @@ export const getReports = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get single report
-// @route   GET /api/reports/:id
-// @access  Private
+
 export const getReport = catchAsync(async (req, res, next) => {
     const report = await Report.findById(req.params.id)
         .populate('bin', 'binId location fillLevel wasteType')
@@ -109,9 +105,7 @@ export const getReport = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Create new report
-// @route   POST /api/reports
-// @access  Private/Garbage Collector
+
 export const createReport = catchAsync(async (req, res, next) => {
     // Add collector
     req.body.collector = req.user.id;
@@ -273,9 +267,7 @@ export const createReport = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Update report
-// @route   PUT /api/reports/:id
-// @access  Private/Admin or Report Owner
+
 export const updateReport = catchAsync(async (req, res, next) => {
     let report = await Report.findById(req.params.id);
     
@@ -375,9 +367,7 @@ export const updateReport = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Delete report
-// @route   DELETE /api/reports/:id
-// @access  Private/Admin
+
 export const deleteReport = catchAsync(async (req, res, next) => {
     const report = await Report.findById(req.params.id);
     
@@ -406,9 +396,7 @@ export const deleteReport = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Submit feedback for report
-// @route   POST /api/reports/:id/feedback
-// @access  Private/Admin
+
 export const submitFeedback = catchAsync(async (req, res, next) => {
     const { rating, comment } = req.body;
     
@@ -455,9 +443,7 @@ export const submitFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get report statistics
-// @route   GET /api/reports/stats
-// @access  Private/Admin
+
 export const getReportStats = catchAsync(async (req, res, next) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
