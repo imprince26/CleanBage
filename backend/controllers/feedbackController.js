@@ -5,9 +5,7 @@ import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import cloudinary from '../utils/cloudinary.js';
 
-// @desc    Get all feedback
-// @route   GET /api/feedback
-// @access  Private/Admin
+
 export const getAllFeedback = catchAsync(async (req, res, next) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -99,9 +97,7 @@ export const getAllFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get user's feedback
-// @route   GET /api/feedback/me
-// @access  Private
+
 export const getUserFeedback = catchAsync(async (req, res, next) => {
     const feedback = await Feedback.find({ user: req.user.id })
         .populate('relatedTo.bin', 'binId location')
@@ -116,9 +112,7 @@ export const getUserFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get single feedback
-// @route   GET /api/feedback/:id
-// @access  Private
+
 export const getFeedback = catchAsync(async (req, res, next) => {
     const feedback = await Feedback.findById(req.params.id)
         .populate('user', 'name avatar')
@@ -141,9 +135,7 @@ export const getFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Create new feedback
-// @route   POST /api/feedback
-// @access  Private
+
 export const createFeedback = catchAsync(async (req, res, next) => {
     // Add user
     req.body.user = req.user.id;
@@ -240,9 +232,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Update feedback
-// @route   PUT /api/feedback/:id
-// @access  Private
+
 export const updateFeedback = catchAsync(async (req, res, next) => {
     let feedback = await Feedback.findById(req.params.id);
     
@@ -285,9 +275,7 @@ export const updateFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Delete feedback
-// @route   DELETE /api/feedback/:id
-// @access  Private
+
 export const deleteFeedback = catchAsync(async (req, res, next) => {
     const feedback = await Feedback.findById(req.params.id);
     
@@ -315,9 +303,7 @@ export const deleteFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Respond to feedback
-// @route   POST /api/feedback/:id/respond
-// @access  Private/Admin
+
 export const respondToFeedback = catchAsync(async (req, res, next) => {
     const { comment } = req.body;
     
@@ -369,9 +355,6 @@ export const respondToFeedback = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get feedback statistics
-// @route   GET /api/feedback/stats
-// @access  Private/Admin
 export const getFeedbackStats = catchAsync(async (req, res, next) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
