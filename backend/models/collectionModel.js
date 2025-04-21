@@ -238,7 +238,7 @@ collectionSchema.index({ status: 1 });
 collectionSchema.index({ fillLevel: -1 });
 collectionSchema.index({ wasteType: 1 });
 
-collectionSchema.pre('save', async function(next) {
+collectionSchema.pre('save', async function (next) {
     this.updatedAt = Date.now();
 
     // Auto calculate priority based on fill level and time since last collection
@@ -275,13 +275,13 @@ collectionSchema.pre('save', async function(next) {
     next();
 });
 
-collectionSchema.methods.needsCollection = function() {
+collectionSchema.methods.needsCollection = function () {
     return this.fillLevel >= 80 || this.status === 'overflow';
 };
 
-collectionSchema.methods.updateFillLevel = async function(newLevel) {
+collectionSchema.methods.updateFillLevel = async function (newLevel) {
     this.fillLevel = Math.min(100, Math.max(0, newLevel));
-    
+
     // Automatically update status based on fill level
     if (this.fillLevel >= 90) {
         this.status = 'overflow';
@@ -290,13 +290,13 @@ collectionSchema.methods.updateFillLevel = async function(newLevel) {
     } else if (this.fillLevel >= 10) {
         this.status = 'pending';
     }
-    
+
     await this.save();
     return this.fillLevel;
 };
 
 // Static method to find nearby bins
-collectionSchema.statics.findNearby = async function(coordinates, maxDistance = 1000, wasteType = null) {
+collectionSchema.statics.findNearby = async function (coordinates, maxDistance = 1000, wasteType = null) {
     const query = {
         location: {
             $near: {
@@ -309,11 +309,11 @@ collectionSchema.statics.findNearby = async function(coordinates, maxDistance = 
         },
         isActive: true
     };
-    
+
     if (wasteType) {
         query.wasteType = wasteType;
     }
-    
+
     return this.find(query)
         .populate('assignedCollector', 'name avatar')
         .sort({ fillLevel: -1 });
