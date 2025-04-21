@@ -2,9 +2,7 @@ import Notification from '../models/notificationModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 
-// @desc    Get user's notifications
-// @route   GET /api/notifications
-// @access  Private
+
 export const getUserNotifications = catchAsync(async (req, res, next) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
@@ -73,9 +71,7 @@ export const getUserNotifications = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get single notification
-// @route   GET /api/notifications/:id
-// @access  Private
+
 export const getNotification = catchAsync(async (req, res, next) => {
     const notification = await Notification.findById(req.params.id);
     
@@ -94,9 +90,7 @@ export const getNotification = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Mark notification as read
-// @route   PUT /api/notifications/:id/read
-// @access  Private
+
 export const markAsRead = catchAsync(async (req, res, next) => {
     const notification = await Notification.findById(req.params.id);
     
@@ -121,9 +115,7 @@ export const markAsRead = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Mark all notifications as read
-// @route   PUT /api/notifications/read-all
-// @access  Private
+
 export const markAllAsRead = catchAsync(async (req, res, next) => {
     await Notification.updateMany(
         { 
@@ -142,9 +134,7 @@ export const markAllAsRead = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Delete notification
-// @route   DELETE /api/notifications/:id
-// @access  Private
+
 export const deleteNotification = catchAsync(async (req, res, next) => {
     const notification = await Notification.findById(req.params.id);
     
@@ -165,9 +155,7 @@ export const deleteNotification = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Delete all read notifications
-// @route   DELETE /api/notifications/delete-read
-// @access  Private
+
 export const deleteReadNotifications = catchAsync(async (req, res, next) => {
     await Notification.deleteMany({
         recipient: req.user.id,
@@ -180,9 +168,7 @@ export const deleteReadNotifications = catchAsync(async (req, res, next) => {
     });
 });
 
-// @desc    Get notification count
-// @route   GET /api/notifications/count
-// @access  Private
+
 export const getNotificationCount = catchAsync(async (req, res, next) => {
     const unreadCount = await Notification.countDocuments({
         recipient: req.user.id,
