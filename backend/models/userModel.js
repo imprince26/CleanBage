@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -149,6 +150,12 @@ userSchema.pre('save', async function(next) {
         next(error);
     }
 });
+
+userSchema.methods.getSignedJwtToken = function () {
+    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE
+    });
+};
 
 // Compare entered password with hashed password
 userSchema.methods.matchPassword = async function(enteredPassword) {

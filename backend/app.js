@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -32,6 +33,9 @@ app.use(express.json());
 
 // Cookie parser
 app.use(cookieParser());
+
+// Passport middleware
+app.use(passport.initialize());
 
 // File upload
 app.use(fileUpload({

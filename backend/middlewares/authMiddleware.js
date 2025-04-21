@@ -5,24 +5,24 @@ import ErrorResponse from '../utils/errorResponse.js';
 
 // Middleware to protect routes
 export const protect = catchAsync(async (req, res, next) => {
-    let token;
+    let CleanBageToken;
     
-    // Get token from cookies or authorization header
-    if (req.cookies.token) {
-        token = req.cookies.token;
+    // Get CleanBageToken from cookies or authorization header
+    if (req.cookies.CleanBageToken) {
+        CleanBageToken = req.cookies.CleanBageToken;
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
+        CleanBageToken = req.headers.authorization.split(' ')[1];
     }
     
-    if (!token) {
+    if (!CleanBageToken) {
         return next(new ErrorResponse('Not authorized to access this route', 401));
     }
     
     try {
-        // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Verify CleanBageToken
+        const decoded = jwt.verify(CleanBageToken, process.env.JWT_SECRET);
         
-        // Get user from the token
+        // Get user from the CleanBageToken
         const user = await User.findById(decoded.id);
         
         if (!user) {
@@ -64,22 +64,22 @@ export const isVerified = catchAsync(async (req, res, next) => {
     next();
 });
 
-// Middleware to set user if token exists (for optional authentication)
+// Middleware to set user if CleanBageToken exists (for optional authentication)
 export const optionalAuth = catchAsync(async (req, res, next) => {
-    let token;
+    let CleanBageToken;
     
-    if (req.cookies.token) {
-        token = req.cookies.token;
+    if (req.cookies.CleanBageToken) {
+        CleanBageToken = req.cookies.CleanBageToken;
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
+        CleanBageToken = req.headers.authorization.split(' ')[1];
     }
     
-    if (!token) {
+    if (!CleanBageToken) {
         return next();
     }
     
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(CleanBageToken, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         
         if (user) {

@@ -2,7 +2,7 @@ import Route from '../models/routeModel.js';
 import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import RewardTransaction from '../models/rewardModel.js';
+import {RewardTransaction} from '../models/rewardModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 

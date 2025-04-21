@@ -233,7 +233,7 @@ const collectionSchema = new mongoose.Schema({
 });
 
 collectionSchema.index({ location: '2dsphere' });
-collectionSchema.index({ binId: 1 });
+// collectionSchema.index({ binId: 1 });
 collectionSchema.index({ status: 1 });
 collectionSchema.index({ fillLevel: -1 });
 collectionSchema.index({ wasteType: 1 });

@@ -3,7 +3,6 @@ import {
     registerUser,
     verifyEmail,
     loginUser,
-    googleAuth,
     googleCallback,
     logoutUser,
     getMe,
@@ -14,14 +13,15 @@ import {
     updateFcmToken
 } from '../controllers/authController.js';
 import { protect } from '../middlewares/authMiddleware.js';
+import passport from 'passport';
 
 const router = express.Router();
 
 router.post('/register', registerUser);
 router.get('/verify-email/:token', verifyEmail);
 router.post('/login', loginUser);
-router.get('/google', googleAuth);
-router.get('/google/callback', googleCallback);
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback',passport.authenticate('google', {session: false, failureRedirect: '/login' }), googleCallback);
 router.get('/logout', logoutUser);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);

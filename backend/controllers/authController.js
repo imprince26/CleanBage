@@ -6,7 +6,6 @@ import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import { sendTokenResponse, generateVerificationToken } from '../utils/tokenUtils.js';
 import sendEmail from '../utils/emailService.js';
-import { getGoogleAuthURL, getGoogleUser } from '../config/googleAuth.js';
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -126,6 +125,14 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
     await user.save();
 
+    const token = user.getSignedJwtToken();
+
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
+
     sendTokenResponse(user, 200, res);
 });
 
@@ -159,6 +166,14 @@ export const loginUser = catchAsync(async (req, res, next) => {
         return next(new ErrorResponse('Please verify your email address', 403));
     }
 
+    const token = user.getSignedJwtToken();
+
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
+
     // Create notification for login
     await Notification.createNotification({
         recipient: user._id,
@@ -175,73 +190,24 @@ export const loginUser = catchAsync(async (req, res, next) => {
 // @desc    Google OAuth callback
 // @route   GET /api/auth/google/callback
 // @access  Public
-export const googleCallback = catchAsync(async (req, res, next) => {
-    const { code } = req.query;
-    
-    if (!code) {
-      return next(new ErrorResponse('Authorization code not provided', 400));
-    }
-    
-    try {
-      // Get user profile from Google
-      const googleUser = await getGoogleUser(code);
-      
-      // Check if user exists
-      let user = await User.findOne({ email: googleUser.email });
-      
-      if (!user) {
-        // Create new user
-        user = await User.create({
-          name: googleUser.name,
-          email: googleUser.email,
-          password: crypto.randomBytes(20).toString('hex'),
-          isEmailVerified: true,
-          googleId: googleUser.id,
-          avatar: {
-            url: googleUser.picture
-          }
-        });
-      } else if (!user.googleId) {
-        // Update existing user with Google ID
-        user.googleId = googleUser.id;
-        if (!user.avatar.url) {
-          user.avatar = {
-            url: googleUser.picture
-          };
-        }
-        await user.save();
-      }
-      
-      // Generate token
-      const token = user.getSignedJwtToken();
-      
-      // Set cookie options
-      const cookieOptions = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
-        httpOnly: true
-      };
-      
-      if (process.env.NODE_ENV === 'production') {
-        cookieOptions.secure = true;
-      }
-      
-      res.status(200)
-        .cookie('token', token, cookieOptions)
-        .redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
-      
-    } catch (error) {
-      console.error('Google auth error:', error);
-      return next(new ErrorResponse('Failed to authenticate with Google', 500));
-    }
-  });
+export const googleCallback =async (req, res, next) => {
+    const token = req.user.getSignedJwtToken();
+    res.cookie('CleanBageToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
 
-// @desc    Google OAuth redirect
-// @route   GET /api/auth/google
-// @access  Public
-export const googleAuth = (req, res) => {
-    const url = getGoogleAuthURL();
-    res.redirect(url);
-  };
+    await Notification.createNotification({
+        recipient: req.user._id,
+        type: 'system_announcement',
+        title: 'New Login Detected',
+        message: `New login to your account detected at ${new Date().toLocaleString()}`,
+        priority: 'medium',
+        icon: 'log-in'
+    })
+    res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
+};
 
 // @desc    Logout user / clear cookie
 // @route   GET /api/auth/logout
