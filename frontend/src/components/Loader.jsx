@@ -1,27 +1,36 @@
-import { Recycle } from 'lucide-react';
+import { cn } from '../../utils/cn';
 
-const Loader = () => {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[200px] gap-4">
-      <div className="relative">
-        {/* Outer spinning circle */}
-        <div className="w-16 h-16 rounded-full border-4 border-gray-200 border-t-emerald-500 animate-spin"></div>
+export const Loader = ({ size = 'medium', fullScreen = false, className = '' }) => {
+  const sizeClasses = {
+    small: 'w-5 h-5 border-2',
+    medium: 'w-8 h-8 border-3',
+    large: 'w-12 h-12 border-4',
+  };
 
-        {/* Center icon */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Recycle
-            size={24}
-            className="text-emerald-500 animate-bounce"
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50">
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className={cn(
+              'animate-spin rounded-full border-solid border-primary border-t-transparent',
+              sizeClasses[size],
+              className
+            )}
           />
+          <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Loading text */}
-      <span className="text-emerald-500 font-medium text-lg animate-pulse">
-        Loading...
-      </span>
-    </div>
+  return (
+    <div
+      className={cn(
+        'animate-spin rounded-full border-solid border-primary border-t-transparent',
+        sizeClasses[size],
+        className
+      )}
+    />
   );
 };
-
-export default Loader;

@@ -1,158 +1,145 @@
-import React, { useState } from "react";
-import { FaRegUser, FaTruck, FaAward } from "react-icons/fa";
-import { RiLockPasswordLine } from "react-icons/ri";
-import { IoIosHeart } from "react-icons/io";
-import { MdCleaningServices } from "react-icons/md";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import {motion} from "motion/react"
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { Loader } from '../../components/common/Loader';
+import { Trash2 } from 'lucide-react';
 
-
-function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+const Login = () => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { login, loading, authError } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    if (!formData.email || !formData.password) {
-      setError("Please fill in all fields");
-      setLoading(false);
-      return;
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
+  };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     try {
-      const result = await login(formData);
-      
-      if (result.success) {
-        navigate('/');
-      } else {
-        setError(result.error || "Invalid credentials");
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
+      await login(formData.email, formData.password);
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col md:flex-row bg-[#F0FDF4] relative overflow-hidden">
-      {/* Decorative Icons */}
-      <MdCleaningServices className="absolute text-4xl md:text-6xl right-0 fill-[#66BB6A] top-0 -rotate-12 -translate-x-2" />
-      <FaTruck className="absolute text-4xl md:text-6xl left-0 fill-[#66BB6A] top-0 rotate-12" />
-      <IoIosHeart className="absolute text-4xl md:text-6xl left-0 fill-[#66BB6A] bottom-0 rotate-12" />
-      <FaAward className="absolute text-4xl md:text-6xl right-0 fill-[#66BB6A] bottom-0 -rotate-12 -translate-x-2" />
-
-      {/* Form Section */}
-      <div className="w-full md:w-1/2 min-h-[50vh] md:h-full py-10 md:py-20 px-5 flex justify-center items-center text-black flex-col relative z-[999]">
-        <h1 className="text-3xl md:text-5xl font-[heavitas] uppercase mb-10 md:mb-20">Login</h1>
-
-        <form onSubmit={handleLogin} className="flex flex-col w-full max-w-sm">
-          {/* Email Input */}
-          <div className="username flex border-[1px] justify-center items-center py-2 mb-5">
-            <FaRegUser className="ml-3 md:ml-5" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter Email"
-              className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+            <Trash2 className="h-6 w-6 text-primary-foreground" />
           </div>
-
-          {/* Password Input */}
-          <div className="password flex border-[1px] justify-center items-center py-2 mb-5 relative">
-            <RiLockPasswordLine className="ml-3 md:ml-5" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Enter Password"
-              className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full pr-10"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-            <button
-              type="button"
-              onClick={togglePasswordVisibility}
-              className="absolute right-3 text-gray-500"
-            >
-              {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-            </button>
-          </div>
-
-          <Link 
-            to="/forgot-password" 
-            className="text-gray-400 text-sm underline hover:text-blue-400 mb-4"
-          >
-            Forgot password?
-          </Link>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-[#66BB6A] hover:bg-[#2E7D32] text-zinc-900 cursor-pointer px-10 py-2 w-full disabled:opacity-50"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        {error && (
-          <span className="mt-5 text-red-500 text-sm">{error}</span>
-        )}
-
-        <p className="text-sm mt-4 text-center">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-green-900 underline">
-            Register
-          </Link>
-        </p>
+        </div>
+        
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {authError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{authError}</AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.email ? 'border-destructive' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.password ? 'border-destructive' : ''}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader size="small" className="mr-2" /> : null}
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col">
+            <p className="text-sm text-center text-muted-foreground">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-primary hover:underline">
+                Register
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
-
-      {/* Middle Line - Hidden on mobile */}
-      <div className="bg-green-900 h-[30rem] w-1 absolute hidden md:block translate-y-[25%] translate-x-[50vw]" />
-
-      {/* Image Section */}
-      <motion.div
-        className="w-full md:w-1/2 min-h-[50vh] md:h-full overflow-hidden z-[999] flex justify-center items-center"
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      >
-        <img
-          src="/cleanerImg.webp"
-          alt="CleanBage"
-          className="w-full h-full object-cover md:object-contain"
-        />
-      </motion.div>
     </div>
   );
-}
+};
 
 export default Login;

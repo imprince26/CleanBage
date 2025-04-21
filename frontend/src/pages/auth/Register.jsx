@@ -1,225 +1,210 @@
-import React, { useState } from "react";
-import { FaRegUser, FaTruck, FaAward, FaMapMarkerAlt } from "react-icons/fa";
-import { RiLockPasswordLine } from "react-icons/ri";
-import { IoIosHeart } from "react-icons/io";
-import { MdCleaningServices, MdOutlineEmail } from "react-icons/md";
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import {motion} from "motion/react"
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { Loader } from '../../components/common/Loader';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Trash2 } from 'lucide-react';
 
-
-function Register() {
-  const navigate = useNavigate();
-  const { register } = useAuth();
-  
+const Register = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "resident",
-    address: "",
-    assignedVehicle: ""
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'resident',
   });
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [showVehicle, setShowVehicle] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { register, loading, authError } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    if (name === 'role') {
-      setShowVehicle(value === 'garbage_collector');
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const handleRoleChange = (value) => {
+    setFormData((prev) => ({ ...prev, role: value }));
   };
 
-  const handleSignup = async (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    if (!formData.name || !formData.email || !formData.password) {
-      setError("Please fill in all required fields");
-      setLoading(false);
-      return;
-    }
-
+    
+    if (!validateForm()) return;
+    
     try {
-      const result = await register(formData);
-      
-      if (result.success) {
-        navigate('/login');
-      } else {
-        setError(result.error || "Registration failed");
-      }
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+      });
     } catch (error) {
-      setError("An error occurred during registration");
-      console.error("Registration error:", error);
-    } finally {
-      setLoading(false);
+      console.error('Registration error:', error);
     }
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col md:flex-row bg-[#F0FDF4] relative overflow-hidden">
-      {/* Decorative Icons */}
-      <MdCleaningServices className="absolute text-4xl md:text-6xl right-0 fill-[#66BB6A] top-0 -rotate-12 -translate-x-2" />
-      <FaTruck className="absolute text-4xl md:text-6xl left-0 fill-[#66BB6A] top-0 rotate-12" />
-      <IoIosHeart className="absolute text-4xl md:text-6xl left-0 fill-[#66BB6A] bottom-0 rotate-12" />
-      <FaAward className="absolute text-4xl md:text-6xl right-0 fill-[#66BB6A] bottom-0 -rotate-12 -translate-x-2" />
-
-      {/* Form Section */}
-      <div className="w-full md:w-1/2 min-h-[50vh] md:h-full py-10 md:py-20 px-5 flex justify-center items-center text-black flex-col relative z-[999]">
-        <h1 className="text-3xl md:text-5xl font-[Heavitas] uppercase mb-10 md:mb-20">Register</h1>
-
-        <form onSubmit={handleSignup} className="flex flex-col w-full max-w-sm">
-          {/* Name Input */}
-          <div className="username flex border-[1px] justify-center items-center py-2 mb-5">
-            <FaRegUser className="ml-3 md:ml-5" />
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter Full Name"
-              className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-md">
+        <div className="flex justify-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+            <Trash2 className="h-6 w-6 text-primary-foreground" />
           </div>
-
-          {/* Email Input */}
-          <div className="email flex border-[1px] justify-center items-center py-2 mb-5">
-            <MdOutlineEmail className="ml-3 md:ml-5" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter Email"
-              className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          {/* Password Input */}
-          <div className="password flex border-[1px] justify-center items-center py-2 mb-5 relative">
-            <RiLockPasswordLine className="ml-3 md:ml-5" />
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Enter Password"
-              className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full pr-10"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-            />
-            <button
-              type="button"
-              onClick={togglePasswordVisibility}
-              className="absolute right-3 text-gray-500"
-            >
-              {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-            </button>
-          </div>
-
-          {/* Role Selection */}
-          <div className="role flex border-[1px] justify-center items-center py-2 mb-5">
-            <FaRegUser className="ml-3 md:ml-5" />
-            <select
-              name="role"
-              className="outline-none px-3 md:px-5 border-zinc-300 rounded-sm w-full "
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="resident">Resident</option>
-              <option value="garbage_collector">Garbage Collector</option>
-            </select>
-          </div>
-
-          {/* Address Input (for residents) */}
-          {formData.role === 'resident' && (
-            <div className="address flex border-[1px] justify-center items-center py-2 mb-5">
-              <FaMapMarkerAlt className="ml-3 md:ml-5" />
-              <input
-                type="text"
-                name="address"
-                placeholder="Enter Address"
-                className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          )}
-
-          {/* Vehicle Input (for garbage collectors) */}
-          {formData.role === 'garbage_collector' && (
-            <div className="vehicle flex border-[1px] justify-center items-center py-2 mb-5">
-              <FaTruck className="ml-3 md:ml-5" />
-              <input
-                type="text"
-                name="assignedVehicle"
-                placeholder="Enter Vehicle Number"
-                className="outline-none bg-transparent px-3 md:px-5 border-zinc-300 rounded-sm w-full"
-                value={formData.assignedVehicle}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-[#66BB6A] hover:bg-[#2E7D32] text-zinc-900 cursor-pointer px-10 py-2 w-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Registering..." : "Register"}
-          </button>
-        </form>
-
-        {error && (
-          <span className="mt-5 text-red-500 text-sm">{error}</span>
-        )}
-
-        <p className="text-sm mt-4 text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-green-900 underline">
-            Login
-          </Link>
-        </p>
+        </div>
+        
+        <Card>
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
+            <CardDescription className="text-center">
+              Enter your information to create an account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {authError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{authError}</AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.name ? 'border-destructive' : ''}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.email ? 'border-destructive' : ''}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={handleRoleChange}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="resident">Resident</SelectItem>
+                    <SelectItem value="garbage_collector">Garbage Collector</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.password ? 'border-destructive' : ''}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={errors.confirmPassword ? 'border-destructive' : ''}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">{errors.confirmPassword}</p>
+                )}
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? <Loader size="small" className="mr-2" /> : null}
+                {loading ? 'Creating account...' : 'Register'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col">
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                Login
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
-
-      {/* Middle Line - Hidden on mobile */}
-      <div className="bg-green-900 h-[30rem] w-1 absolute hidden md:block translate-y-[25%] translate-x-[50vw]" />
-
-      {/* Image Section */}
-      <motion.div
-        className="w-full md:w-1/2 min-h-[50vh] md:h-full overflow-hidden z-[999] flex justify-center items-center"
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      >
-        <img
-          src="/cleanerImg.webp"
-          alt="CleanBage"
-          className="w-full h-full object-cover md:object-contain"
-        />
-      </motion.div>
     </div>
   );
-}
+};
 
 export default Register;

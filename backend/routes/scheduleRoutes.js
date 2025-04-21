@@ -1,26 +1,34 @@
 import express from 'express';
 import {
+    getSchedules,
+    getSchedule,
     createSchedule,
-    getAllSchedules,
-    getScheduleById,
     updateSchedule,
     deleteSchedule,
-    getCollectorSchedules
+    completeSchedule,
+    rescheduleCollection,
+    getCollectorUpcomingSchedules,
+    getScheduleStats
 } from '../controllers/scheduleController.js';
-import { protect, admin, garbageCollector } from '../middleware/auth.js';
+import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.route('/')
-    .post(protect, admin, createSchedule)
-    .get(protect, getAllSchedules);
+router.use(protect);
 
-router.route('/collector')
-    .get(protect, garbageCollector, getCollectorSchedules);
+router.route('/')
+    .get(getSchedules)
+    .post(authorize('admin'), createSchedule);
+
+router.get('/stats', authorize('admin'), getScheduleStats);
+router.get('/collector/upcoming', authorize('garbage_collector'), getCollectorUpcomingSchedules);
 
 router.route('/:id')
-    .get(protect, getScheduleById)
-    .put(protect, updateSchedule)
-    .delete(protect, admin, deleteSchedule);
+    .get(getSchedule)
+    .put(authorize('admin'), updateSchedule)
+    .delete(authorize('admin'), deleteSchedule);
+
+router.put('/:id/complete', authorize('garbage_collector'), completeSchedule);
+router.put('/:id/reschedule', rescheduleCollection);
 
 export default router;

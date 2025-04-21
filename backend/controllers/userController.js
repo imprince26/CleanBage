@@ -1,182 +1,372 @@
-import User from "../models/userModel.js";
+import User from '../models/userModel.js';
+import { RewardTransaction } from '../models/rewardModel.js';
+import Notification from '../models/notificationModel.js';
+import Collection from '../models/collectionModel.js';
+import Report from '../models/reportModel.js';
+import catchAsync from '../utils/catchAsync.js';
+import ErrorResponse from '../utils/errorResponse.js';
+import { getCoordinatesFromAddress } from '../utils/geoUtils.js';
+import cloudinary from '../utils/cloudinary.js';
 
-export const getUserProfile = async (req, res) => {
-  try {
-    // Check if user exists in request (added by auth middleware)
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized, no token"
-      });
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/Admin
+export const getUsers = catchAsync(async (req, res, next) => {
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Filter
+    const filter = {};
+    if (req.query.role) {
+        filter.role = req.query.role;
+    }
+    if (req.query.search) {
+        filter.$or = [
+            { name: { $regex: req.query.search, $options: 'i' } },
+            { email: { $regex: req.query.search, $options: 'i' } }
+        ];
     }
 
-    // Find user by ID and exclude password
-    const user = await User.findById(req.user._id).select("-password");
+    // Sort
+    const sort = {};
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split(':');
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+    } else {
+        sort.createdAt = -1;
+    }
+
+    const total = await User.countDocuments(filter);
+
+    const users = await User.find(filter)
+        .select('-__v')
+        .sort(sort)
+        .skip(startIndex)
+        .limit(limit);
+
+    // Pagination result
+    const pagination = {};
+
+    if (endIndex < total) {
+        pagination.next = {
+            page: page + 1,
+            limit
+        };
+    }
+
+    if (startIndex > 0) {
+        pagination.prev = {
+            page: page - 1,
+            limit
+        };
+    }
+
+    res.status(200).json({
+        success: true,
+        count: users.length,
+        pagination,
+        total,
+        data: users
+    });
+});
+
+// @desc    Get single user
+// @route   GET /api/users/:id
+// @access  Private/Admin
+export const getUser = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+});
+
+// @desc    Create user
+// @route   POST /api/users
+// @access  Private/Admin
+export const createUser = catchAsync(async (req, res, next) => {
+    const { name, email, password, role, phone, address } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+        return next(new ErrorResponse('Please provide name, email, password and role', 400));
+    }
 
     // Check if user exists
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
+    const userExists = await User.findOne({ email });
+
+    if (userExists) {
+        return next(new ErrorResponse('Email already registered', 400));
     }
 
-    // Send response with user data
-    res.status(200).json({
-      success: true,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        address: user.address,
-        assignedVehicle: user.assignedVehicle,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
-      }
+    // Create user
+    const user = await User.create({
+        name,
+        email,
+        password,
+        role,
+        phone,
+        address,
+        verified: true // Admin-created users are automatically verified
     });
 
-  } catch (error) {
-    // Handle potential errors
-    console.error("Get user profile error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error retrieving user profile",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
+    // Create notification
+    await Notification.createNotification({
+        recipient: user._id,
+        type: 'system_announcement',
+        title: 'Welcome to CleanBage!',
+        message: 'Your account has been created by an administrator. Welcome to the CleanBage platform!',
+        priority: 'high',
+        icon: 'user-plus'
     });
-  }
-};
 
-export const updateUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.email) user.email = req.body.email;
-    if (req.body.password) user.password = req.body.password;
-    if (req.body.address && user.role === "resident")
-      user.address = req.body.address;
-
-    const updatedUser = await user.save();
-
-    res.status(200).json({
-      success: true,
-      user: {
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        address: updatedUser.address,
-        assignedVehicle: updatedUser.assignedVehicle,
-      },
+    res.status(201).json({
+        success: true,
+        data: user
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+});
 
-// Get all users (Admin only)
-export const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find().select("-password");
-    res.status(200).json({
-      success: true,
-      count: users.length,
-      users,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private/Admin
+export const updateUser = catchAsync(async (req, res, next) => {
+    // Fields to update
+    const fieldsToUpdate = {
+        name: req.body.name,
+        email: req.body.email,
+        role: req.body.role,
+        phone: req.body.phone,
+        address: req.body.address,
+        assignedVehicle: req.body.assignedVehicle,
+        verified: req.body.verified
+    };
 
-// Get specific user by ID (Admin only)
-export const getUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+    // Remove undefined fields
+    Object.keys(fieldsToUpdate).forEach(key =>
+        fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
+    );
+
+    // Check if email exists
+    if (fieldsToUpdate.email) {
+        const existingUser = await User.findOne({ email: fieldsToUpdate.email });
+        if (existingUser && existingUser._id.toString() !== req.params.id) {
+            return next(new ErrorResponse('Email already in use', 400));
+        }
     }
-    res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
-// Update specific user by ID (Admin only)
-export const updateUserById = async (req, res) => {
-  try {
+    // Update user location if address is provided
+    if (fieldsToUpdate.address && typeof fieldsToUpdate.address === 'object') {
+        try {
+            const addressStr = [
+                fieldsToUpdate.address.street,
+                fieldsToUpdate.address.city,
+                fieldsToUpdate.address.state,
+                fieldsToUpdate.address.postalCode
+            ].filter(Boolean).join(', ');
+
+            if (addressStr) {
+                const coordinates = await getCoordinatesFromAddress(addressStr);
+                fieldsToUpdate.location = {
+                    type: 'Point',
+                    coordinates
+                };
+            }
+        } catch (error) {
+            console.error('Error updating location:', error);
+        }
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true
+    });
+
+    if (!user) {
+        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+});
+
+// @desc    Delete user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+export const deleteUser = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.params.id);
+
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
     }
 
-    if (req.body.name) user.name = req.body.name;
-    if (req.body.email) user.email = req.body.email;
-    if (req.body.role) user.role = req.body.role;
-    if (req.body.address) user.address = req.body.address;
-    if (req.body.assignedVehicle && user.role === "garbage_collector") {
-      user.assignedVehicle = req.body.assignedVehicle;
-    }
-
-    const updatedUser = await user.save();
-
-    res.status(200).json({
-      success: true,
-      user: {
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        address: updatedUser.address,
-        assignedVehicle: updatedUser.assignedVehicle,
-      },
+    // Check if user has related data
+    const collections = await Collection.find({
+        $or: [
+            { reportedBy: user._id },
+            { assignedCollector: user._id }
+        ]
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
 
-// Delete specific user by ID (Admin only)
-export const deleteUserById = async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+    if (collections.length > 0) {
+        return next(new ErrorResponse(`Cannot delete user with associated collections`, 400));
     }
 
     await user.deleteOne();
+
     res.status(200).json({
-      success: true,
-      message: "User deleted successfully",
+        success: true,
+        data: {}
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
+});
+
+// @desc    Upload user avatar
+// @route   PUT /api/users/:id/avatar
+// @access  Private/Admin or Self
+export const uploadAvatar = catchAsync(async (req, res, next) => {
+    // Check if user is admin or self
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return next(new ErrorResponse('Not authorized to update this user', 403));
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+    }
+
+    if (!req.files || !req.files.avatar) {
+        return next(new ErrorResponse('Please upload a file', 400));
+    }
+
+    const file = req.files.avatar;
+
+    // Check file type
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse('Please upload an image file', 400));
+    }
+
+    // Check file size
+    if (file.size > process.env.MAX_FILE_SIZE) {
+        return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+    }
+
+    try {
+        // Delete previous avatar if exists
+        if (user.avatar.public_id) {
+            await cloudinary.uploader.destroy(user.avatar.public_id);
+        }
+
+        // Upload to cloudinary
+        const result = await cloudinary.uploader.upload(file.tempFilePath, {
+            folder: 'cleanbag/avatars',
+            width: 150,
+            crop: 'scale'
+        });
+
+        // Update user avatar
+        user.avatar = {
+            public_id: result.public_id,
+            url: result.secure_url
+        };
+
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        return next(new ErrorResponse('Problem with file upload', 500));
+    }
+});
+
+// @desc    Get user statistics
+// @route   GET /api/users/:id/stats
+// @access  Private/Admin or Self
+export const getUserStats = catchAsync(async (req, res, next) => {
+    // Check if user is admin or self
+    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+        return next(new ErrorResponse('Not authorized to access this data', 403));
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+    }
+
+    const stats = {
+        reportsCount: 0,
+        collectionsCount: 0,
+        totalWasteCollected: 0,
+        rewardPointsHistory: [],
+        userRank: null,
+        streakCount: user.streakCount || 0
+    };
+
+    // Get reports count (for collectors)
+    if (user.role === 'garbage_collector') {
+        stats.reportsCount = await Report.countDocuments({ collector: user._id });
+
+        // Get total waste collected
+        const reports = await Report.find({ collector: user._id });
+        stats.totalWasteCollected = reports.reduce((total, report) => total + (report.wasteVolume || 0), 0);
+    }
+
+    // Get collections count (for residents)
+    if (user.role === 'resident') {
+        stats.collectionsCount = await Collection.countDocuments({ reportedBy: user._id });
+    }
+
+    // Get reward points history
+    stats.rewardPointsHistory = await RewardTransaction.find({
+        user: user._id
+    }).sort({ createdAt: -1 }).limit(10);
+
+    // Get user rank (for residents)
+    if (user.role === 'resident') {
+        const usersRanking = await User.find({
+            role: 'resident'
+        }).sort({ rewardPoints: -1 });
+
+        const userIndex = usersRanking.findIndex(u => u._id.toString() === user._id.toString());
+        stats.userRank = userIndex !== -1 ? userIndex + 1 : null;
+    }
+
+    res.status(200).json({
+        success: true,
+        data: stats
     });
-  }
-};
+});
+
+// @desc    Get leaderboard
+// @route   GET /api/users/leaderboard
+// @access  Public
+export const getLeaderboard = catchAsync(async (req, res, next) => {
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    const leaderboard = await User.find({
+        role: 'resident',
+        rewardPoints: { $gt: 0 }
+    })
+        .select('name avatar rewardPoints streakCount')
+        .sort({ rewardPoints: -1 })
+        .limit(limit);
+
+    res.status(200).json({
+        success: true,
+        count: leaderboard.length,
+        data: leaderboard
+    });
+});

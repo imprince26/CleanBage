@@ -1,30 +1,34 @@
 import express from 'express';
 import {
+    getCollections,
+    getCollection,
     createCollection,
-    getAllCollections,
-    getCollectionById,
     updateCollection,
     deleteCollection,
-    getNearbyCollections,
-    assignCollector
+    assignCollector,
+    getNearbyBins,
+    submitComplaint,
+    getCollectionStats
 } from '../controllers/collectionController.js';
-import { protect, admin } from '../middleware/auth.js';
+import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.route('/')
-    .post(protect, createCollection) // Resident or Admin can create
-    .get(protect, getAllCollections); // Garbage Collector or Admin
+router.use(protect);
 
-router.route('/nearby')
-    .get(protect, getNearbyCollections); // Resident, Garbage Collector, Admin
+router.route('/')
+    .get(getCollections)
+    .post(createCollection);
+
+router.get('/nearby', getNearbyBins);
+router.get('/stats', authorize('admin'), getCollectionStats);
 
 router.route('/:id')
-    .get(protect, getCollectionById) 
-    .put(protect, updateCollection) 
-    .delete(protect, admin, deleteCollection); // Admin only
+    .get(getCollection)
+    .put(updateCollection)
+    .delete(authorize('admin'), deleteCollection);
 
-router.route('/:id/assign')
-    .put(protect, admin, assignCollector); // Admin only
+router.put('/:id/assign', authorize('admin'), assignCollector);
+router.post('/:id/complaint', submitComplaint);
 
 export default router;

@@ -1,184 +1,339 @@
-import { createContext, useState, useContext, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
-import api from "@/utils/api";
+import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import { useToast } from '../components/ui/use-toast';
 
-const AuthContext = createContext({
-  user: null,
-  isAuthenticated: false,
-  isLoading: true,
-  login: async () => { },
-  register: async () => { },
-  logout: async () => { },
-  checkUserAuthentication: async () => { },
-});
-
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
+  // Load user from localStorage on initial render
   useEffect(() => {
-    checkUserAuthentication();
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        
+        // Set default headers for all requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Get current user
+        const res = await api.get('/api/auth/me');
+        
+        if (res.data.success) {
+          setUser(res.data.data);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        localStorage.removeItem('token');
+        delete api.defaults.headers.common['Authorization'];
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
   }, []);
 
-  const checkUserAuthentication = async () => {
+  // Register user
+  const register = async (userData) => {
+    setLoading(true);
+    setAuthError(null);
+    
     try {
-      const response = await api.get("/api/users/profile");
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-
+      const res = await api.post('/api/auth/register', userData);
+      
+      if (res.data.success) {
+        toast({
+          title: 'Registration Successful',
+          description: 'Please check your email to verify your account.',
+          variant: 'success',
+        });
+        navigate('/login');
+      }
+      
+      return res.data;
     } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
+      const message = error.response?.data?.error || 'Registration failed';
+      setAuthError(message);
+      toast({
+        title: 'Registration Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const login = async (credentials) => {
+  // Login user
+  const login = async (email, password) => {
+    setLoading(true);
+    setAuthError(null);
+    
     try {
-      const response = await api.post("/api/auth/login", credentials);
-      console.log(response.data.user);
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-
-      toast.success("Welcome to CleanBage!", {
-        style: {
-          background: "#2D6A4F",
-          color: "#FFFFFF",
-        },
-      });
-
-      navigate('/');
-      return response.data;
+      const res = await api.post('/api/auth/login', { email, password });
+      
+      if (res.data.success) {
+        localStorage.setItem('token', res.data.token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+        
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back, ${res.data.user.name}!`,
+          variant: 'success',
+        });
+        
+        // Redirect based on role
+        if (res.data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (res.data.user.role === 'garbage_collector') {
+          navigate('/collector/dashboard');
+        } else {
+          navigate('/resident/dashboard');
+        }
+      }
+      
+      return res.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Invalid credentials";
-
-      toast.error(errorMessage, {
-        style: {
-          background: "#DC2626",
-          color: "#FFFFFF",
-        },
+      const message = error.response?.data?.error || 'Login failed';
+      setAuthError(message);
+      toast({
+        title: 'Login Failed',
+        description: message,
+        variant: 'destructive',
       });
-
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const register = async (credentials) => {
-    try {
-      const response = await api.post("/api/auth/register", credentials);
-
-      toast.success("Registration successful! Please login.", {
-        style: {
-          background: "#2D6A4F",
-          color: "#FFFFFF",
-        },
-      });
-
-      navigate("/login");
-      return response.data;
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Registration failed";
-
-      toast.error(errorMessage, {
-        style: {
-          background: "#DC2626",
-          color: "#FFFFFF",
-        },
-      });
-
-      throw error;
-    }
-  };
-
+  // Logout user
   const logout = async () => {
     try {
-      await api.get("/api/auth/logout");
-
+      await api.get('/api/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      delete api.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);
-
-      toast.success("Logged out successfully", {
-        style: {
-          background: "#2D6A4F",
-          color: "#FFFFFF",
-        },
-      });
-
-      navigate("/login");
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Logout failed";
-
-      toast.error(errorMessage, {
-        style: {
-          background: "#DC2626",
-          color: "#FFFFFF",
-        },
+      navigate('/login');
+      
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+        variant: 'default',
       });
     }
   };
 
-  const updateProfile = async (updateData) => {
+  // Update user profile
+  const updateProfile = async (userData) => {
+    setLoading(true);
+    
     try {
-      const { data } = await api.put("/api/users/profile", updateData);
-
-      if (data.success) {
-        setUser(data.user);
-        toast.success("Profile updated successfully!", {
-          style: {
-            background: "#2D6A4F",
-            color: "#FFFFFF",
-          },
+      const res = await api.put('/api/auth/updatedetails', userData);
+      
+      if (res.data.success) {
+        setUser(res.data.data);
+        
+        toast({
+          title: 'Profile Updated',
+          description: 'Your profile has been successfully updated.',
+          variant: 'success',
         });
-        return data;
       }
+      
+      return res.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Profile update failed";
-
-      toast.error(errorMessage, {
-        style: {
-          background: "#DC2626",
-          color: "#FFFFFF",
-        },
+      const message = error.response?.data?.error || 'Profile update failed';
+      toast({
+        title: 'Update Failed',
+        description: message,
+        variant: 'destructive',
       });
-
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const contextValue = {
-    user,
-    isAuthenticated,
-    isLoading,
-    login,
-    register,
-    logout,
-    updateProfile,
-    checkUserAuthentication,
-    isAdmin: user?.role === 'admin',
-    isGarbageCollector: user?.role === 'garbage_collector',
-    isResident: user?.role === 'resident',
+  // Update password
+  const updatePassword = async (passwordData) => {
+    setLoading(true);
+    
+    try {
+      const res = await api.put('/api/auth/updatepassword', passwordData);
+      
+      if (res.data.success) {
+        toast({
+          title: 'Password Updated',
+          description: 'Your password has been successfully updated.',
+          variant: 'success',
+        });
+      }
+      
+      return res.data;
+    } catch (error) {
+      const message = error.response?.data?.error || 'Password update failed';
+      toast({
+        title: 'Update Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Forgot password
+  const forgotPassword = async (email) => {
+    setLoading(true);
+    
+    try {
+      const res = await api.post('/api/auth/forgotpassword', { email });
+      
+      if (res.data.success) {
+        toast({
+          title: 'Email Sent',
+          description: 'Please check your email for password reset instructions.',
+          variant: 'success',
+        });
+      }
+      
+      return res.data;
+    } catch (error) {
+      const message = error.response?.data?.error || 'Request failed';
+      toast({
+        title: 'Request Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset password
+  const resetPassword = async (token, password) => {
+    setLoading(true);
+    
+    try {
+      const res = await api.put(`/api/auth/resetpassword/${token}`, { password });
+      
+      if (res.data.success) {
+        toast({
+          title: 'Password Reset',
+          description: 'Your password has been successfully reset. You can now login.',
+          variant: 'success',
+        });
+        navigate('/login');
+      }
+      
+      return res.data;
+    } catch (error) {
+      const message = error.response?.data?.error || 'Reset failed';
+      toast({
+        title: 'Reset Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify email
+  const verifyEmail = async (token) => {
+    setLoading(true);
+    
+    try {
+      const res = await api.get(`/api/auth/verify-email/${token}`);
+      
+      if (res.data.success) {
+        localStorage.setItem('token', res.data.token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+        
+        toast({
+          title: 'Email Verified',
+          description: 'Your email has been successfully verified.',
+          variant: 'success',
+        });
+        
+        // Redirect based on role
+        if (res.data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (res.data.user.role === 'garbage_collector') {
+          navigate('/collector/dashboard');
+        } else {
+          navigate('/resident/dashboard');
+        }
+      }
+      
+      return res.data;
+    } catch (error) {
+      const message = error.response?.data?.error || 'Verification failed';
+      toast({
+        title: 'Verification Failed',
+        description: message,
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {!isLoading && children}
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        loading,
+        authError,
+        register,
+        login,
+        logout,
+        updateProfile,
+        updatePassword,
+        forgotPassword,
+        resetPassword,
+        verifyEmail,
+      }}
+    >
+      {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-
   return context;
 };
-
-export default AuthProvider;

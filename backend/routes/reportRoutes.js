@@ -1,26 +1,30 @@
 import express from 'express';
 import {
+    getReports,
+    getReport,
     createReport,
-    getAllReports,
-    getReportById,
     updateReport,
     deleteReport,
-    getCollectorReports
+    submitFeedback,
+    getReportStats
 } from '../controllers/reportController.js';
-import { protect, admin, garbageCollector } from '../middleware/auth.js';
+import { protect, authorize } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.route('/')
-    .post(protect, garbageCollector, createReport)
-    .get(protect, getAllReports);
+router.use(protect);
 
-router.route('/collector')
-    .get(protect, garbageCollector, getCollectorReports);
+router.route('/')
+    .get(getReports)
+    .post(authorize('garbage_collector'), createReport);
+
+router.get('/stats', authorize('admin'), getReportStats);
 
 router.route('/:id')
-    .get(protect, getReportById)
-    .put(protect, admin, updateReport)
-    .delete(protect, admin, deleteReport);
+    .get(getReport)
+    .put(updateReport)
+    .delete(authorize('admin'), deleteReport);
+
+router.post('/:id/feedback', authorize('admin'), submitFeedback);
 
 export default router;
