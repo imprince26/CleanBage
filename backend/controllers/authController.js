@@ -6,6 +6,7 @@ import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import { sendTokenResponse, generateVerificationToken } from '../utils/tokenUtils.js';
 import sendEmail from '../utils/emailService.js';
+import { getGoogleAuthURL, getGoogleUser } from '../config/googleAuth.js';
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -175,13 +176,72 @@ export const loginUser = catchAsync(async (req, res, next) => {
 // @route   GET /api/auth/google/callback
 // @access  Public
 export const googleCallback = catchAsync(async (req, res, next) => {
-    // This will be handled by Passport.js in a real implementation
-    // For now, we'll use a placeholder function
-    res.status(200).json({
-        success: true,
-        message: 'Google authentication successful'
-    });
-});
+    const { code } = req.query;
+    
+    if (!code) {
+      return next(new ErrorResponse('Authorization code not provided', 400));
+    }
+    
+    try {
+      // Get user profile from Google
+      const googleUser = await getGoogleUser(code);
+      
+      // Check if user exists
+      let user = await User.findOne({ email: googleUser.email });
+      
+      if (!user) {
+        // Create new user
+        user = await User.create({
+          name: googleUser.name,
+          email: googleUser.email,
+          password: crypto.randomBytes(20).toString('hex'),
+          isEmailVerified: true,
+          googleId: googleUser.id,
+          avatar: {
+            url: googleUser.picture
+          }
+        });
+      } else if (!user.googleId) {
+        // Update existing user with Google ID
+        user.googleId = googleUser.id;
+        if (!user.avatar.url) {
+          user.avatar = {
+            url: googleUser.picture
+          };
+        }
+        await user.save();
+      }
+      
+      // Generate token
+      const token = user.getSignedJwtToken();
+      
+      // Set cookie options
+      const cookieOptions = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+        httpOnly: true
+      };
+      
+      if (process.env.NODE_ENV === 'production') {
+        cookieOptions.secure = true;
+      }
+      
+      res.status(200)
+        .cookie('token', token, cookieOptions)
+        .redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
+      
+    } catch (error) {
+      console.error('Google auth error:', error);
+      return next(new ErrorResponse('Failed to authenticate with Google', 500));
+    }
+  });
+
+// @desc    Google OAuth redirect
+// @route   GET /api/auth/google
+// @access  Public
+export const googleAuth = (req, res) => {
+    const url = getGoogleAuthURL();
+    res.redirect(url);
+  };
 
 // @desc    Logout user / clear cookie
 // @route   GET /api/auth/logout

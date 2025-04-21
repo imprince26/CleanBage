@@ -3,6 +3,7 @@ import {
     registerUser,
     verifyEmail,
     loginUser,
+    googleAuth,
     googleCallback,
     logoutUser,
     getMe,
@@ -19,6 +20,7 @@ const router = express.Router();
 router.post('/register', registerUser);
 router.get('/verify-email/:token', verifyEmail);
 router.post('/login', loginUser);
+router.get('/google', googleAuth);
 router.get('/google/callback', googleCallback);
 router.get('/logout', logoutUser);
 router.get('/me', protect, getMe);
