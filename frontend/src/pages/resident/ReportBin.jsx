@@ -1,282 +1,392 @@
-import { useState } from 'react';
-import { MapPin, Trash2, Upload, AlertCircle, CheckCircle ,Scale, } from 'lucide-react';
-import { useCollection } from '@/context/CollectionContext';
-import {motion} from "motion/react"
-
-
-const BinSVG = () => (
-  <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M60 40h80l10 160H50L60 40z" className="stroke-[#2D6A4F] dark:stroke-[#95D5B2]" strokeWidth="4"/>
-    <path d="M40 40h120v10H40z" className="fill-[#2D6A4F] dark:fill-[#95D5B2]"/>
-    <path d="M90 20h20v20H90z" className="fill-[#2D6A4F] dark:fill-[#95D5B2]"/>
-    <path d="M70 60v120M100 60v120M130 60v120" className="stroke-[#2D6A4F]/30 dark:stroke-[#95D5B2]/30" strokeWidth="2" strokeDasharray="4 4"/>
-  </svg>
-);
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useLocation as useUserLocation } from '../../context/LocationContext';
+import { PageHeader } from '../../components/common/PageHeader';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Alert, AlertDescription } from '../../components/ui/alert';
+import { Loader } from '../../components/common/Loader';
+import { Camera, MapPin, Trash2, X, Upload, Image } from 'lucide-react';
+import { useToast } from '../../components/ui/use-toast';
+import api from '../../utils/api';
 
 const ReportBin = () => {
-  const { reportBin, loading, error } = useCollection();
-  const [success, setSuccess] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentLocation, getCurrentLocation } = useUserLocation();
+  const { toast } = useToast();
+  const fileInputRef = useRef(null);
   
-  const [formData, setFormData] = useState({
-    binId: '',
-    location: {
-      type: 'Point',
-      coordinates: []
-    },
-    fillLevel: 0,
-    wasteType: 'non-recyclable',
-    status: 'pending',
-  });
-
-  const [coordinates, setCoordinates] = useState(null);
-
-  const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const coords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-        setCoordinates(coords);
-        setFormData(prev => ({
-          ...prev,
-          location: {
-            type: 'Point',
-            coordinates: [coords.longitude, coords.latitude]
-          }
-        }));
-      });
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [binId, setBinId] = useState('');
+  const [notes, setNotes] = useState('');
+  const [images, setImages] = useState([]);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [nearbyBins, setNearbyBins] = useState([]);
+  const [selectedBin, setSelectedBin] = useState(null);
+  
+  // Get bin ID from query params if available
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const binIdParam = params.get('binId');
+    
+    if (binIdParam) {
+      fetchBinDetails(binIdParam);
+    } else {
+      fetchNearbyBins();
+    }
+  }, [location.search]);
+  
+  // Get current location if not available
+  useEffect(() => {
+    if (!currentLocation) {
+      getCurrentLocation();
+    }
+  }, [currentLocation, getCurrentLocation]);
+  
+  const fetchBinDetails = async (id) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/collections/${id}`);
+      if (res.data.success) {
+        setSelectedBin(res.data.data);
+        setBinId(res.data.data.binId);
+      }
+    } catch (error) {
+      console.error('Error fetching bin details:', error);
+      setError('Failed to fetch bin details. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-
+  
+  const fetchNearbyBins = async () => {
+    if (!currentLocation) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const res = await api.get('/api/collections/nearby', {
+        params: {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          radius: 2, // 2km radius
+          limit: 10
+        }
+      });
+      
+      if (res.data.success) {
+        setNearbyBins(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching nearby bins:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleBinSelect = (bin) => {
+    setSelectedBin(bin);
+    setBinId(bin.binId);
+  };
+  
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    
+    if (files.length + images.length > 5) {
+      toast({
+        title: 'Too many images',
+        description: 'You can upload a maximum of 5 images',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const newImages = [...images];
+    const newPreviewImages = [...previewImages];
+    
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload only image files',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: 'Please upload images less than 5MB',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      newImages.push(file);
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        newPreviewImages.push(reader.result);
+        setPreviewImages([...newPreviewImages]);
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    setImages(newImages);
+  };
+  
+  const removeImage = (index) => {
+    const newImages = [...images];
+    const newPreviewImages = [...previewImages];
+    
+    newImages.splice(index, 1);
+    newPreviewImages.splice(index, 1);
+    
+    setImages(newImages);
+    setPreviewImages(newPreviewImages);
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!selectedBin) {
+      setError('Please select a bin to report');
+      return;
+    }
+    
+    if (!notes.trim()) {
+      setError('Please provide a description of the issue');
+      return;
+    }
+    
+    setSubmitting(true);
+    setError(null);
+    
     try {
-      const response = await reportBin(formData);
-      if (response.success) {
-        setSuccess(true);
-        // Reset form
-        setFormData({
-          binId: '',
-          location: {
-            type: 'Point',
-            coordinates: []
-          },
-          fillLevel: 0,
-          wasteType: 'non-recyclable',
-          status: 'pending',
-        });
-        setCoordinates(null);
-        setTimeout(() => setSuccess(false), 3000);
+      const formData = new FormData();
+      formData.append('reportNotes', notes);
+      
+      if (currentLocation) {
+        formData.append('latitude', currentLocation.latitude);
+        formData.append('longitude', currentLocation.longitude);
       }
-    } catch (err) {
-      console.error(err);
+      
+      images.forEach(image => {
+        formData.append('images', image);
+      });
+      
+      const res = await api.post(`/api/collections/${selectedBin._id}/report`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (res.data.success) {
+        toast({
+          title: 'Report Submitted',
+          description: 'Thank you for reporting this bin. Your report has been submitted successfully.',
+          variant: 'success',
+        });
+        
+        navigate('/resident/dashboard');
+      }
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      setError(error.response?.data?.error || 'Failed to submit report. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
-
-  const validateForm = () => {
+  
+  if (loading) {
     return (
-      formData.binId &&
-      formData.location.coordinates.length === 2 &&
-      formData.fillLevel >= 0 &&
-      formData.fillLevel <= 100
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader />
+      </div>
     );
-  };
-
+  }
+  
   return (
-    <div className="min-h-screen bg-[#F0FDF4] dark:bg-[#081C15] transition-colors duration-300 pt-20">
-      <div className="max-w-6xl mx-auto p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-        >
-          {/* Form Column */}
-          <div className="bg-white/80 dark:bg-[#2D6A4F]/20 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-[#95D5B2]/20">
-            <h1 className="text-3xl font-bold text-[#2D6A4F] dark:text-[#95D5B2] mb-6">
-              Report Bin Collection
-            </h1>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                {/* Bin ID Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Bin ID *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.binId}
-                    onChange={(e) => setFormData({...formData, binId: e.target.value})}
-                    className="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#95D5B2]/20 
-                             dark:bg-[#1B4332] dark:text-white shadow-sm focus:border-[#2D6A4F] 
-                             focus:ring-[#2D6A4F] dark:focus:border-[#95D5B2] dark:focus:ring-[#95D5B2]"
-                    required
-                    placeholder="Enter unique bin ID"
+    <div>
+      <PageHeader
+        title="Report a Bin"
+        description="Report a waste bin that needs attention"
+        backLabel="Back to Dashboard"
+        backOnClick={() => navigate('/resident/dashboard')}
+      />
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Report Details</CardTitle>
+              <CardDescription>
+                Provide details about the bin that needs attention
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="binId">Bin ID</Label>
+                  <Input
+                    id="binId"
+                    value={binId}
+                    onChange={(e) => setBinId(e.target.value)}
+                    disabled={!!selectedBin}
+                    placeholder="Select a bin from the list"
                   />
                 </div>
-
-                {/* Waste Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Waste Type *
-                  </label>
-                  <select
-                    value={formData.wasteType}
-                    onChange={(e) => setFormData({...formData, wasteType: e.target.value})}
-                    className="mt-1 block w-full rounded-lg border-gray-300 dark:border-[#95D5B2]/20 
-                             dark:bg-[#1B4332] dark:text-white shadow-sm focus:border-[#2D6A4F] 
-                             focus:ring-[#2D6A4F] dark:focus:border-[#95D5B2] dark:focus:ring-[#95D5B2]"
+                
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Description</Label>
+                  <Textarea
+                    id="notes"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Describe the issue with the bin (e.g., overflowing, damaged, etc.)"
+                    rows={4}
                     required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Photos</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {previewImages.map((preview, index) => (
+                      <div key={index} className="relative aspect-square rounded-md overflow-hidden border">
+                        <img
+                          src={preview || "/placeholder.svg"}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    
+                    {previewImages.length < 5 && (
+                      <div
+                        className="aspect-square rounded-md border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                        <span className="text-xs text-muted-foreground">Upload</span>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upload up to 5 photos of the bin (max 5MB each)
+                  </p>
+                </div>
+                
+                <div className="pt-4">
+                  <Button type="submit" className="w-full" disabled={submitting}>
+                    {submitting ? <Loader size="small" className="mr-2" /> : null}
+                    {submitting ? 'Submitting Report...' : 'Submit Report'}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Nearby Bins</CardTitle>
+              <CardDescription>
+                Select a bin from the list to report
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {nearbyBins.length === 0 ? (
+                <div className="text-center py-6">
+                  <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    No bins found nearby. Please check your location or add a bin ID manually.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                    onClick={fetchNearbyBins}
                   >
-                    <option value="organic">Organic</option>
-                    <option value="recyclable">Recyclable</option>
-                    <option value="non-recyclable">Non-Recyclable</option>
-                    <option value="hazardous">Hazardous</option>
-                  </select>
+                    Refresh
+                  </Button>
                 </div>
-
-                {/* Fill Level */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Fill Level (%) *
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={formData.fillLevel}
-                      onChange={(e) => setFormData({...formData, fillLevel: parseInt(e.target.value)})}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer 
-                               dark:bg-[#1B4332] accent-[#2D6A4F] dark:accent-[#95D5B2]"
-                    />
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {formData.fillLevel}%
-                      </span>
-                      <Scale className="w-5 h-5 text-[#2D6A4F] dark:text-[#95D5B2]" />
-                    </div>
-                    {/* Fill Level Progress Bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                      <div 
-                        className="bg-[#2D6A4F] dark:bg-[#95D5B2] h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${formData.fillLevel}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Location *
-                  </label>
-                  <div className="mt-1 flex gap-2">
-                    <input
-                      type="text"
-                      value={coordinates ? `${coordinates.latitude}, ${coordinates.longitude}` : ''}
-                      readOnly
-                      className="block w-full rounded-lg border-gray-300 dark:border-[#95D5B2]/20 
-                               dark:bg-[#1B4332] dark:text-white shadow-sm"
-                      placeholder="Click 'Get Location' to set coordinates"
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      onClick={handleGetLocation}
-                      className="inline-flex items-center px-4 py-2 border border-transparent 
-                               rounded-lg text-sm font-medium text-white bg-[#2D6A4F] 
-                               hover:bg-[#2D6A4F]/90 dark:bg-[#95D5B2]/20 dark:hover:bg-[#95D5B2]/30"
+              ) : (
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                  {nearbyBins.map((bin) => (
+                    <div
+                      key={bin._id}
+                      className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        selectedBin?._id === bin._id ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => handleBinSelect(bin)}
                     >
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Get Location
-                    </motion.button>
-                  </div>
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Trash2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{bin.binId}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {bin.location?.address || 'No address available'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {bin.distance ? `${bin.distance.toFixed(2)} km away` : 'Distance unknown'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              {/* Messages */}
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center p-4 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg"
-                >
-                  <AlertCircle className="w-5 h-5 mr-2" />
-                  <span>{error}</span>
-                </motion.div>
               )}
-
-              {success && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center p-4 text-[#2D6A4F] dark:text-[#95D5B2] bg-[#2D6A4F]/10 dark:bg-[#95D5B2]/10 rounded-lg"
-                >
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  <span>Bin reported successfully!</span>
-                </motion.div>
-              )}
-
-              {/* Submit Button */}
-              <motion.button
-                type="submit"
-                disabled={loading || !validateForm()}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent 
-                         rounded-lg shadow-sm text-sm font-medium text-white bg-[#2D6A4F] 
-                         hover:bg-[#2D6A4F]/90 dark:bg-[#95D5B2]/20 dark:hover:bg-[#95D5B2]/30
-                         disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+            </CardContent>
+            <CardFooter>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  getCurrentLocation();
+                  fetchNearbyBins();
+                }}
               >
-                {loading ? (
-                  <div className="flex items-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Submitting...
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Submit Report
-                  </>
-                )}
-              </motion.button>
-            </form>
-          </div>
-
-          {/* Illustration Column */}
-          <div className="lg:flex flex-col justify-center items-center hidden">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="mb-8"
-            >
-              <BinSVG />
-            </motion.div>
-            
-            <div className="space-y-4 text-center max-w-md">
-              <h2 className="text-xl font-semibold text-[#2D6A4F] dark:text-[#95D5B2]">
-                Help Keep Our City Clean
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                Report waste bins to help maintain cleanliness and efficiency in waste collection.
-              </p>
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="p-4 bg-[#2D6A4F]/10 dark:bg-[#95D5B2]/10 rounded-lg">
-                  <Trash2 className="w-6 h-6 text-[#2D6A4F] dark:text-[#95D5B2] mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Segregate Waste</p>
-                </div>
-                <div className="p-4 bg-[#2D6A4F]/10 dark:bg-[#95D5B2]/10 rounded-lg">
-                  <Scale className="w-6 h-6 text-[#2D6A4F] dark:text-[#95D5B2] mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Monitor Fill Level</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+                <MapPin className="h-4 w-4 mr-2" />
+                Update Location
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     </div>
   );
