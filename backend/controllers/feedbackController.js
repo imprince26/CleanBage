@@ -11,46 +11,46 @@ export const getAllFeedback = catchAsync(async (req, res, next) => {
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to access all feedback', 403));
     }
-    
+
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
+
     // Filter
     const filter = {};
-    
+
     // Filter by type
     if (req.query.type) {
         filter.type = req.query.type;
     }
-    
+
     // Filter by rating
     if (req.query.minRating) {
         filter.rating = { $gte: parseInt(req.query.minRating) };
     }
-    
+
     // Filter by status
     if (req.query.status) {
         filter.status = req.query.status;
     }
-    
+
     // Filter by user
     if (req.query.user) {
         filter.user = req.query.user;
     }
-    
+
     // Filter by related bin
     if (req.query.bin) {
         filter['relatedTo.bin'] = req.query.bin;
     }
-    
+
     // Filter by related collector
     if (req.query.collector) {
         filter['relatedTo.collector'] = req.query.collector;
     }
-    
+
     // Sort
     const sort = {};
     if (req.query.sortBy) {
@@ -59,9 +59,9 @@ export const getAllFeedback = catchAsync(async (req, res, next) => {
     } else {
         sort.createdAt = -1;
     }
-    
+
     const total = await Feedback.countDocuments(filter);
-    
+
     const feedback = await Feedback.find(filter)
         .populate('user', 'name avatar')
         .populate('relatedTo.bin', 'binId location')
@@ -70,24 +70,24 @@ export const getAllFeedback = catchAsync(async (req, res, next) => {
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
-    
+
     // Pagination result
     const pagination = {};
-    
+
     if (endIndex < total) {
         pagination.next = {
             page: page + 1,
             limit
         };
     }
-    
+
     if (startIndex > 0) {
         pagination.prev = {
             page: page - 1,
             limit
         };
     }
-    
+
     res.status(200).json({
         success: true,
         count: feedback.length,
@@ -104,7 +104,7 @@ export const getUserFeedback = catchAsync(async (req, res, next) => {
         .populate('relatedTo.collector', 'name avatar')
         .populate('response.respondedBy', 'name role')
         .sort({ createdAt: -1 });
-    
+
     res.status(200).json({
         success: true,
         count: feedback.length,
@@ -119,16 +119,16 @@ export const getFeedback = catchAsync(async (req, res, next) => {
         .populate('relatedTo.bin', 'binId location')
         .populate('relatedTo.collector', 'name avatar')
         .populate('response.respondedBy', 'name role');
-    
+
     if (!feedback) {
         return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check if user is admin or the feedback creator
     if (req.user.role !== 'admin' && feedback.user.toString() !== req.user.id) {
         return next(new ErrorResponse('Not authorized to access this feedback', 403));
     }
-    
+
     res.status(200).json({
         success: true,
         data: feedback
@@ -139,29 +139,29 @@ export const getFeedback = catchAsync(async (req, res, next) => {
 export const createFeedback = catchAsync(async (req, res, next) => {
     // Add user
     req.body.user = req.user.id;
-    
+
     // Check if required fields are provided
     if (!req.body.type || !req.body.rating || !req.body.comment) {
         return next(new ErrorResponse('Please provide type, rating, and comment', 400));
     }
-    
+
     // Process uploaded images
     if (req.files && req.files.images) {
         req.body.images = [];
-        
+
         const files = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
-        
+
         for (const file of files) {
             // Check file type
             if (!file.mimetype.startsWith('image')) {
                 return next(new ErrorResponse('Please upload an image file', 400));
             }
-            
+
             // Check file size
             if (file.size > process.env.MAX_FILE_SIZE) {
                 return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
             }
-            
+
             try {
                 // Upload to cloudinary
                 const result = await cloudinary.uploader.upload(file.tempFilePath, {
@@ -169,7 +169,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
                     width: 800,
                     crop: 'scale'
                 });
-                
+
                 req.body.images.push({
                     public_id: result.public_id,
                     url: result.secure_url
@@ -180,7 +180,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
             }
         }
     }
-    
+
     // Get user's location if available
     if (req.user.location && req.user.location.coordinates) {
         req.body.location = {
@@ -188,9 +188,9 @@ export const createFeedback = catchAsync(async (req, res, next) => {
             coordinates: req.user.location.coordinates
         };
     }
-    
+
     const feedback = await Feedback.create(req.body);
-    
+
     // Create notification for admin
     const admins = await User.find({ role: 'admin' });
     for (const admin of admins) {
@@ -210,7 +210,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
             }
         });
     }
-    
+
     // Create notification for collector if feedback is about them
     if (req.body.type === 'collector' && req.body.relatedTo && req.body.relatedTo.collector) {
         await Notification.createNotification({
@@ -225,7 +225,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
             }
         });
     }
-    
+
     res.status(201).json({
         success: true,
         data: feedback
@@ -235,21 +235,21 @@ export const createFeedback = catchAsync(async (req, res, next) => {
 
 export const updateFeedback = catchAsync(async (req, res, next) => {
     let feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
         return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is the feedback creator
     if (feedback.user.toString() !== req.user.id) {
         return next(new ErrorResponse('Not authorized to update this feedback', 403));
     }
-    
+
     // Check if feedback is already addressed
     if (feedback.status !== 'pending') {
         return next(new ErrorResponse('Cannot update feedback that has been addressed', 400));
     }
-    
+
     // Fields to update
     const fieldsToUpdate = {
         rating: req.body.rating,
@@ -258,17 +258,17 @@ export const updateFeedback = catchAsync(async (req, res, next) => {
         isAnonymous: req.body.isAnonymous,
         isPublic: req.body.isPublic
     };
-    
+
     // Remove undefined fields
-    Object.keys(fieldsToUpdate).forEach(key => 
+    Object.keys(fieldsToUpdate).forEach(key =>
         fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
-    
+
     feedback = await Feedback.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
         new: true,
         runValidators: true
     });
-    
+
     res.status(200).json({
         success: true,
         data: feedback
@@ -278,25 +278,25 @@ export const updateFeedback = catchAsync(async (req, res, next) => {
 
 export const deleteFeedback = catchAsync(async (req, res, next) => {
     const feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
         return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is admin or the feedback creator
     if (req.user.role !== 'admin' && feedback.user.toString() !== req.user.id) {
         return next(new ErrorResponse('Not authorized to delete this feedback', 403));
     }
-    
+
     // Delete images from cloudinary
     if (feedback.images && feedback.images.length > 0) {
         for (const image of feedback.images) {
             await cloudinary.uploader.destroy(image.public_id);
         }
     }
-    
+
     await feedback.deleteOne();
-    
+
     res.status(200).json({
         success: true,
         data: {}
@@ -306,32 +306,32 @@ export const deleteFeedback = catchAsync(async (req, res, next) => {
 
 export const respondToFeedback = catchAsync(async (req, res, next) => {
     const { comment } = req.body;
-    
+
     if (!comment) {
         return next(new ErrorResponse('Please provide a response comment', 400));
     }
-    
+
     const feedback = await Feedback.findById(req.params.id);
-    
+
     if (!feedback) {
         return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
     }
-    
+
     // Check user is admin
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to respond to feedback', 403));
     }
-    
+
     feedback.response = {
         comment,
         respondedBy: req.user.id,
         respondedAt: new Date()
     };
-    
+
     feedback.status = 'addressed';
-    
+
     await feedback.save();
-    
+
     // Create notification for user
     await Notification.createNotification({
         recipient: feedback.user,
@@ -348,7 +348,7 @@ export const respondToFeedback = catchAsync(async (req, res, next) => {
             url: `/feedback/${feedback._id}`
         }
     });
-    
+
     res.status(200).json({
         success: true,
         data: feedback
@@ -360,7 +360,7 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
     if (req.user.role !== 'admin') {
         return next(new ErrorResponse('Not authorized to access this data', 403));
     }
-    
+
     // Get average rating by type
     const avgRatingByType = await Feedback.aggregate([
         {
@@ -371,7 +371,7 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get feedback by status
     const feedbackByStatus = await Feedback.aggregate([
         {
@@ -381,7 +381,7 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get feedback by month
     const feedbackByMonth = await Feedback.aggregate([
         {
@@ -401,7 +401,7 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Format rating by type into an object
     const formattedRatingByType = {};
     avgRatingByType.forEach(item => {
@@ -410,13 +410,13 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
             count: item.count
         };
     });
-    
+
     // Format status counts into an object
     const formattedStatusCounts = {};
     feedbackByStatus.forEach(item => {
         formattedStatusCounts[item._id] = item.count;
     });
-    
+
     res.status(200).json({
         success: true,
         data: {
