@@ -1,5 +1,5 @@
-import { cn } from '../../utils/cn';
-import { Button } from '../ui/button';
+import { cn } from '@/utils/cn';
+import { Button } from '@/components/ui/button';
 
 export const EmptyState = ({
   icon,

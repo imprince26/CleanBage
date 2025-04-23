@@ -4,8 +4,8 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileNav from './MobileNav';
-import { useAuth } from '../../context/AuthContext';
-import { Loader } from '../common/Loader';
+import { useAuth } from '@/context/AuthContext';
+import { Loader } from '@/components/Loader';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

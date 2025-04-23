@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '../../utils/cn';
-import { Button } from '../ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '../ui/sheet';
+import { cn } from '@/utils/cn';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Home, Map, Calendar, Truck, Users, BarChart3, Trash2, Gift, Award, MessageSquare, Route, X } from 'lucide-react';
 
 const MobileNav = ({ isOpen, onClose, user }) => {

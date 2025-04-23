@@ -1,5 +1,5 @@
-import { cn } from '../../utils/cn';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { cn } from '@/utils/cn';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const StatsCard = ({
   title,

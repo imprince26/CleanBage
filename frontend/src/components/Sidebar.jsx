@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '../../utils/cn';
-import { Button } from '../ui/button';
+import { cn } from '@/utils/cn';
+import { Button } from '@/components/ui/button';
 import { Home, Map, Calendar, Truck, Users, BarChart3, Trash2, Gift, Award, MessageSquare, Route } from 'lucide-react';
 
 const Sidebar = ({ className, user }) => {

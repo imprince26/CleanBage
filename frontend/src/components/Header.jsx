@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
-import { useNotifications } from '../../context/NotificationContext';
-import { useAuth } from '../../context/AuthContext';
-import { Button } from '../ui/button';
+import { useTheme } from '@/context/ThemeContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,11 +11,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Menu, Moon, Sun, User, LogOut, Settings } from 'lucide-react';
-import { Badge } from '../ui/badge';
-import NotificationsDropdown from '../notifications/NotificationsDropdown';
+import { Badge } from '@/components/ui/badge';
+import NotificationsDropdown from './NotificationsDropdown';
 
 const Header = ({ onMenuClick }) => {
   const { theme, toggleTheme } = useTheme();

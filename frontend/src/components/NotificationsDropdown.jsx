@@ -4,14 +4,14 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '../ui/popover';
-import { Button } from '../ui/button';
-import { Loader } from '../common/Loader';
-import { useNotifications } from '../../context/NotificationContext';
-import { formatDate } from '../../utils/formatters';
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Loader } from './Loader';
+import { useNotifications } from '@/context/NotificationContext';
+import { formatDate } from '@/utils/formatters';
 import { Bell, Check, Trash2 } from 'lucide-react';
-import { ScrollArea } from '../ui/scroll-area';
-import { cn } from '../../utils/cn';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/utils/cn';
 
 const NotificationsDropdown = ({ open, onOpenChange }) => {
   const {

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FaArrowRight, FaMapMarkedAlt, FaTruck, FaChartBar } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import cleaningImage from "../assets/images/main-img.png";
 
 const HeroSection = () => {
