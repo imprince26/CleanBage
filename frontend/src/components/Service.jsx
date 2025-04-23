@@ -1,15 +1,14 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
-import {motion} from "motion/react" 
+import { motion } from "motion/react"
 
 const Service = ({ desc, imgSrc, imgAlt, heading, darkMode }) => {
   return (
     <motion.div
-      className={`flex flex-col h-[50vh] p-6 rounded-lg shadow-md min-w-[25vw] max-w-[30vw]: ${
-        darkMode
+      className={`flex flex-col h-[50vh] p-6 rounded-lg shadow-md min-w-[25vw] max-w-[30vw]: ${darkMode
           ? "bg-[#4da952] shadow-[#424242]"
           : "bg-[#7aef80] shadow-[#E0E0E0]"
-      } `}
+        } `}
 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
