@@ -9,7 +9,6 @@ const MobileNav = ({ isOpen, onClose, user }) => {
   const location = useLocation();
   const role = user?.role || 'resident';
 
-  // Close on escape key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose();
