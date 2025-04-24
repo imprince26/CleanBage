@@ -1,25 +1,21 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import App from './App.jsx'
+import { Toaster } from 'react-hot-toast'
+import Temp from './Temp'
 import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
-import { NotificationProvider } from './context/NotificationContext'
-import { LocationProvider } from './context/LocationContext'
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-  <BrowserRouter>
-      <ThemeProvider>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
         <AuthProvider>
-          <NotificationProvider>
-            <LocationProvider>
-              <App />
-            </LocationProvider>
-          </NotificationProvider>
+          <Temp />
+          <Toaster position="top-center" />
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
-  </StrictMode>
-);
+  </React.StrictMode>
+)

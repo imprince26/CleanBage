@@ -1,339 +1,131 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import api from '@/utils/api';
-import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export const useAuth = () => useContext(AuthContext);
+
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  // Load user from localStorage on initial render
+  // Check if user is logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        
-        // Set default headers for all requests
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // Get current user
-        const res = await api.get('/api/auth/me');
-        
-        if (res.data.success) {
-          setUser(res.data.data);
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        localStorage.removeItem('token');
-        delete api.defaults.headers.common['Authorization'];
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkAuth();
+    checkAuthStatus();
   }, []);
 
-  // Register user
-  const register = async (userData) => {
-    setLoading(true);
-    setAuthError(null);
-    
+  const checkAuthStatus = async () => {
     try {
-      const res = await api.post('/api/auth/register', userData);
-      
-      if (res.data.success) {
-        toast({
-          title: 'Registration Successful',
-          description: 'Please check your email to verify your account.',
-          variant: 'success',
-        });
-        navigate('/login');
-      }
-      
-      return res.data;
+      const { data } = await axios.get('/api/auth/me');
+      setUser(data.data);
+      setIsAuthenticated(true);
     } catch (error) {
-      const message = error.response?.data?.error || 'Registration failed';
-      setAuthError(message);
-      toast({
-        title: 'Registration Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Login user
-  const login = async (email, password) => {
-    setLoading(true);
-    setAuthError(null);
-    
-    try {
-      const res = await api.post('/api/auth/login', { email, password });
-      
-      if (res.data.success) {
-        localStorage.setItem('token', res.data.token);
-        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-        
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        
-        toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${res.data.user.name}!`,
-          variant: 'success',
-        });
-        
-        // Redirect based on role
-        if (res.data.user.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (res.data.user.role === 'garbage_collector') {
-          navigate('/collector/dashboard');
-        } else {
-          navigate('/resident/dashboard');
-        }
-      }
-      
-      return res.data;
-    } catch (error) {
-      const message = error.response?.data?.error || 'Login failed';
-      setAuthError(message);
-      toast({
-        title: 'Login Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Logout user
-  const logout = async () => {
-    try {
-      await api.get('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('token');
-      delete api.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (credentials) => {
+    try {
+      const { data } = await api.post('/auth/login', credentials);
+      setUser(data.data);
+      setIsAuthenticated(true);
+      toast.success('Logged in successfully');
+      navigate('/dashboard');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed');
+      return false;
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const { data } = await axios.post('/api/auth/register', userData);
+      toast.success('Registration successful. Please verify your email.');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Registration failed');
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.get('/api/auth/logout');
+      setUser(null);
+      setIsAuthenticated(false);
+      toast.success('Logged out successfully');
       navigate('/login');
-      
-      toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
-        variant: 'default',
-      });
-    }
-  };
-
-  // Update user profile
-  const updateProfile = async (userData) => {
-    setLoading(true);
-    
-    try {
-      const res = await api.put('/api/auth/updatedetails', userData);
-      
-      if (res.data.success) {
-        setUser(res.data.data);
-        
-        toast({
-          title: 'Profile Updated',
-          description: 'Your profile has been successfully updated.',
-          variant: 'success',
-        });
-      }
-      
-      return res.data;
     } catch (error) {
-      const message = error.response?.data?.error || 'Profile update failed';
-      toast({
-        title: 'Update Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
+      toast.error('Logout failed');
     }
   };
 
-  // Update password
-  const updatePassword = async (passwordData) => {
-    setLoading(true);
-    
-    try {
-      const res = await api.put('/api/auth/updatepassword', passwordData);
-      
-      if (res.data.success) {
-        toast({
-          title: 'Password Updated',
-          description: 'Your password has been successfully updated.',
-          variant: 'success',
-        });
-      }
-      
-      return res.data;
-    } catch (error) {
-      const message = error.response?.data?.error || 'Password update failed';
-      toast({
-        title: 'Update Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Forgot password
   const forgotPassword = async (email) => {
-    setLoading(true);
-    
     try {
-      const res = await api.post('/api/auth/forgotpassword', { email });
-      
-      if (res.data.success) {
-        toast({
-          title: 'Email Sent',
-          description: 'Please check your email for password reset instructions.',
-          variant: 'success',
-        });
-      }
-      
-      return res.data;
+      const { data } = await axios.post('/api/auth/forgotpassword', { email });
+      toast.success('Password reset link sent to your email');
+      return true;
     } catch (error) {
-      const message = error.response?.data?.error || 'Request failed';
-      toast({
-        title: 'Request Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || 'Failed to send reset link');
+      return false;
     }
   };
 
-  // Reset password
-  const resetPassword = async (token, password) => {
-    setLoading(true);
-    
+  const resetPassword = async (token, passwords) => {
     try {
-      const res = await api.put(`/api/auth/resetpassword/${token}`, { password });
-      
-      if (res.data.success) {
-        toast({
-          title: 'Password Reset',
-          description: 'Your password has been successfully reset. You can now login.',
-          variant: 'success',
-        });
-        navigate('/login');
-      }
-      
-      return res.data;
+      const { data } = await axios.put(`/api/auth/resetpassword/${token}`, passwords);
+      toast.success('Password reset successful');
+      return true;
     } catch (error) {
-      const message = error.response?.data?.error || 'Reset failed';
-      toast({
-        title: 'Reset Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || 'Password reset failed');
+      return false;
     }
   };
 
-  // Verify email
-  const verifyEmail = async (token) => {
-    setLoading(true);
-    
+  const updateProfile = async (userData) => {
     try {
-      const res = await api.get(`/api/auth/verify-email/${token}`);
-      
-      if (res.data.success) {
-        localStorage.setItem('token', res.data.token);
-        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-        
-        setUser(res.data.user);
-        setIsAuthenticated(true);
-        
-        toast({
-          title: 'Email Verified',
-          description: 'Your email has been successfully verified.',
-          variant: 'success',
-        });
-        
-        // Redirect based on role
-        if (res.data.user.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (res.data.user.role === 'garbage_collector') {
-          navigate('/collector/dashboard');
-        } else {
-          navigate('/resident/dashboard');
-        }
-      }
-      
-      return res.data;
+      const { data } = await axios.put('/api/auth/updatedetails', userData);
+      setUser(data.data);
+      toast.success('Profile updated successfully');
+      return true;
     } catch (error) {
-      const message = error.response?.data?.error || 'Verification failed';
-      toast({
-        title: 'Verification Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      throw error;
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.data?.message || 'Profile update failed');
+      return false;
     }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        loading,
-        authError,
-        register,
-        login,
-        logout,
-        updateProfile,
-        updatePassword,
-        forgotPassword,
-        resetPassword,
-        verifyEmail,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const updatePassword = async (passwords) => {
+    try {
+      await axios.put('/api/auth/updatepassword', passwords);
+      toast.success('Password updated successfully');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Password update failed');
+      return false;
+    }
+  };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+  const value = {
+    user,
+    isAuthenticated,
+    loading,
+    login,
+    register,
+    logout,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    updatePassword,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

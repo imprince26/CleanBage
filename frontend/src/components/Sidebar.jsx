@@ -1,170 +1,103 @@
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/utils/cn';
-import { Button } from '@/components/ui/button';
-import { Home, Map, Calendar, Truck, Users, BarChart3, Trash2, Gift, Award, MessageSquare, Route } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext'
+import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import {
+  Home,
+  Map,
+  Gift,
+  Trophy,
+  MessageSquare,
+  Route,
+  Calendar,
+  Users,
+  Trash2,
+  FileText,
+  Settings,
+  X,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
-const Sidebar = ({ className, user }) => {
-  const location = useLocation();
-  const role = user?.role || 'resident';
+const residentLinks = [
+  { href: '/resident/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/resident/bin-map', label: 'Bin Map', icon: Map },
+  { href: '/resident/rewards', label: 'Reward Store', icon: Gift },
+  { href: '/resident/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/resident/feedback', label: 'Submit Feedback', icon: MessageSquare },
+]
 
-  const getNavItems = () => {
-    switch (role) {
-      case 'admin':
-        return [
-          {
-            title: 'Dashboard',
-            href: '/admin/dashboard',
-            icon: <Home className="h-5 w-5" />,
-          },
-          {
-            title: 'Users',
-            href: '/admin/users',
-            icon: <Users className="h-5 w-5" />,
-          },
-          {
-            title: 'Bins',
-            href: '/admin/bins',
-            icon: <Trash2 className="h-5 w-5" />,
-          },
-          {
-            title: 'Routes',
-            href: '/admin/routes',
-            icon: <Route className="h-5 w-5" />,
-          },
-          {
-            title: 'Schedules',
-            href: '/admin/schedules',
-            icon: <Calendar className="h-5 w-5" />,
-          },
-          {
-            title: 'Reports',
-            href: '/admin/reports',
-            icon: <BarChart3 className="h-5 w-5" />,
-          },
-          {
-            title: 'Feedback',
-            href: '/admin/feedback',
-            icon: <MessageSquare className="h-5 w-5" />,
-          },
-          {
-            title: 'Rewards',
-            href: '/admin/rewards',
-            icon: <Gift className="h-5 w-5" />,
-          },
-        ];
-      case 'garbage_collector':
-        return [
-          {
-            title: 'Dashboard',
-            href: '/collector/dashboard',
-            icon: <Home className="h-5 w-5" />,
-          },
-          {
-            title: 'Routes',
-            href: '/collector/routes',
-            icon: <Truck className="h-5 w-5" />,
-          },
-          {
-            title: 'Schedule',
-            href: '/collector/schedule',
-            icon: <Calendar className="h-5 w-5" />,
-          },
-        ];
-      default: // resident
-        return [
-          {
-            title: 'Dashboard',
-            href: '/resident/dashboard',
-            icon: <Home className="h-5 w-5" />,
-          },
-          {
-            title: 'Report Bin',
-            href: '/resident/report-bin',
-            icon: <Trash2 className="h-5 w-5" />,
-          },
-          {
-            title: 'Bin Map',
-            href: '/resident/bin-map',
-            icon: <Map className="h-5 w-5" />,
-          },
-          {
-            title: 'Rewards',
-            href: '/resident/rewards',
-            icon: <Gift className="h-5 w-5" />,
-          },
-          {
-            title: 'Leaderboard',
-            href: '/resident/leaderboard',
-            icon: <Award className="h-5 w-5" />,
-          },
-          {
-            title: 'Feedback',
-            href: '/resident/feedback',
-            icon: <MessageSquare className="h-5 w-5" />,
-          },
-        ];
-    }
-  };
+const collectorLinks = [
+  { href: '/collector/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/collector/routes', label: 'Active Routes', icon: Route },
+  { href: '/collector/schedule', label: 'Schedule', icon: Calendar },
+]
 
-  const navItems = getNavItems();
+const adminLinks = [
+  { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/bins', label: 'Bins', icon: Trash2 },
+  { href: '/admin/routes', label: 'Routes', icon: Route },
+  { href: '/admin/reports', label: 'Reports', icon: FileText },
+]
+
+export function Sidebar({ open, onClose }) {
+  const { user } = useAuth()
+
+  const links = user?.role === 'admin'
+    ? adminLinks
+    : user?.role === 'garbage_collector'
+      ? collectorLinks
+      : residentLinks
 
   return (
-    <aside
-      className={cn(
-        'w-64 border-r bg-background flex-shrink-0',
-        className
-      )}
-    >
-      <div className="flex flex-col h-full">
-        <div className="h-16 flex items-center px-4 border-b">
+    <>
+      <div
+        className={cn(
+          'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden',
+          open ? 'block' : 'hidden'
+        )}
+        onClick={onClose}
+      />
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-72 border-r bg-background transition-transform duration-300 ease-in-out lg:static lg:translate-x-0',
+          open ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="flex h-16 items-center justify-between border-b px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <Trash2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-xl">CleanBage</span>
+            <img src="/logo.svg" alt="CleanBage" className="h-8 w-8" />
+            <span className="font-bold">CleanBage</span>
           </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
-        <nav className="flex-1 overflow-y-auto py-4 px-2">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Button
-                  variant={location.pathname === item.href ? 'default' : 'ghost'}
-                  className={cn(
-                    'w-full justify-start',
-                    location.pathname === item.href
-                      ? 'bg-primary text-primary-foreground'
-                      : ''
-                  )}
-                  asChild
-                >
-                  <Link to={item.href}>
-                    {item.icon}
-                    <span className="ml-3">{item.title}</span>
-                  </Link>
-                </Button>
-              </li>
+        <ScrollArea className="h-[calc(100vh-4rem)] p-4">
+          <nav className="space-y-2">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'hover:bg-accent hover:text-accent-foreground',
+                  'focus:bg-accent focus:text-accent-foreground focus:outline-none'
+                )}
+                onClick={() => onClose()}
+              >
+                <link.icon className="h-4 w-4" />
+                {link.label}
+              </Link>
             ))}
-          </ul>
-        </nav>
-        <div className="p-4 border-t">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
-                {user?.name?.charAt(0).toUpperCase() || 'U'}
-              </div>
-            </div>
-            <div className="ml-3 overflow-hidden">
-              <p className="text-sm font-medium truncate">{user?.name}</p>
-              <p className="text-xs text-muted-foreground truncate capitalize">
-                {role.replace('_', ' ')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </aside>
-  );
-};
-
-export default Sidebar;
+          </nav>
+        </ScrollArea>
+      </aside>
+    </>
+  )
+}
