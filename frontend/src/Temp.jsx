@@ -7,6 +7,9 @@ import Register from './pages/auth/Register'
 import GoogleCallback from '@/components/GoogleCallBack'
 import GoogleAuthHandler from '@/components/GoogleAuthHandler'
 import { Navigate } from 'react-router-dom'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
+import VerifyEmail from './pages/auth/VerifyEmail'
 
 const Temp = () => {
   return (
@@ -18,6 +21,9 @@ const Temp = () => {
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
         <Route path="/auth/google/error" element={<Navigate to="/login" />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
       </Route>
     </Routes>
   )

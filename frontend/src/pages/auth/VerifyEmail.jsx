@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from '@/lib/axios';
+import api from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
@@ -12,7 +12,7 @@ export default function VerifyEmail() {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        await axios.get(`/auth/verify-email/${token}`);
+        await api.get(`/auth/verify-email/${token}`);
         setStatus('success');
       } catch (error) {
         console.error(error);

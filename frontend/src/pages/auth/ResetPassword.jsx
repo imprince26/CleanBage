@@ -16,8 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import axios from '@/lib/axios';
-
+import api from '@/utils/api';
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -34,7 +33,7 @@ export default function ResetPassword() {
   async function onSubmit(values) {
     setIsLoading(true);
     try {
-      await axios.put(`/auth/resetpassword/${token}`, {
+      await api.put(`/auth/resetpassword/${token}`, {
         password: values.password,
       });
       toast.success('Password successfully reset');

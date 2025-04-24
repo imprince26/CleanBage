@@ -16,8 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mail, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import axios from '@/lib/axios';
-
+import api from '@/utils/api';
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -32,7 +31,7 @@ export default function ForgotPassword() {
   async function onSubmit(values) {
     setIsLoading(true);
     try {
-      await axios.post('/auth/forgotpassword', values);
+      await api.post('/auth/forgotpassword', values);
       setEmailSent(true);
       toast.success('Password reset instructions sent to your email');
     } catch (error) {
