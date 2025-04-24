@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorMiddleware.js';
-
+import { configurePassport } from './config/passport.js';
 // Route imports
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -36,6 +36,7 @@ app.use(cookieParser());
 
 // Passport middleware
 app.use(passport.initialize());
+configurePassport();
 
 // File upload
 app.use(fileUpload({

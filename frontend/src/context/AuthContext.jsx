@@ -113,6 +113,30 @@ export function AuthProvider({ children }) {
       return false;
     }
   };
+  const initiateGoogleAuth = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
+
+  // Handle Google OAuth callback
+  const handleGoogleCallback = async (code) => {
+    try {
+      const response = await axios.get(`/api/auth/google/callback?code=${code}`, {
+        withCredentials: true
+      })
+
+      if (response.data.success) {
+        setUser(response.data.user)
+        setIsAuthenticated(true)
+        return true
+      }
+      navigate('/dashboard')
+      return false
+    } catch (error) {
+      console.error('Google callback error:', error)
+      throw error
+    }
+  }
+
 
   const value = {
     user,
@@ -125,6 +149,8 @@ export function AuthProvider({ children }) {
     resetPassword,
     updateProfile,
     updatePassword,
+    initiateGoogleAuth,
+    handleGoogleCallback
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

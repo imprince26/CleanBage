@@ -180,23 +180,28 @@ export const loginUser = catchAsync(async (req, res, next) => {
 });
 
 export const googleCallback = async (req, res, next) => {
-    const token = req.user.getSignedJwtToken();
-    res.cookie('CleanBageToken', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    });
-
-    await Notification.createNotification({
+    try {
+      // Create notification for Google login
+      await Notification.create({
         recipient: req.user._id,
         type: 'system_announcement',
-        title: 'New Login Detected',
-        message: `New login to your account detected at ${new Date().toLocaleString()}`,
+        title: 'Google Login Success',
+        message: `Successfully logged in with Google at ${new Date().toLocaleString()}`,
         priority: 'medium',
-        icon: 'log-in'
-    })
-    res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
-};
+        icon: 'google',
+        read: false
+      });
+  
+      // Send token response
+      sendTokenResponse(req.user, 200, res);
+      
+      // Redirect to frontend with success
+      res.redirect(`${process.env.CLIENT_URL}/auth/google/success`);
+    } catch (error) {
+      // Redirect to frontend with error
+      res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
+    }
+  };
 
 export const logoutUser = catchAsync(async (req, res, next) => {
     res.cookie('token', 'none', {

@@ -10,7 +10,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(true)} />
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} /> */}
       <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>

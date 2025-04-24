@@ -9,33 +9,32 @@ export const generateToken = (id) => {
 
 // Send token response with cookie
 export const sendTokenResponse = (user, statusCode, res) => {
-    // Create token
-    const token = generateToken(user._id);
-
+    const token = user.getSignedJwtToken();
+  
     const options = {
-        expires: new Date(
-            Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-        ),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production'
+      expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
     };
-
+  
     res
-        .status(statusCode)
-        .cookie('token', token, options)
-        .json({
-            success: true,
-            token,
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                avatar: user.avatar,
-                rewardPoints: user.rewardPoints
-            }
-        });
-};
+      .status(statusCode)
+      .cookie('CleanBageToken', token, options)
+      .json({
+        success: true,
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          rewardPoints: user.rewardPoints,
+          verified: user.verified
+        }
+      });
+  };
 
 // Generate and hash verification token
 export const generateVerificationToken = () => {
