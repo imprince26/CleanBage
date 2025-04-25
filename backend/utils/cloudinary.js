@@ -1,6 +1,9 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Configure Cloudinary
 cloudinary.config({
@@ -44,12 +47,13 @@ const deleteImage = async (publicId) => {
     return result;
   } catch (error) {
     console.error('Error deleting image from Cloudinary:', error);
-    throw error;
+    // throw error;
   }
 };
 
 // Helper function to upload image to cloudinary directly
 const uploadImage = async (file, folder = 'cleanbage') => {
+  console.log('Uploading image to Cloudinary...');
   try {
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: folder,
@@ -58,8 +62,8 @@ const uploadImage = async (file, folder = 'cleanbage') => {
     });
     return result;
   } catch (error) {
-    console.error('Error uploading to Cloudinary:', error);
-    throw error;
+    console.error('Error uploading to Cloudinary:', error.message);
+    // throw error;
   }
 };
 

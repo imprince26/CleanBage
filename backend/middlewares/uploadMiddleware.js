@@ -9,11 +9,13 @@ export const handleImageUpload = (fieldName) => async (req, res, next) => {
         if (err.code === 'LIMIT_FILE_SIZE') {
           return next(new ErrorResponse('File size should be less than 5MB', 400));
         }
+        console.log(err);
         return next(new ErrorResponse(err.message, 400));
       }
-      next();
     });
+    next();
   } catch (error) {
     next(new ErrorResponse('Error processing image upload', 500));
+    console.log(error);
   }
 };

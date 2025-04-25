@@ -19,7 +19,8 @@ import scheduleRoutes from './routes/scheduleRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import rewardRoutes from './routes/rewardRoutes.js';
-
+import { handleImageUpload } from './middlewares/uploadMiddleware.js';
+import { uploadImage } from './utils/cloudinary.js';
 // Load env vars
 dotenv.config();
 
@@ -30,6 +31,7 @@ const app = express();
 
 // Body parser
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Cookie parser
 app.use(cookieParser());
@@ -70,11 +72,24 @@ app.use('/api/rewards', rewardRoutes);
 // Error handler middleware
 app.use(errorHandler);
 
+app.post("/upload", async (req, res) => {
+    console.log(req)
+    const file = req.files.images;
+    try {
+        const result = await uploadImage(file);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Image upload error:', error);
+        return next(new ErrorResponse('Problem with file upload', 500));
+    }
+
+})
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
+
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
