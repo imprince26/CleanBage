@@ -6,13 +6,16 @@ import Temp from './Temp'
 import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
+import { CollectionProvider } from './context/CollectionContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
         <AuthProvider>
+          <CollectionProvider>
           <Temp />
+          </CollectionProvider>
           <Toaster position="top-center" />
         </AuthProvider>
       </ThemeProvider>

@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useCollection } from "@/context/CollectionContext";
 
 const reportSchema = z.object({
   location: z.object({
@@ -125,6 +126,7 @@ export default function ReportBin() {
   const [locationAddress, setLocationAddress] = useState(null);
   const [nearbyBins, setNearbyBins] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const {createCollection} = useCollection();
 
   const form = useForm({
     resolver: zodResolver(reportSchema),
@@ -261,7 +263,7 @@ export default function ReportBin() {
 
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
-    console.log('Selected files:', files); // Debug: Log selected files
+    console.log('Selected files:', files);
     if (files.length > 3) {
       toast.error("Maximum 3 images allowed");
       return;
@@ -312,29 +314,17 @@ export default function ReportBin() {
         setIsLoading(false);
         return;
       }
-
+  
       const formData = new FormData();
-
-      // Append images
-      selectedImages.forEach((image, index) => {
-        formData.append("images", image);
-        console.log(`Appending image ${index + 1}:`, image.name); // Debug
-      });
-
-      // Append JSON strings for nested objects
-      formData.append(
-        "location",
-        JSON.stringify({
-          coordinates: data.location.coordinates,
-          address: {
-            street: data.location.address.street,
-            area: data.location.address.area,
-            landmark: data.location.address.landmark || "",
-            city: data.location.address.city,
-            postalCode: data.location.address.postalCode,
-          },
-        })
-      );
+      
+      // Properly append all selected images
+      if (selectedImages && selectedImages.length > 0) {
+        selectedImages.forEach((image) => {
+          formData.append("images", image);
+        });
+      }
+  
+      formData.append("location", JSON.stringify(data.location));
       formData.append("wasteType", data.wasteType);
       formData.append("fillLevel", data.fillLevel.toString());
       formData.append("capacity", data.capacity.toString());
@@ -348,20 +338,7 @@ export default function ReportBin() {
         })
       );
 
-      // Debug: Log FormData content
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      const response = await api.post("/collections", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = (progressEvent.loaded / progressEvent.total) * 100;
-          setUploadProgress(progress);
-        },
-      });
+      const response = await createCollection(formData);
 
       toast.success("Report submitted successfully!");
       form.reset();
@@ -370,10 +347,9 @@ export default function ReportBin() {
       setLocationAddress(null);
       setNearbyBins([]);
       setUploadProgress(0);
-      navigate(`/resident/collections/${response.data.data._id}`);
+      // navigate(`/resident/collections/${response}`);
     } catch (error) {
       console.error("Error reporting bin:", error);
-      console.log("Response data:", error.response?.data);
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to report bin";
       toast.error(errorMessage);
