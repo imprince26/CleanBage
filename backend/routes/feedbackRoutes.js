@@ -10,6 +10,7 @@ import {
     getFeedbackStats
 } from '../controllers/feedbackController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.use(protect);
 
 router.route('/')
     .get(authorize('admin'), getAllFeedback)
-    .post(createFeedback);
+    .post(handleImageUpload('images'),createFeedback);
 
 router.get('/me', getUserFeedback);
 router.get('/stats', authorize('admin'), getFeedbackStats);

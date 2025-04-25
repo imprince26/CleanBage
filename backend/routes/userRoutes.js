@@ -10,6 +10,7 @@ import {
     getLeaderboard
 } from '../controllers/userController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.route('/:id')
     .put(authorize('admin'), updateUser)
     .delete(authorize('admin'), deleteUser);
 
-router.put('/:id/avatar', uploadAvatar);
+router.put('/:id/avatar',handleImageUpload('images'), uploadAvatar);
 router.get('/:id/stats', getUserStats);
 
 export default router;

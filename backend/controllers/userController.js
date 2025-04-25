@@ -6,7 +6,7 @@ import Report from '../models/reportModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import { getCoordinatesFromAddress } from '../utils/geoUtils.js';
-import cloudinary from '../utils/cloudinary.js';
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -263,15 +263,11 @@ export const uploadAvatar = catchAsync(async (req, res, next) => {
     try {
         // Delete previous avatar if exists
         if (user.avatar.public_id) {
-            await cloudinary.uploader.destroy(user.avatar.public_id);
+            await deleteImage(user.avatar.public_id);
         }
 
         // Upload to cloudinary
-        const result = await cloudinary.uploader.upload(file.tempFilePath, {
-            folder: 'cleanbag/avatars',
-            width: 150,
-            crop: 'scale'
-        });
+        const result = await uploadImage(file, 'cleanbage/avatars');
 
         // Update user avatar
         user.avatar = {

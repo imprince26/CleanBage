@@ -3,7 +3,7 @@ import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
-import cloudinary from '../utils/cloudinary.js';
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
 
 export const getAllFeedback = catchAsync(async (req, res, next) => {
@@ -164,11 +164,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
 
             try {
                 // Upload to cloudinary
-                const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                    folder: 'cleanbag/feedback',
-                    width: 800,
-                    crop: 'scale'
-                });
+                const result = await uploadImage(file, 'cleanbage/feedback');
 
                 req.body.images.push({
                     public_id: result.public_id,
@@ -291,7 +287,7 @@ export const deleteFeedback = catchAsync(async (req, res, next) => {
     // Delete images from cloudinary
     if (feedback.images && feedback.images.length > 0) {
         for (const image of feedback.images) {
-            await cloudinary.uploader.destroy(image.public_id);
+            await deleteImage(image.public_id, 'cleanbage/feedback');
         }
     }
 

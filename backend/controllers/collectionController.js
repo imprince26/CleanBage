@@ -5,7 +5,7 @@ import { RewardTransaction } from '../models/rewardModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
 import { getAddressFromCoordinates } from '../utils/geoUtils.js';
-import cloudinary from '../utils/cloudinary.js';
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
 export const getCollections = catchAsync(async (req, res, next) => {
     // Pagination
@@ -119,132 +119,168 @@ export const createCollection = catchAsync(async (req, res, next) => {
     // Add reporting user
     req.body.reportedBy = req.user.id;
 
-    // Check if required fields are provided
-    if (!req.body.location || !req.body.location.coordinates || !req.body.wasteType) {
+    // Validate required fields
+    if (!req.body.location?.coordinates || !req.body.wasteType) {
         return next(new ErrorResponse('Please provide location coordinates and waste type', 400));
+    }
+
+    // Ensure coordinates are in correct format [longitude, latitude]
+    const coordinates = Array.isArray(req.body.location.coordinates) 
+        ? req.body.location.coordinates.map(coord => Number(coord))
+        : [];
+
+    if (coordinates.length !== 2 || isNaN(coordinates[0]) || isNaN(coordinates[1])) {
+        return next(new ErrorResponse('Invalid coordinates format', 400));
     }
 
     // Generate unique bin ID
     const binCount = await Collection.countDocuments();
     const binId = `BIN${(binCount + 1).toString().padStart(5, '0')}`;
-    req.body.binId = binId;
 
-    // Add default fill level if not provided
-    if (!req.body.fillLevel) {
-        req.body.fillLevel = 80; // Default 80% when user reports
-    }
+    // Initialize collection data
+    const collectionData = {
+        ...req.body,
+        binId,
+        location: {
+            type: 'Point',
+            coordinates,
+            address: req.body.location.address || {}
+        },
+        fillLevel: req.body.fillLevel || 80,
+        status: 'pending',
+        reportImages: []
+    };
 
-    // Try to get address from coordinates
-    try {
-        const addressInfo = await getAddressFromCoordinates(req.body.location.coordinates);
-        req.body.location.address = addressInfo.components;
-    } catch (error) {
-        console.error('Error getting address:', error);
+    // Try to get address from coordinates if not provided
+    if (!req.body.location.address) {
+        try {
+            const addressInfo = await getAddressFromCoordinates(coordinates);
+            collectionData.location.address = addressInfo.components;
+        } catch (error) {
+            console.error('Error getting address:', error.message);
+        }
     }
 
     // Process uploaded images
-    if (req.files && req.files.images) {
-        req.body.reportImages = [];
-
+    if (req.files?.images) {
         const files = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
+        
+        try {
+            for (const file of files) {
+                // Validate file type
+                if (!file.mimetype.startsWith('image/')) {
+                    return next(new ErrorResponse('Please upload only image files', 400));
+                }
 
-        for (const file of files) {
-            // Check file type
-            if (!file.mimetype.startsWith('image')) {
-                return next(new ErrorResponse('Please upload an image file', 400));
-            }
+                // Validate file size (5MB limit)
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    return next(new ErrorResponse('Image size should not exceed 5MB', 400));
+                }
 
-            // Check file size
-            if (file.size > process.env.MAX_FILE_SIZE) {
-                return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
-            }
-
-            try {
                 // Upload to cloudinary
-                const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                    folder: 'cleanbage/collections',
-                    width: 800,
-                    crop: 'scale'
-                });
-
-                req.body.reportImages.push({
+                const result = await uploadImage(file, 'cleanbage/collections');
+                collectionData.reportImages.push({
                     public_id: result.public_id,
                     url: result.secure_url
                 });
-            } catch (error) {
-                console.error('Image upload error:', error);
-                return next(new ErrorResponse('Problem with file upload', 500));
             }
+        } catch (error) {
+            // Cleanup any uploaded images if error occurs
+            for (const image of collectionData.reportImages) {
+                await deleteImage(image.public_id);
+            }
+            return next(new ErrorResponse('Error processing images', 500));
         }
     }
 
-    const collection = await Collection.create(req.body);
+    // Create collection
+    const collection = await Collection.create(collectionData);
 
-    // Generate QR code for the bin (if needed)
-    // TODO: Implement QR code generation
-
-    // If user has made 3 or more successful reports, add extra reward points
+    // Handle reward points for resident
     if (req.user.role === 'resident') {
-        const userReports = await Collection.countDocuments({ reportedBy: req.user.id });
+        const userReports = await Collection.countDocuments({ 
+            reportedBy: req.user.id,
+            status: { $ne: 'rejected' }
+        });
 
+        // Award bonus points for every 3rd successful report
         if (userReports >= 3 && userReports % 3 === 0) {
-            // Add bonus points
-            await RewardTransaction.create({
-                user: req.user.id,
-                type: 'earned',
-                points: 15,
-                description: 'Bonus for multiple waste bin reports',
-                sourceType: 'bin_report',
-                sourceId: collection._id,
-                sourceModel: 'Collection',
-                balance: req.user.rewardPoints + 15
-            });
-
-            // Update user reward points
-            await User.findByIdAndUpdate(req.user.id, {
-                $inc: { rewardPoints: 15 }
-            });
-
-            // Create notification for bonus
-            await Notification.createNotification({
-                recipient: req.user.id,
-                type: 'reward_earned',
-                title: 'Bonus Reward Points!',
-                message: 'You earned 15 bonus points for your consistent waste reporting.',
-                priority: 'medium',
-                icon: 'award',
-                relatedTo: {
-                    bin: collection._id
-                }
-            });
+            await handleRewardPoints(req.user.id, collection._id);
         }
     }
 
-    // Notify admins about new bin report
-    const admins = await User.find({ role: 'admin' });
-    for (const admin of admins) {
-        await Notification.createNotification({
-            recipient: admin._id,
-            type: 'bin_reported',
-            title: 'New Bin Reported',
-            message: `A new waste bin (${binId}) has been reported. Please assign a collector.`,
-            priority: 'high',
-            icon: 'trash-2',
-            relatedTo: {
-                bin: collection._id
-            },
-            action: {
-                text: 'View Bin',
-                url: `/admin/collections/${collection._id}`
-            }
-        });
-    }
+    // Notify admins
+    await notifyAdmins(collection);
 
     res.status(201).json({
         success: true,
         data: collection
     });
 });
+
+// Helper function to handle reward points
+const handleRewardPoints = async (userId, collectionId) => {
+    try {
+        // Create reward transaction
+        await RewardTransaction.create({
+            user: userId,
+            type: 'earned',
+            points: 15,
+            description: 'Bonus for multiple waste bin reports',
+            sourceType: 'bin_report',
+            sourceId: collectionId,
+            sourceModel: 'Collection'
+        });
+
+        // Update user reward points
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { rewardPoints: 15 } },
+            { new: true }
+        );
+
+        // Create notification
+        await Notification.createNotification({
+            recipient: userId,
+            type: 'reward_earned',
+            title: 'Bonus Reward Points!',
+            message: 'You earned 15 bonus points for your consistent waste reporting.',
+            priority: 'medium',
+            icon: 'award',
+            relatedTo: { bin: collectionId }
+        });
+
+        return user.rewardPoints;
+    } catch (error) {
+        console.error('Error handling reward points:', error);
+    }
+};
+
+// Helper function to notify admins
+const notifyAdmins = async (collection) => {
+    try {
+        const admins = await User.find({ role: 'admin' });
+        
+        const notifications = admins.map(admin => ({
+            recipient: admin._id,
+            type: 'bin_reported',
+            title: 'New Bin Reported',
+            message: `A new waste bin (${collection.binId}) has been reported. Please assign a collector.`,
+            priority: 'high',
+            icon: 'trash-2',
+            relatedTo: { bin: collection._id },
+            action: {
+                text: 'View Bin',
+                url: `/admin/collections/${collection._id}`
+            }
+        }));
+
+        await Notification.insertMany(notifications);
+    } catch (error) {
+        console.error('Error notifying admins:', error);
+    }
+};
 
 
 export const updateCollection = catchAsync(async (req, res, next) => {
@@ -472,11 +508,7 @@ export const submitComplaint = catchAsync(async (req, res, next) => {
 
             try {
                 // Upload to cloudinary
-                const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                    folder: 'cleanbag/complaints',
-                    width: 800,
-                    crop: 'scale'
-                });
+                const result = await uploadImage(file, 'cleanbage/complaints');
 
                 complaint.images.push({
                     public_id: result.public_id,

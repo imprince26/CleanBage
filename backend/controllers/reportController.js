@@ -4,8 +4,7 @@ import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
-import cloudinary from '../utils/cloudinary.js';
-
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
 export const getReports = catchAsync(async (req, res, next) => {
     // Pagination
@@ -165,11 +164,7 @@ export const createReport = catchAsync(async (req, res, next) => {
 
         try {
             // Upload to cloudinary
-            const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'cleanbag/reports',
-                width: 800,
-                crop: 'scale'
-            });
+            const result = await uploadImage(file, 'cleanbage/reports');
 
             req.body.photoBefore = {
                 public_id: result.public_id,
@@ -197,11 +192,7 @@ export const createReport = catchAsync(async (req, res, next) => {
 
         try {
             // Upload to cloudinary
-            const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'cleanbag/reports',
-                width: 800,
-                crop: 'scale'
-            });
+            const result = await uploadImage(file, 'cleanbage/reports');
 
             req.body.photoAfter = {
                 public_id: result.public_id,
@@ -327,15 +318,11 @@ export const updateReport = catchAsync(async (req, res, next) => {
         try {
             // Delete previous after photo if exists
             if (report.photoAfter && report.photoAfter.public_id) {
-                await cloudinary.uploader.destroy(report.photoAfter.public_id);
+                await deleteImage(report.photoAfter.public_id);
             }
 
             // Upload to cloudinary
-            const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'cleanbag/reports',
-                width: 800,
-                crop: 'scale'
-            });
+            const result = await uploadImage(file, 'cleanbage/reports');
 
             fieldsToUpdate.photoAfter = {
                 public_id: result.public_id,
@@ -382,10 +369,10 @@ export const deleteReport = catchAsync(async (req, res, next) => {
 
     // Delete images from cloudinary
     if (report.photoBefore && report.photoBefore.public_id) {
-        await cloudinary.uploader.destroy(report.photoBefore.public_id);
+        await deleteImage(report.photoBefore.public_id);
     }
     if (report.photoAfter && report.photoAfter.public_id) {
-        await cloudinary.uploader.destroy(report.photoAfter.public_id);
+        await deleteImage(report.photoAfter.public_id);
     }
 
     await report.deleteOne();

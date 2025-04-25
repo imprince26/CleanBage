@@ -3,8 +3,7 @@ import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import ErrorResponse from '../utils/errorResponse.js';
-import cloudinary from '../utils/cloudinary.js';
-
+import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 // @desc    Get user's reward transactions
 // @route   GET /api/rewards/transactions
 // @access  Private
@@ -187,11 +186,7 @@ export const createRewardItem = catchAsync(async (req, res, next) => {
         
         try {
             // Upload to cloudinary
-            const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'cleanbag/rewards',
-                width: 800,
-                crop: 'scale'
-            });
+            const result = await uploadImage(file, 'cleanbage/rewards');
             
             req.body.image = {
                 public_id: result.public_id,
@@ -268,15 +263,11 @@ export const updateRewardItem = catchAsync(async (req, res, next) => {
         try {
             // Delete previous image if exists
             if (rewardItem.image && rewardItem.image.public_id) {
-                await cloudinary.uploader.destroy(rewardItem.image.public_id);
+                await deleteImage(rewardItem.image.public_id);
             }
             
             // Upload to cloudinary
-            const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                folder: 'cleanbag/rewards',
-                width: 800,
-                crop: 'scale'
-            });
+            const result = await uploadImage(file, 'cleanbage/rewards');
             
             fieldsToUpdate.image = {
                 public_id: result.public_id,
@@ -316,7 +307,7 @@ export const deleteRewardItem = catchAsync(async (req, res, next) => {
     
     // Delete image from cloudinary
     if (rewardItem.image && rewardItem.image.public_id) {
-        await cloudinary.uploader.destroy(rewardItem.image.public_id);
+        await deleteImage(rewardItem.image.public_id);
     }
     
     await rewardItem.deleteOne();

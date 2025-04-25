@@ -11,6 +11,7 @@ import {
     getCollectionStats
 } from '../controllers/collectionController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.use(protect);
 
 router.route('/')
     .get(getCollections)
-    .post(createCollection);
+    .post(handleImageUpload('images'),createCollection);
 
 router.get('/nearby', getNearbyBins);
 router.get('/stats', authorize('admin'), getCollectionStats);
@@ -29,6 +30,6 @@ router.route('/:id')
     .delete(authorize('admin'), deleteCollection);
 
 router.put('/:id/assign', authorize('admin'), assignCollector);
-router.post('/:id/complaint', submitComplaint);
+router.post('/:id/complaint', handleImageUpload('images'),submitComplaint);
 
 export default router;

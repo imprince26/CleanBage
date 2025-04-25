@@ -11,6 +11,7 @@ import {
     getRewardStats
 } from '../controllers/rewardController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
+import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -22,11 +23,11 @@ router.get('/stats', authorize('admin'), getRewardStats);
 
 router.route('/items')
     .get(getRewardItems)
-    .post(authorize('admin'), createRewardItem);
+    .post(authorize('admin'),handleImageUpload('images'), createRewardItem);
 
 router.route('/items/:id')
     .get(getRewardItem)
-    .put(authorize('admin'), updateRewardItem)
+    .put(authorize('admin'),handleImageUpload('images'), updateRewardItem)
     .delete(authorize('admin'), deleteRewardItem);
 
 router.post('/items/:id/redeem', redeemRewardItem);
