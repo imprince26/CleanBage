@@ -162,7 +162,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
             try {
                 // Upload to cloudinary
                 const result = await cloudinary.uploader.upload(file.tempFilePath, {
-                    folder: 'cleanbag/collections',
+                    folder: 'cleanbage/collections',
                     width: 800,
                     crop: 'scale'
                 });

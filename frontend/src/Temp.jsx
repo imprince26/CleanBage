@@ -10,6 +10,7 @@ import { Navigate } from 'react-router-dom'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmail from './pages/auth/VerifyEmail'
+import ReportBin from './pages/resident/ReportBin'
 
 const Temp = () => {
   return (
@@ -24,6 +25,7 @@ const Temp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/resident/report-bin" element={<ReportBin />} />
       </Route>
     </Routes>
   )
