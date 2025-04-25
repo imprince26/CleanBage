@@ -126,7 +126,7 @@ export default function ReportBin() {
   const [locationAddress, setLocationAddress] = useState(null);
   const [nearbyBins, setNearbyBins] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const {createCollection} = useCollection();
+  const { createCollection } = useCollection();
 
   const form = useForm({
     resolver: zodResolver(reportSchema),
@@ -314,16 +314,16 @@ export default function ReportBin() {
         setIsLoading(false);
         return;
       }
-  
+
       const formData = new FormData();
-      
+
       // Properly append all selected images
       if (selectedImages && selectedImages.length > 0) {
         selectedImages.forEach((image) => {
           formData.append("images", image);
         });
       }
-  
+
       formData.append("location", JSON.stringify(data.location));
       formData.append("wasteType", data.wasteType);
       formData.append("fillLevel", data.fillLevel.toString());
