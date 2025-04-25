@@ -129,7 +129,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
     // Ensure coordinates are in correct format [longitude, latitude]
     const location = JSON.parse(req.body.location);
     console.log(location.coordinates);
-    const coordinates = Array.isArray(location.coordinates) 
+    const coordinates = Array.isArray(location.coordinates)
         ? location.coordinates.map(coord => Number(coord))
         : [];
 
@@ -168,7 +168,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
     // Process uploaded images
     if (req.files?.images) {
         const files = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
-        
+
         try {
             for (const file of files) {
                 // Validate file type
@@ -203,7 +203,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
 
     // Handle reward points for resident
     if (req.user.role === 'resident') {
-        const userReports = await Collection.countDocuments({ 
+        const userReports = await Collection.countDocuments({
             reportedBy: req.user.id,
             status: { $ne: 'rejected' }
         });
@@ -265,7 +265,7 @@ const handleRewardPoints = async (userId, collectionId) => {
 const notifyAdmins = async (collection) => {
     try {
         const admins = await User.find({ role: 'admin' });
-        
+
         const notifications = admins.map(admin => ({
             recipient: admin._id,
             type: 'bin_reported',
