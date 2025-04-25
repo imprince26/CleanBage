@@ -3,9 +3,6 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
-import fileUpload from 'express-fileupload';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorMiddleware.js';
 import { configurePassport } from './config/passport.js';
@@ -19,9 +16,9 @@ import scheduleRoutes from './routes/scheduleRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import rewardRoutes from './routes/rewardRoutes.js';
-import { handleImageUpload } from './middlewares/uploadMiddleware.js';
-import { uploadImage } from './utils/cloudinary.js';
-// Load env vars
+// import { handleImageUpload } from './middlewares/uploadMiddleware.js';
+// import { uploadImage } from './utils/cloudinary.js';
+
 dotenv.config();
 
 // Connect to database
@@ -40,13 +37,6 @@ app.use(cookieParser());
 app.use(passport.initialize());
 configurePassport();
 
-// File upload
-app.use(fileUpload({
-    useTempFiles: true,
-    tempFileDir: '/tmp/',
-    createParentPath: true
-}));
-
 // Enable CORS
 app.use(cors({
     origin: process.env.CLIENT_URL,
@@ -54,9 +44,9 @@ app.use(cors({
 }));
 
 // Set static folder
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, 'public')));
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// app.use(express.static(path.join(__dirname, 'public')));
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -72,18 +62,17 @@ app.use('/api/rewards', rewardRoutes);
 // Error handler middleware
 app.use(errorHandler);
 
-app.post("/upload", async (req, res) => {
-    console.log(req)
-    const file = req.files.images;
-    try {
-        const result = await uploadImage(file);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Image upload error:', error);
-        return next(new ErrorResponse('Problem with file upload', 500));
-    }
+// app.post("/upload",handleImageUpload('images'), async (req, res) => {
+//     const file = req.files.images;
+//     try {
+//         const result = await uploadImage(file);
+//         res.status(200).json(result);
+//     } catch (error) {
+//         console.error('Image upload error:', error);
+//         return next(new ErrorResponse('Problem with file upload', 500));
+//     }
 
-})
+// })
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

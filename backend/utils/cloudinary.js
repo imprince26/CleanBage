@@ -40,20 +40,19 @@ const upload = multer({
   }
 });
 
-// Helper function to delete image from cloudinary
 const deleteImage = async (publicId) => {
   try {
     const result = await cloudinary.uploader.destroy(publicId);
     return result;
   } catch (error) {
     console.error('Error deleting image from Cloudinary:', error);
-    // throw error;
+    throw error;
   }
 };
 
-// Helper function to upload image to cloudinary directly
 const uploadImage = async (file, folder = 'cleanbage') => {
   console.log('Uploading image to Cloudinary...');
+  console.log(file);
   try {
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: folder,
@@ -63,7 +62,7 @@ const uploadImage = async (file, folder = 'cleanbage') => {
     return result;
   } catch (error) {
     console.error('Error uploading to Cloudinary:', error.message);
-    // throw error;
+    throw error;
   }
 };
 
