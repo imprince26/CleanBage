@@ -129,49 +129,49 @@ const RewardStore = () => {
 
       {/* Filters Section */}
       <div className="flex flex-col md:flex-row gap-4">
-  <div className="flex-1 relative">
-    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-    <Input
-      placeholder="Search rewards..."
-      className="pl-10"
-      value={filters.search}
-      onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-    />
-  </div>
-  <Select
-    value={filters.category}
-    onValueChange={(value) => setFilters({ ...filters, category: value })}
-  >
-    <SelectTrigger className="w-[180px]">
-      <SelectValue placeholder="Category" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="all">All Categories</SelectItem>
-      {categories.map((category) => (
-        <SelectItem key={category.value} value={category.value}>
-          <div className="flex items-center gap-2">
-            <category.icon className="h-4 w-4" />
-            {category.label}
-          </div>
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-  <Select
-    value={filters.maxPoints}
-    onValueChange={(value) => setFilters({ ...filters, maxPoints: value })}
-  >
-    <SelectTrigger className="w-[180px]">
-      <SelectValue placeholder="Max Points" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="any">Any Points</SelectItem>
-      <SelectItem value="100">Under 100 points</SelectItem>
-      <SelectItem value="500">Under 500 points</SelectItem>
-      <SelectItem value="1000">Under 1000 points</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search rewards..."
+            className="pl-10"
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+          />
+        </div>
+        <Select
+          value={filters.category}
+          onValueChange={(value) => setFilters({ ...filters, category: value })}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.value} value={category.value}>
+                <div className="flex items-center gap-2">
+                  <category.icon className="h-4 w-4" />
+                  {category.label}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.maxPoints}
+          onValueChange={(value) => setFilters({ ...filters, maxPoints: value })}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Max Points" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Any Points</SelectItem>
+            <SelectItem value="100">Under 100 points</SelectItem>
+            <SelectItem value="500">Under 500 points</SelectItem>
+            <SelectItem value="1000">Under 1000 points</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Rewards Grid */}
       {loading ? (
@@ -206,8 +206,8 @@ const RewardStore = () => {
                   {reward.remainingQuantity === -1
                     ? "Unlimited"
                     : reward.remainingQuantity === 0
-                    ? "Out of Stock"
-                    : `${reward.remainingQuantity} left`}
+                      ? "Out of Stock"
+                      : `${reward.remainingQuantity} left`}
                 </Badge>
               </div>
               <CardHeader>
@@ -255,8 +255,8 @@ const RewardStore = () => {
                   {reward.remainingQuantity === 0
                     ? "Out of Stock"
                     : user?.rewardPoints < reward.pointsCost
-                    ? "Insufficient Points"
-                    : "Redeem Now"}
+                      ? "Insufficient Points"
+                      : "Redeem Now"}
                 </Button>
               </CardFooter>
             </Card>
