@@ -30,7 +30,7 @@ import {
   Users,
   Trash2,
   FileText,
-  Home,
+  Home
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -61,6 +61,7 @@ export function Header() {
   const roleNavigation = {
     resident: [
       { name: "Dashboard", href: "/resident/dashboard", icon: Home },
+      { name: "Report Bin", href: "/resident/report-bin", icon: Bell },
       { name: "Bin Map", href: "/resident/bin-map", icon: Map },
       { name: "Rewards", href: "/resident/rewards", icon: Gift },
       { name: "Leaderboard", href: "/resident/leaderboard", icon: Trophy },

@@ -38,15 +38,26 @@ export function CollectionProvider({ children }) {
     // Create new collection
     const createCollection = async (collectionData) => {
         try {
-            const { data } = await api.post('/collections', collectionData);
-            setCollections([...collections, data.data]);
-            toast.success('Collection created successfully');
-            return data.data;
+          const { data } = await api.post('/collections', collectionData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            onUploadProgress: (progressEvent) => {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              // You can emit this progress if needed
+            }
+          });
+          
+          setCollections((prev) => [...prev, data.data]);
+          toast.success('Collection reported successfully');
+          return data.data;
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Error creating collection');
-            return null;
+          console.error('Error creating collection:', error);
+          throw error; // Rethrow to handle in the component
         }
-    };
+      };
 
     // Update collection
     const updateCollection = async (id, updateData) => {

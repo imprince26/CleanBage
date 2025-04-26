@@ -1,13 +1,14 @@
-import { upload } from '../utils/cloudinary.js';
-import ErrorResponse from '../utils/errorResponse.js';
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import {cloudinary} from '../utils/cloudinary.js';
 
-export const handleImageUpload = (fieldName) => async (req, res, next) => {
-  try {
-    // Use multer upload
-    upload.array(fieldName, 3);
-    return next();
-  } catch (error) {
-    next(new ErrorResponse('Error processing image upload', 500));
-    console.log(error);
-  }
-};
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'cleanbage',
+    allowed_formats: ['jpg', 'jpeg', 'png'],
+    transformation: [{ width: 800, height: 800, crop: 'limit' }],
+  },
+});
+
+export const handleImageUpload = multer({ storage });

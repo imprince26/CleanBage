@@ -18,7 +18,7 @@ router.use(protect);
 
 router.route('/')
     .get(authorize('admin'), getAllFeedback)
-    .post(handleImageUpload('images'),createFeedback);
+    .post(handleImageUpload.array('images',3),createFeedback);
 
 router.get('/me', getUserFeedback);
 router.get('/stats', authorize('admin'), getFeedbackStats);

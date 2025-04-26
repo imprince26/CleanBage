@@ -27,7 +27,7 @@ router.route('/:id')
     .put(authorize('admin'), updateUser)
     .delete(authorize('admin'), deleteUser);
 
-router.put('/:id/avatar',handleImageUpload('images'), uploadAvatar);
+router.put('/:id/avatar',handleImageUpload.array('images',3), uploadAvatar);
 router.get('/:id/stats', getUserStats);
 
 export default router;

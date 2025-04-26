@@ -23,11 +23,11 @@ router.get('/stats', authorize('admin'), getRewardStats);
 
 router.route('/items')
     .get(getRewardItems)
-    .post(authorize('admin'),handleImageUpload('images'), createRewardItem);
+    .post(authorize('admin'),handleImageUpload.array('images',3), createRewardItem);
 
 router.route('/items/:id')
     .get(getRewardItem)
-    .put(authorize('admin'),handleImageUpload('images'), updateRewardItem)
+    .put(authorize('admin'),handleImageUpload.array('images',3), updateRewardItem)
     .delete(authorize('admin'), deleteRewardItem);
 
 router.post('/items/:id/redeem', redeemRewardItem);

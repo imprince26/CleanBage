@@ -19,7 +19,7 @@ router.use(protect);
 
 router.route('/')
     .get(getCollections)
-    .post(handleImageUpload('images'),createCollection);
+    .post(handleImageUpload.array('images',3),createCollection);
 
 router.get('/nearby', getNearbyBins);
 router.get('/stats', authorize('admin'), getCollectionStats);
@@ -30,6 +30,6 @@ router.route('/:id')
     .delete(authorize('admin'), deleteCollection);
 
 router.put('/:id/assign', authorize('admin'), assignCollector);
-router.post('/:id/complaint', handleImageUpload('images'),submitComplaint);
+router.post('/:id/complaint', handleImageUpload.array('images',3),submitComplaint);
 
 export default router;

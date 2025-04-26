@@ -118,23 +118,28 @@ export const getCollection = catchAsync(async (req, res, next) => {
 
 export const createCollection = catchAsync(async (req, res, next) => {
     console.log(req.body);
+
     // Add reporting user
     req.body.reportedBy = req.user.id;
 
     // Validate required fields
-    // if (!req.body.location?.coordinates || !req.body.wasteType) {
-    //     return next(new ErrorResponse('Please provide location coordinates and waste type', 400));
-    // }
+    if (!req.body.location) {
+        return next(new ErrorResponse('Location is required', 400));
+    }
 
-    // Ensure coordinates are in correct format [longitude, latitude]
-    const location = JSON.parse(req.body.location);
-    console.log(location.coordinates);
+    let location;
+    try {
+        location = JSON.parse(req.body.location);
+    } catch (err) {
+        return next(new ErrorResponse('Invalid location format', 400));
+    }
+
     const coordinates = Array.isArray(location.coordinates)
         ? location.coordinates.map(coord => Number(coord))
         : [];
 
     if (coordinates.length !== 2 || isNaN(coordinates[0]) || isNaN(coordinates[1])) {
-        return next(new ErrorResponse('Invalid coordinates format', 400));
+        return next(new ErrorResponse('Invalid coordinates', 400));
     }
 
     // Generate unique bin ID
@@ -226,6 +231,12 @@ export const createCollection = catchAsync(async (req, res, next) => {
 // Helper function to handle reward points
 const handleRewardPoints = async (userId, collectionId) => {
     try {
+         // Update user reward points
+         const user = await User.findByIdAndUpdate(
+            userId,
+            { $inc: { rewardPoints: 15 } },
+            { new: true }
+        );
         // Create reward transaction
         await RewardTransaction.create({
             user: userId,
@@ -234,15 +245,11 @@ const handleRewardPoints = async (userId, collectionId) => {
             description: 'Bonus for multiple waste bin reports',
             sourceType: 'bin_report',
             sourceId: collectionId,
-            sourceModel: 'Collection'
+            sourceModel: 'Collection',
+            balance: user.rewardPoints
         });
 
-        // Update user reward points
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { $inc: { rewardPoints: 15 } },
-            { new: true }
-        );
+       
 
         // Create notification
         await Notification.createNotification({

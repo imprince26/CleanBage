@@ -261,39 +261,35 @@ export default function ReportBin() {
     }
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    console.log('Selected files:', files);
+    
     if (files.length > 3) {
       toast.error("Maximum 3 images allowed");
+      e.target.value = ''; // Reset input
       return;
     }
-
+  
     const validFiles = [];
     const validUrls = [];
-
-    for (const file of files) {
-      try {
-        if (file.size > 5 * 1024 * 1024) {
-          toast.error(`File ${file.name} is too large. Max size is 5MB`);
-          continue;
-        }
-
-        if (!file.type.startsWith("image/")) {
-          toast.error(`File ${file.name} is not an image`);
-          continue;
-        }
-
-        const url = URL.createObjectURL(file);
-        validUrls.push(url);
-        validFiles.push(file);
-      } catch (error) {
-        console.error("Error processing image:", error);
-        toast.error(`Failed to process ${file.name}`);
+  
+    files.forEach((file) => {
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image`);
+        return;
       }
-    }
-
-    console.log('Valid files:', validFiles); // Debug: Log valid files
+  
+      // Check file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 5MB)`);
+        return;
+      }
+  
+      validFiles.push(file);
+      validUrls.push(URL.createObjectURL(file));
+    });
+  
     setSelectedImages(validFiles);
     setPreviewUrls(validUrls);
     form.setValue("images", validFiles);
@@ -314,40 +310,50 @@ export default function ReportBin() {
         setIsLoading(false);
         return;
       }
-
+  
       const formData = new FormData();
-
-      // Properly append all selected images
+  
+      // Append images first
       if (selectedImages && selectedImages.length > 0) {
         selectedImages.forEach((image) => {
           formData.append("images", image);
         });
       }
-
-      formData.append("location", JSON.stringify(data.location));
+  
+      // Append non-image data
+      formData.append("location", JSON.stringify({
+        type: "Point",
+        coordinates: data.location.coordinates,
+        address: data.location.address
+      }));
+      
       formData.append("wasteType", data.wasteType);
       formData.append("fillLevel", data.fillLevel.toString());
       formData.append("capacity", data.capacity.toString());
-      if (data.notes) formData.append("notes", data.notes);
-      formData.append(
-        "regularSchedule",
-        JSON.stringify({
-          frequency: data.regularSchedule.frequency,
-          days: data.regularSchedule.days,
-          timeSlot: data.regularSchedule.timeSlot,
-        })
-      );
-
+      
+      if (data.notes) {
+        formData.append("notes", data.notes);
+      }
+  
+      formData.append("regularSchedule", JSON.stringify({
+        frequency: data.regularSchedule.frequency,
+        days: data.regularSchedule.days || [],
+        timeSlot: data.regularSchedule.timeSlot
+      }));
+  
+      // Use the createCollection function from CollectionContext
       const response = await createCollection(formData);
-
-      toast.success("Report submitted successfully!");
-      form.reset();
-      setSelectedImages([]);
-      setPreviewUrls([]);
-      setLocationAddress(null);
-      setNearbyBins([]);
-      setUploadProgress(0);
-      // navigate(`/resident/collections/${response}`);
+  
+      if (response) {
+        toast.success("Report submitted successfully!");
+        form.reset();
+        setSelectedImages([]);
+        setPreviewUrls([]);
+        setLocationAddress(null);
+        setNearbyBins([]);
+        setUploadProgress(0);
+        navigate(`/resident/collections/${response._id}`);
+      }
     } catch (error) {
       console.error("Error reporting bin:", error);
       const errorMessage =

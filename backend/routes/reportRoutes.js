@@ -17,13 +17,13 @@ router.use(protect);
 
 router.route('/')
     .get(getReports)
-    .post(authorize('garbage_collector'), handleImageUpload('images'), createReport);
+    .post(authorize('garbage_collector'), handleImageUpload.array('images',3), createReport);
 
 router.get('/stats', authorize('admin'), getReportStats);
 
 router.route('/:id')
     .get(getReport)
-    .put(handleImageUpload('images'), updateReport)
+    .put(handleImageUpload.array('images',3), updateReport)
     .delete(authorize('admin'), deleteReport);
 
 router.post('/:id/feedback', authorize('admin'), submitFeedback);
