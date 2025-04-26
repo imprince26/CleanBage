@@ -61,7 +61,7 @@ const Notifications = () => {
         ...filters,
       });
 
-      const response = await api.get(`/notifications`);
+      const response = await api.get(`/notifications?${queryParams}`);
       console.log(response.data);
       if(!response.data.success) {
         throw new Error(response.data.message);
