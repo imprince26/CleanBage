@@ -19,9 +19,9 @@ const Temp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
         <Route path="/auth/google/error" element={<Navigate to="/login" />} />

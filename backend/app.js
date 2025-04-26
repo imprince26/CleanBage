@@ -4,8 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import connectDB from './config/db.js';
-import errorHandler from './middlewares/errorMiddleware.js';
-import { configurePassport } from './config/passport.js';
+import configurePassport from './config/passport.js';
 // Route imports
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -59,8 +58,6 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rewards', rewardRoutes);
 
-// Error handler middleware
-app.use(errorHandler);
 
 // app.post("/upload",handleImageUpload('images'), async (req, res) => {
 //     const file = req.files.images;

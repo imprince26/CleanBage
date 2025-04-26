@@ -13,31 +13,41 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check if user is logged in
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
+    let mounted = true;
 
-  const checkAuthStatus = async () => {
-    try {
-      const response= await api.get('/auth/me');
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const checkAuth = async () => {
+      try {
+        const response = await api.get('/auth/me');
+        if (mounted) {
+          setUser(response.data.user);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        if (mounted) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    checkAuth();
+
+    return () => {
+      mounted = false;
+    };
+}, []);
   
   const login = async (credentials) => {
     try {
       const { data } = await api.post('/auth/login', credentials);
       setUser(data.data);
       setIsAuthenticated(true);
-      toast.success('Logged in successfully');
-      navigate('/dashboard');
+      navigate('/');
       return true;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed');
@@ -113,28 +123,29 @@ export function AuthProvider({ children }) {
     }
   };
   const initiateGoogleAuth = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    // Use the full Google OAuth URL with all required parameters
+    const googleAuthUrl = `${import.meta.env.VITE_API_URL}/auth/google`;
+    window.location.href = googleAuthUrl;
   };
 
-  // Handle Google OAuth callback
-  const handleGoogleCallback = async (code) => {
+  // Update the Google callback handler
+  const handleGoogleCallback = async (token) => {
     try {
-      const response = await api.get(`/auth/google/callback?code=${code}`, {
-        withCredentials: true
-      })
-
-      if (response.data.success) {
-        setUser(response.data.user)
-        setIsAuthenticated(true)
-        return true
+      if (!token) {
+        throw new Error('No token received from Google');
       }
-      navigate('/dashboard')
-      return false
+
+      setUser(JSON.parse(atob(token.split('.')[1])));
+      setIsAuthenticated(true);
+      navigate('/dashboard');
+      return true;
     } catch (error) {
-      console.error('Google callback error:', error)
-      throw error
+      console.error('Google callback error:', error);
+      toast.error('Failed to authenticate with Google');
+      navigate('/login');
+      return false;
     }
-  }
+  };
 
 
   const value = {

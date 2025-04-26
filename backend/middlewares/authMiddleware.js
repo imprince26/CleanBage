@@ -1,24 +1,26 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 
 // Middleware to protect routes
-export const protect = catchAsync(async (req, res, next) => {
-    let CleanBageToken;
-    
-    // Get CleanBageToken from cookies or authorization header
-    if (req.cookies.CleanBageToken) {
-        CleanBageToken = req.cookies.CleanBageToken;
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        CleanBageToken = req.headers.authorization.split(' ')[1];
-    }
-    
-    if (!CleanBageToken) {
-        return next(new ErrorResponse('Not authorized to access this route', 401));
-    }
-    
+export const protect = async (req, res, next) => {
     try {
+        let CleanBageToken;
+        
+        // Get CleanBageToken from cookies or authorization header
+        if (req.cookies.CleanBageToken) {
+            CleanBageToken = req.cookies.CleanBageToken;
+        } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            CleanBageToken = req.headers.authorization.split(' ')[1];
+        }
+        
+        // If no CleanBageToken, return error
+        if (!CleanBageToken) {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to access this route'
+            });
+        }
+        
         // Verify CleanBageToken
         const decoded = jwt.verify(CleanBageToken, process.env.JWT_SECRET);
         
@@ -26,7 +28,10 @@ export const protect = catchAsync(async (req, res, next) => {
         const user = await User.findById(decoded.id);
         
         if (!user) {
-            return next(new ErrorResponse('User not found', 404));
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
         }
         
         // Update last active
@@ -36,19 +41,28 @@ export const protect = catchAsync(async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        return next(new ErrorResponse('Not authorized to access this route', 401));
+        return res.status(401).json({
+            success: false,
+            message: 'Not authorized to access this route'
+        });
     }
-});
+};
 
 // Middleware to authorize specific roles
 export const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
-            return next(new ErrorResponse('Not authorized to access this route', 401));
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to access this route'
+            });
         }
         
         if (!roles.includes(req.user.role)) {
-            return next(new ErrorResponse(`User role ${req.user.role} is not authorized to access this route`, 403));
+            return res.status(403).json({
+                success: false,
+                message: `User role ${req.user.role} is not authorized to access this route`
+            });
         }
         
         next();
@@ -56,29 +70,39 @@ export const authorize = (...roles) => {
 };
 
 // Middleware to check if user is verified
-export const isVerified = catchAsync(async (req, res, next) => {
-    if (!req.user.verified) {
-        return next(new ErrorResponse('Please verify your email address', 403));
+export const isVerified = async (req, res, next) => {
+    try {
+        if (!req.user.verified) {
+            return res.status(403).json({
+                success: false,
+                message: 'Please verify your email address'
+            });
+        }
+        
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
     }
-    
-    next();
-});
+};
 
 // Middleware to set user if CleanBageToken exists (for optional authentication)
-export const optionalAuth = catchAsync(async (req, res, next) => {
-    let CleanBageToken;
-    
-    if (req.cookies.CleanBageToken) {
-        CleanBageToken = req.cookies.CleanBageToken;
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        CleanBageToken = req.headers.authorization.split(' ')[1];
-    }
-    
-    if (!CleanBageToken) {
-        return next();
-    }
-    
+export const optionalAuth = async (req, res, next) => {
     try {
+        let CleanBageToken;
+        
+        if (req.cookies.CleanBageToken) {
+            CleanBageToken = req.cookies.CleanBageToken;
+        } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            CleanBageToken = req.headers.authorization.split(' ')[1];
+        }
+        
+        if (!CleanBageToken) {
+            return next();
+        }
+        
         const decoded = jwt.verify(CleanBageToken, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         
@@ -92,4 +116,4 @@ export const optionalAuth = catchAsync(async (req, res, next) => {
     } catch (error) {
         next();
     }
-});
+};

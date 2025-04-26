@@ -1,13 +1,12 @@
 import { RewardTransaction, RewardItem } from '../models/rewardModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
+
 // @desc    Get user's reward transactions
 // @route   GET /api/rewards/transactions
 // @access  Private
-export const getUserTransactions = catchAsync(async (req, res, next) => {
+export const getUserTransactions = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -61,12 +60,12 @@ export const getUserTransactions = catchAsync(async (req, res, next) => {
         total,
         data: transactions
     });
-});
+};
 
 // @desc    Get all reward items
 // @route   GET /api/rewards/items
 // @access  Private
-export const getRewardItems = catchAsync(async (req, res, next) => {
+export const getRewardItems = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -130,36 +129,36 @@ export const getRewardItems = catchAsync(async (req, res, next) => {
         total,
         data: rewardItems
     });
-});
+};
 
 // @desc    Get single reward item
 // @route   GET /api/rewards/items/:id
 // @access  Private
-export const getRewardItem = catchAsync(async (req, res, next) => {
+export const getRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
     
     if (!rewardItem) {
-        return next(new ErrorResponse(`Reward item not found with id of ${req.params.id}`, 404));
+        throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
     
     // If not active and not admin, don't show
     if (!rewardItem.isActive && req.user.role !== 'admin') {
-        return next(new ErrorResponse(`Reward item not found with id of ${req.params.id}`, 404));
+        throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
     
     res.status(200).json({
         success: true,
         data: rewardItem
     });
-});
+};
 
 // @desc    Create reward item
 // @route   POST /api/rewards/items
 // @access  Private/Admin
-export const createRewardItem = catchAsync(async (req, res, next) => {
+export const createRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to create reward items', 403));
+        throw new Error('Not authorized to create reward items', 403);
     }
     
     // Add creator
@@ -167,7 +166,7 @@ export const createRewardItem = catchAsync(async (req, res, next) => {
     
     // Check if required fields are provided
     if (!req.body.name || !req.body.description || !req.body.pointsCost || !req.body.category || !req.body.validUntil) {
-        return next(new ErrorResponse('Please provide name, description, points cost, category, and validity period', 400));
+        throw new Error('Please provide name, description, points cost, category, and validity period', 400);
     }
     
     // Process uploaded image
@@ -176,12 +175,12 @@ export const createRewardItem = catchAsync(async (req, res, next) => {
         
         // Check file type
         if (!file.mimetype.startsWith('image')) {
-            return next(new ErrorResponse('Please upload an image file', 400));
+            throw new Error('Please upload an image file', 400);
         }
         
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
-            return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
         
         try {
@@ -194,7 +193,7 @@ export const createRewardItem = catchAsync(async (req, res, next) => {
             };
         } catch (error) {
             console.error('Image upload error:', error);
-            return next(new ErrorResponse('Problem with file upload', 500));
+            throw new Error('Problem with file upload', 500);
         }
     }
     
@@ -209,21 +208,21 @@ export const createRewardItem = catchAsync(async (req, res, next) => {
         success: true,
         data: rewardItem
     });
-});
+};
 
 // @desc    Update reward item
 // @route   PUT /api/rewards/items/:id
 // @access  Private/Admin
-export const updateRewardItem = catchAsync(async (req, res, next) => {
+export const updateRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to update reward items', 403));
+        throw new Error('Not authorized to update reward items', 403);
     }
     
     let rewardItem = await RewardItem.findById(req.params.id);
     
     if (!rewardItem) {
-        return next(new ErrorResponse(`Reward item not found with id of ${req.params.id}`, 404));
+        throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
     
     // Fields to update
@@ -252,12 +251,12 @@ export const updateRewardItem = catchAsync(async (req, res, next) => {
         
         // Check file type
         if (!file.mimetype.startsWith('image')) {
-            return next(new ErrorResponse('Please upload an image file', 400));
+            throw new Error('Please upload an image file', 400);
         }
         
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
-            return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
         
         try {
@@ -275,7 +274,7 @@ export const updateRewardItem = catchAsync(async (req, res, next) => {
             };
         } catch (error) {
             console.error('Image upload error:', error);
-            return next(new ErrorResponse('Problem with file upload', 500));
+            throw new Error('Problem with file upload', 500);
         }
     }
     
@@ -288,21 +287,21 @@ export const updateRewardItem = catchAsync(async (req, res, next) => {
         success: true,
         data: rewardItem
     });
-});
+};
 
 // @desc    Delete reward item
 // @route   DELETE /api/rewards/items/:id
 // @access  Private/Admin
-export const deleteRewardItem = catchAsync(async (req, res, next) => {
+export const deleteRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to delete reward items', 403));
+        throw new Error('Not authorized to delete reward items', 403);
     }
     
     const rewardItem = await RewardItem.findById(req.params.id);
     
     if (!rewardItem) {
-        return next(new ErrorResponse(`Reward item not found with id of ${req.params.id}`, 404));
+        throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
     
     // Delete image from cloudinary
@@ -316,36 +315,36 @@ export const deleteRewardItem = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
 // @desc    Redeem reward item
 // @route   POST /api/rewards/items/:id/redeem
 // @access  Private
-export const redeemRewardItem = catchAsync(async (req, res, next) => {
+export const redeemRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
     
     if (!rewardItem) {
-        return next(new ErrorResponse(`Reward item not found with id of ${req.params.id}`, 404));
+        throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
     
     // Check if reward is active
     if (!rewardItem.isActive) {
-        return next(new ErrorResponse('This reward is not active', 400));
+        throw new Error('This reward is not active', 400);
     }
     
     // Check if reward has expired
     if (rewardItem.validUntil < new Date()) {
-        return next(new ErrorResponse('This reward has expired', 400));
+        throw new Error('This reward has expired', 400);
     }
     
     // Check if reward is out of stock
     if (rewardItem.remainingQuantity === 0) {
-        return next(new ErrorResponse('This reward is out of stock', 400));
+        throw new Error('This reward is out of stock', 400);
     }
     
     // Check if user has enough points
     if (req.user.rewardPoints < rewardItem.pointsCost) {
-        return next(new ErrorResponse('Insufficient reward points', 400));
+        throw new Error('Insufficient reward points', 400);
     }
     
     try {
@@ -361,14 +360,14 @@ export const redeemRewardItem = catchAsync(async (req, res, next) => {
             }
         });
     } catch (error) {
-        return next(new ErrorResponse(error.message, 400));
+        throw new Error(error.message, 400);
     }
-});
+};
 
 // @desc    Get user's reward redemptions
 // @route   GET /api/rewards/redemptions
 // @access  Private
-export const getUserRedemptions = catchAsync(async (req, res, next) => {
+export const getUserRedemptions = async (req, res) => {
     const rewardItems = await RewardItem.find({
         'redemptions.user': req.user.id
     });
@@ -408,15 +407,15 @@ export const getUserRedemptions = catchAsync(async (req, res, next) => {
         count: redemptions.length,
         data: redemptions
     });
-});
+};
 
 // @desc    Get reward statistics
 // @route   GET /api/rewards/stats
 // @access  Private/Admin
-export const getRewardStats = catchAsync(async (req, res, next) => {
+export const getRewardStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
     
     // Get total points earned and redeemed
@@ -506,4 +505,4 @@ export const getRewardStats = catchAsync(async (req, res, next) => {
             topUsers
         }
     });
-});
+};

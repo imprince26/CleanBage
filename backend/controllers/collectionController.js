@@ -2,13 +2,11 @@ import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import { RewardTransaction } from '../models/rewardModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { getAddressFromCoordinates } from '../utils/geoUtils.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 import { json } from 'express';
 
-export const getCollections = catchAsync(async (req, res, next) => {
+export const getCollections = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -98,25 +96,24 @@ export const getCollections = catchAsync(async (req, res, next) => {
         total,
         data: collections
     });
-});
+};
 
-export const getCollection = catchAsync(async (req, res, next) => {
+export const getCollection = async (req, res) => {
     const collection = await Collection.findById(req.params.id)
         .populate('reportedBy', 'name avatar')
         .populate('assignedCollector', 'name avatar');
 
     if (!collection) {
-        return next(new ErrorResponse(`Collection not found with id of ${req.params.id}`, 404));
+        throw new Error(`Collection not found with id of ${req.params.id}`, 404);
     }
 
     res.status(200).json({
         success: true,
         data: collection
     });
-});
+};
 
-
-export const createCollection = catchAsync(async (req, res, next) => {
+export const createCollection = async (req, res) => {
     console.log(req.body);
 
     // Add reporting user
@@ -124,14 +121,14 @@ export const createCollection = catchAsync(async (req, res, next) => {
 
     // Validate required fields
     if (!req.body.location) {
-        return next(new ErrorResponse('Location is required', 400));
+        throw new Error('Location is required', 400);
     }
 
     let location;
     try {
         location = JSON.parse(req.body.location);
     } catch (err) {
-        return next(new ErrorResponse('Invalid location format', 400));
+        throw new Error('Invalid location format', 400);
     }
 
     const coordinates = Array.isArray(location.coordinates)
@@ -139,7 +136,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
         : [];
 
     if (coordinates.length !== 2 || isNaN(coordinates[0]) || isNaN(coordinates[1])) {
-        return next(new ErrorResponse('Invalid coordinates', 400));
+        throw new Error('Invalid coordinates', 400);
     }
 
     // Generate unique bin ID
@@ -178,13 +175,13 @@ export const createCollection = catchAsync(async (req, res, next) => {
             for (const file of files) {
                 // Validate file type
                 if (!file.mimetype.startsWith('image/')) {
-                    return next(new ErrorResponse('Please upload only image files', 400));
+                    throw new Error('Please upload only image files', 400);
                 }
 
                 // Validate file size (5MB limit)
                 const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    return next(new ErrorResponse('Image size should not exceed 5MB', 400));
+                    throw new Error('Image size should not exceed 5MB', 400);
                 }
 
                 // Upload to cloudinary
@@ -199,7 +196,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
             for (const image of collectionData.reportImages) {
                 await deleteImage(image.public_id);
             }
-            return next(new ErrorResponse('Error processing images', 500));
+            throw new Error('Error processing images', 500);
         }
     }
 
@@ -226,7 +223,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
         success: true,
         data: collection
     });
-});
+};
 
 // Helper function to handle reward points
 const handleRewardPoints = async (userId, collectionId) => {
@@ -248,8 +245,6 @@ const handleRewardPoints = async (userId, collectionId) => {
             sourceModel: 'Collection',
             balance: user.rewardPoints
         });
-
-       
 
         // Create notification
         await Notification.createNotification({
@@ -293,19 +288,18 @@ const notifyAdmins = async (collection) => {
     }
 };
 
-
-export const updateCollection = catchAsync(async (req, res, next) => {
+export const updateCollection = async (req, res) => {
     let collection = await Collection.findById(req.params.id);
 
     if (!collection) {
-        return next(new ErrorResponse(`Collection not found with id of ${req.params.id}`, 404));
+        throw new Error(`Collection not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin or the assigned collector
     if (req.user.role !== 'admin' &&
         (!collection.assignedCollector ||
             collection.assignedCollector.toString() !== req.user.id)) {
-        return next(new ErrorResponse('Not authorized to update this collection', 403));
+        throw new Error('Not authorized to update this collection', 403);
     }
 
     // Fields to update
@@ -351,25 +345,24 @@ export const updateCollection = catchAsync(async (req, res, next) => {
         success: true,
         data: collection
     });
-});
+};
 
-
-export const assignCollector = catchAsync(async (req, res, next) => {
+export const assignCollector = async (req, res) => {
     const { collectorId } = req.body;
 
     if (!collectorId) {
-        return next(new ErrorResponse('Please provide collector ID', 400));
+        throw new Error('Please provide collector ID', 400);
     }
 
     let collection = await Collection.findById(req.params.id);
 
     if (!collection) {
-        return next(new ErrorResponse(`Collection not found with id of ${req.params.id}`, 404));
+        throw new Error(`Collection not found with id of ${req.params.id}`, 404);
     }
 
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to assign collectors', 403));
+        throw new Error('Not authorized to assign collectors', 403);
     }
 
     // Check if collector exists and has the right role
@@ -379,7 +372,7 @@ export const assignCollector = catchAsync(async (req, res, next) => {
     });
 
     if (!collector) {
-        return next(new ErrorResponse('Invalid garbage collector', 404));
+        throw new Error('Invalid garbage collector', 404);
     }
 
     collection = await Collection.findByIdAndUpdate(
@@ -415,31 +408,30 @@ export const assignCollector = catchAsync(async (req, res, next) => {
         success: true,
         data: collection
     });
-});
+};
 
-
-export const deleteCollection = catchAsync(async (req, res, next) => {
+export const deleteCollection = async (req, res) => {
     const collection = await Collection.findById(req.params.id);
 
     if (!collection) {
-        return next(new ErrorResponse(`Collection not found with id of ${req.params.id}`, 404));
+        throw new Error(`Collection not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to delete collections', 403));
+        throw new Error('Not authorized to delete collections', 403);
     }
 
     // Delete images from cloudinary
     if (collection.reportImages && collection.reportImages.length > 0) {
         for (const image of collection.reportImages) {
-            await cloudinary.uploader.destroy(image.public_id);
+            await deleteImage(image.public_id);
         }
     }
 
     // Delete QR code if exists
     if (collection.qrCode && collection.qrCode.public_id) {
-        await cloudinary.uploader.destroy(collection.qrCode.public_id);
+        await deleteImage(collection.qrCode.public_id);
     }
 
     await collection.deleteOne();
@@ -448,22 +440,21 @@ export const deleteCollection = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
-
-export const getNearbyBins = catchAsync(async (req, res, next) => {
+export const getNearbyBins = async (req, res) => {
     const { longitude, latitude, distance = 1000, wasteType } = req.query;
   
     // Check if coordinates are provided
     if (!longitude || !latitude) {
-      return next(new ErrorResponse('Please provide longitude and latitude', 400));
+      throw new Error('Please provide longitude and latitude', 400);
     }
   
     const coordinates = [parseFloat(longitude), parseFloat(latitude)];
   
     // Validate coordinates
     if (isNaN(coordinates[0]) || isNaN(coordinates[1])) {
-      return next(new ErrorResponse('Invalid longitude or latitude', 400));
+      throw new Error('Invalid longitude or latitude', 400);
     }
   
     try {
@@ -481,29 +472,28 @@ export const getNearbyBins = catchAsync(async (req, res, next) => {
       });
     } catch (error) {
       if (error.message.includes('unable to find index for $geoNear query')) {
-        return next(new ErrorResponse('Geospatial index missing on location field. Please contact the administrator.', 500));
+        throw new Error('Geospatial index missing on location field. Please contact the administrator.', 500);
       }
-      return next(new ErrorResponse('Error fetching nearby bins', 500));
+      throw new Error('Error fetching nearby bins', 500);
     }
-  });
+};
 
-
-export const submitComplaint = catchAsync(async (req, res, next) => {
+export const submitComplaint = async (req, res) => {
     const { text } = req.body;
 
     if (!text) {
-        return next(new ErrorResponse('Please provide complaint text', 400));
+        throw new Error('Please provide complaint text', 400);
     }
 
     const collection = await Collection.findById(req.params.id);
 
     if (!collection) {
-        return next(new ErrorResponse(`Collection not found with id of ${req.params.id}`, 404));
+        throw new Error(`Collection not found with id of ${req.params.id}`, 404);
     }
 
     // Check if user is resident
     if (req.user.role !== 'resident') {
-        return next(new ErrorResponse('Only residents can submit complaints', 403));
+        throw new Error('Only residents can submit complaints', 403);
     }
 
     const complaint = {
@@ -521,12 +511,12 @@ export const submitComplaint = catchAsync(async (req, res, next) => {
         for (const file of files) {
             // Check file type
             if (!file.mimetype.startsWith('image')) {
-                return next(new ErrorResponse('Please upload an image file', 400));
+                throw new Error('Please upload an image file', 400);
             }
 
             // Check file size
             if (file.size > process.env.MAX_FILE_SIZE) {
-                return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+                throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
             }
 
             try {
@@ -539,7 +529,7 @@ export const submitComplaint = catchAsync(async (req, res, next) => {
                 });
             } catch (error) {
                 console.error('Image upload error:', error);
-                return next(new ErrorResponse('Problem with file upload', 500));
+                throw new Error('Problem with file upload', 500);
             }
         }
     }
@@ -571,13 +561,12 @@ export const submitComplaint = catchAsync(async (req, res, next) => {
         success: true,
         data: collection
     });
-});
+};
 
-
-export const getCollectionStats = catchAsync(async (req, res, next) => {
+export const getCollectionStats = async (req, res) => {
     // Only allow admins to access
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
 
     // Get total count by status
@@ -656,4 +645,4 @@ export const getCollectionStats = catchAsync(async (req, res, next) => {
             collectionsByMonth
         }
     });
-});
+};

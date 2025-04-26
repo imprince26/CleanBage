@@ -87,11 +87,11 @@ export function Header() {
     return roleNavigation[user.role] || []
   }
 
-  const userNavigation = [
-    { name: "Dashboard", href: "/dashboard" },
-    { name: "Profile", href: "/profile" },
-    { name: "Settings", href: "/settings" },
-  ]
+  // const userNavigation = [
+  //   { name: "Dashboard", href: "/dashboard" },
+  //   { name: "Profile", href: "/profile" },
+  //   { name: "Settings", href: "/settings" },
+  // ]
 
   return (
     <header
@@ -105,21 +105,8 @@ export function Header() {
       <nav className="container px-4 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <svg
-            className="h-8 w-8 text-primary"
-            viewBox="0 0 32 32"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="32" height="32" rx="8" fill="currentColor"/>
-            <path
-              d="M22.667 12.667v8a2 2 0 01-2 2H11.333a2 2 0 01-2-2v-8m13.334 0H9.333m13.334 0l-1.334-2.667H10.667L9.333 12.667m6.667 4v3m0-3l-2-2m2 2l2-2"
-              stroke="white"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        
+          <img src="/logo.svg" alt="CleanBage" className="h-8 w-8" />
           <span className="font-bold text-lg hidden sm:inline-block">
             CleanBage
           </span>

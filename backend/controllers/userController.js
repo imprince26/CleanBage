@@ -3,15 +3,10 @@ import { RewardTransaction } from '../models/rewardModel.js';
 import Notification from '../models/notificationModel.js';
 import Collection from '../models/collectionModel.js';
 import Report from '../models/reportModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { getCoordinatesFromAddress } from '../utils/geoUtils.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Private/Admin
-export const getUsers = catchAsync(async (req, res, next) => {
+export const getUsers = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -71,40 +66,34 @@ export const getUsers = catchAsync(async (req, res, next) => {
         total,
         data: users
     });
-});
+};
 
-// @desc    Get single user
-// @route   GET /api/users/:id
-// @access  Private/Admin
-export const getUser = catchAsync(async (req, res, next) => {
+export const getUser = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+        throw new Error(`User not found with id of ${req.params.id}`, 404);
     }
 
     res.status(200).json({
         success: true,
         data: user
     });
-});
+};
 
-// @desc    Create user
-// @route   POST /api/users
-// @access  Private/Admin
-export const createUser = catchAsync(async (req, res, next) => {
+export const createUser = async (req, res) => {
     const { name, email, password, role, phone, address } = req.body;
 
     // Validate required fields
     if (!name || !email || !password || !role) {
-        return next(new ErrorResponse('Please provide name, email, password and role', 400));
+        throw new Error('Please provide name, email, password and role', 400);
     }
 
     // Check if user exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-        return next(new ErrorResponse('Email already registered', 400));
+        throw new Error('Email already registered', 400);
     }
 
     // Create user
@@ -132,12 +121,9 @@ export const createUser = catchAsync(async (req, res, next) => {
         success: true,
         data: user
     });
-});
+};
 
-// @desc    Update user
-// @route   PUT /api/users/:id
-// @access  Private/Admin
-export const updateUser = catchAsync(async (req, res, next) => {
+export const updateUser = async (req, res) => {
     // Fields to update
     const fieldsToUpdate = {
         name: req.body.name,
@@ -158,7 +144,7 @@ export const updateUser = catchAsync(async (req, res, next) => {
     if (fieldsToUpdate.email) {
         const existingUser = await User.findOne({ email: fieldsToUpdate.email });
         if (existingUser && existingUser._id.toString() !== req.params.id) {
-            return next(new ErrorResponse('Email already in use', 400));
+            throw new Error('Email already in use', 400);
         }
     }
 
@@ -190,23 +176,20 @@ export const updateUser = catchAsync(async (req, res, next) => {
     });
 
     if (!user) {
-        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+        throw new Error(`User not found with id of ${req.params.id}`, 404);
     }
 
     res.status(200).json({
         success: true,
         data: user
     });
-});
+};
 
-// @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
-export const deleteUser = catchAsync(async (req, res, next) => {
+export const deleteUser = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+        throw new Error(`User not found with id of ${req.params.id}`, 404);
     }
 
     // Check if user has related data
@@ -218,7 +201,7 @@ export const deleteUser = catchAsync(async (req, res, next) => {
     });
 
     if (collections.length > 0) {
-        return next(new ErrorResponse(`Cannot delete user with associated collections`, 400));
+        throw new Error(`Cannot delete user with associated collections`, 400);
     }
 
     await user.deleteOne();
@@ -227,37 +210,34 @@ export const deleteUser = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
-// @desc    Upload user avatar
-// @route   PUT /api/users/:id/avatar
-// @access  Private/Admin or Self
-export const uploadAvatar = catchAsync(async (req, res, next) => {
+export const uploadAvatar = async (req, res) => {
     // Check if user is admin or self
     if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
-        return next(new ErrorResponse('Not authorized to update this user', 403));
+        throw new Error('Not authorized to update this user', 403);
     }
 
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+        throw new Error(`User not found with id of ${req.params.id}`, 404);
     }
 
     if (!req.files || !req.files.avatar) {
-        return next(new ErrorResponse('Please upload a file', 400));
+        throw new Error('Please upload a file', 400);
     }
 
     const file = req.files.avatar;
 
     // Check file type
     if (!file.mimetype.startsWith('image')) {
-        return next(new ErrorResponse('Please upload an image file', 400));
+        throw new Error('Please upload an image file', 400);
     }
 
     // Check file size
     if (file.size > process.env.MAX_FILE_SIZE) {
-        return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+        throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
     }
 
     try {
@@ -283,23 +263,15 @@ export const uploadAvatar = catchAsync(async (req, res, next) => {
         });
     } catch (error) {
         console.error('Avatar upload error:', error);
-        return next(new ErrorResponse('Problem with file upload', 500));
+        throw new Error('Problem with file upload', 500);
     }
-});
+};
 
-// @desc    Get user statistics
-// @route   GET /api/users/:id/stats
-// @access  Private/Admin or Self
-export const getUserStats = catchAsync(async (req, res, next) => {
-    // Check if user is admin or self
-    // if (req.user.id !== req.params.id) {
-    //     return next(new ErrorResponse('Not authorized to access this data', 403));
-    // }
-
+export const getUserStats = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorResponse(`User not found with id of ${req.params.id}`, 404));
+        throw new Error(`User not found with id of ${req.params.id}`, 404);
     }
 
     const stats = {
@@ -344,12 +316,9 @@ export const getUserStats = catchAsync(async (req, res, next) => {
         success: true,
         data: stats
     });
-});
+};
 
-// @desc    Get leaderboard
-// @route   GET /api/users/leaderboard
-// @access  Public
-export const getLeaderboard = catchAsync(async (req, res, next) => {
+export const getLeaderboard = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
 
     const leaderboard = await User.find({
@@ -365,4 +334,4 @@ export const getLeaderboard = catchAsync(async (req, res, next) => {
         count: leaderboard.length,
         data: leaderboard
     });
-});
+};

@@ -2,11 +2,9 @@ import Report from '../models/reportModel.js';
 import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
-export const getReports = catchAsync(async (req, res, next) => {
+export const getReports = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -85,49 +83,47 @@ export const getReports = catchAsync(async (req, res, next) => {
         total,
         data: reports
     });
-});
+};
 
-
-export const getReport = catchAsync(async (req, res, next) => {
+export const getReport = async (req, res) => {
     const report = await Report.findById(req.params.id)
         .populate('bin', 'binId location fillLevel wasteType')
         .populate('collector', 'name avatar')
         .populate('reviewedBy', 'name role');
 
     if (!report) {
-        return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+        throw new Error(`Report not found with id of ${req.params.id}`, 404);
     }
 
     res.status(200).json({
         success: true,
         data: report
     });
-});
+};
 
-
-export const createReport = catchAsync(async (req, res, next) => {
+export const createReport = async (req, res) => {
     // Add collector
     req.body.collector = req.user.id;
 
     // Check if required fields are provided
     if (!req.body.bin || !req.body.wasteVolume) {
-        return next(new ErrorResponse('Please provide bin ID and waste volume', 400));
+        throw new Error('Please provide bin ID and waste volume', 400);
     }
 
     // Check if user is a garbage collector
     if (req.user.role !== 'garbage_collector') {
-        return next(new ErrorResponse('Only garbage collectors can create reports', 403));
+        throw new Error('Only garbage collectors can create reports', 403);
     }
 
     // Check if bin exists
     const bin = await Collection.findById(req.body.bin);
     if (!bin) {
-        return next(new ErrorResponse(`Bin not found with id of ${req.body.bin}`, 404));
+        throw new Error(`Bin not found with id of ${req.body.bin}`, 404);
     }
 
     // Check if collector is assigned to the bin
     if (bin.assignedCollector && bin.assignedCollector.toString() !== req.user.id) {
-        return next(new ErrorResponse('You are not assigned to this bin', 403));
+        throw new Error('You are not assigned to this bin', 403);
     }
 
     // Set collection date if not provided
@@ -154,12 +150,12 @@ export const createReport = catchAsync(async (req, res, next) => {
 
         // Check file type
         if (!file.mimetype.startsWith('image')) {
-            return next(new ErrorResponse('Please upload an image file', 400));
+            throw new Error('Please upload an image file', 400);
         }
 
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
-            return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
 
         try {
@@ -172,7 +168,7 @@ export const createReport = catchAsync(async (req, res, next) => {
             };
         } catch (error) {
             console.error('Image upload error:', error);
-            return next(new ErrorResponse('Problem with file upload', 500));
+            throw new Error('Problem with file upload', 500);
         }
     }
 
@@ -182,12 +178,12 @@ export const createReport = catchAsync(async (req, res, next) => {
 
         // Check file type
         if (!file.mimetype.startsWith('image')) {
-            return next(new ErrorResponse('Please upload an image file', 400));
+            throw new Error('Please upload an image file', 400);
         }
 
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
-            return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
 
         try {
@@ -200,7 +196,7 @@ export const createReport = catchAsync(async (req, res, next) => {
             };
         } catch (error) {
             console.error('Image upload error:', error);
-            return next(new ErrorResponse('Problem with file upload', 500));
+            throw new Error('Problem with file upload', 500);
         }
     }
 
@@ -256,19 +252,18 @@ export const createReport = catchAsync(async (req, res, next) => {
         success: true,
         data: report
     });
-});
+};
 
-
-export const updateReport = catchAsync(async (req, res, next) => {
+export const updateReport = async (req, res) => {
     let report = await Report.findById(req.params.id);
 
     if (!report) {
-        return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+        throw new Error(`Report not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin or the report creator
     if (req.user.role !== 'admin' && report.collector.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to update this report', 403));
+        throw new Error('Not authorized to update this report', 403);
     }
 
     // Fields that can be updated by collector
@@ -307,12 +302,12 @@ export const updateReport = catchAsync(async (req, res, next) => {
 
         // Check file type
         if (!file.mimetype.startsWith('image')) {
-            return next(new ErrorResponse('Please upload an image file', 400));
+            throw new Error('Please upload an image file', 400);
         }
 
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
-            return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
 
         try {
@@ -330,7 +325,7 @@ export const updateReport = catchAsync(async (req, res, next) => {
             };
         } catch (error) {
             console.error('Image upload error:', error);
-            return next(new ErrorResponse('Problem with file upload', 500));
+            throw new Error('Problem with file upload', 500);
         }
     }
 
@@ -352,19 +347,18 @@ export const updateReport = catchAsync(async (req, res, next) => {
         success: true,
         data: report
     });
-});
+};
 
-
-export const deleteReport = catchAsync(async (req, res, next) => {
+export const deleteReport = async (req, res) => {
     const report = await Report.findById(req.params.id);
 
     if (!report) {
-        return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+        throw new Error(`Report not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to delete reports', 403));
+        throw new Error('Not authorized to delete reports', 403);
     }
 
     // Delete images from cloudinary
@@ -381,25 +375,24 @@ export const deleteReport = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
-
-export const submitFeedback = catchAsync(async (req, res, next) => {
+export const submitFeedback = async (req, res) => {
     const { rating, comment } = req.body;
 
     if (!rating) {
-        return next(new ErrorResponse('Please provide a rating', 400));
+        throw new Error('Please provide a rating', 400);
     }
 
     const report = await Report.findById(req.params.id);
 
     if (!report) {
-        return next(new ErrorResponse(`Report not found with id of ${req.params.id}`, 404));
+        throw new Error(`Report not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to submit feedback on reports', 403));
+        throw new Error('Not authorized to submit feedback on reports', 403);
     }
 
     report.feedback = {
@@ -428,13 +421,12 @@ export const submitFeedback = catchAsync(async (req, res, next) => {
         success: true,
         data: report
     });
-});
+};
 
-
-export const getReportStats = catchAsync(async (req, res, next) => {
+export const getReportStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
 
     // Get total collected waste volume
@@ -541,4 +533,4 @@ export const getReportStats = catchAsync(async (req, res, next) => {
             topCollectors: formattedCollectors
         }
     });
-});
+};

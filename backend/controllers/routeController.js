@@ -2,33 +2,28 @@ import Route from '../models/routeModel.js';
 import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import {RewardTransaction} from '../models/rewardModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
+import { RewardTransaction } from '../models/rewardModel.js';
 
-// @desc    Get all routes
-// @route   GET /api/routes
-// @access  Private
-export const getRoutes = catchAsync(async (req, res, next) => {
+export const getRoutes = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
+
     // Filter
     const filter = {};
-    
+
     // Filter by status
     if (req.query.status) {
         filter.status = req.query.status;
     }
-    
+
     // Filter by collector
     if (req.query.collector) {
         filter.collector = req.query.collector;
     }
-    
+
     // Filter by date range
     if (req.query.startDate && req.query.endDate) {
         filter.date = {
@@ -40,7 +35,7 @@ export const getRoutes = catchAsync(async (req, res, next) => {
     } else if (req.query.endDate) {
         filter.date = { $lte: new Date(req.query.endDate) };
     }
-    
+
     // Sort
     const sort = {};
     if (req.query.sortBy) {
@@ -49,33 +44,33 @@ export const getRoutes = catchAsync(async (req, res, next) => {
     } else {
         sort.date = -1;
     }
-    
+
     const total = await Route.countDocuments(filter);
-    
+
     const routes = await Route.find(filter)
         .populate('collector', 'name avatar')
         .populate('bins.bin', 'binId location')
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
-    
+
     // Pagination result
     const pagination = {};
-    
+
     if (endIndex < total) {
         pagination.next = {
             page: page + 1,
             limit
         };
     }
-    
+
     if (startIndex > 0) {
         pagination.prev = {
             page: page - 1,
             limit
         };
     }
-    
+
     res.status(200).json({
         success: true,
         count: routes.length,
@@ -83,12 +78,9 @@ export const getRoutes = catchAsync(async (req, res, next) => {
         total,
         data: routes
     });
-});
+};
 
-// @desc    Get single route
-// @route   GET /api/routes/:id
-// @access  Private
-export const getRoute = catchAsync(async (req, res, next) => {
+export const getRoute = async (req, res) => {
     const route = await Route.findById(req.params.id)
         .populate('collector', 'name avatar phone fcmToken')
         .populate({
@@ -99,50 +91,47 @@ export const getRoute = catchAsync(async (req, res, next) => {
                 select: 'collectedAt collectedBy'
             }
         });
-    
+
     if (!route) {
-        return next(new ErrorResponse(`Route not found with id of ${req.params.id}`, 404));
+        throw new Error(`Route not found with id of ${req.params.id}`, 404);
     }
-    
+
     res.status(200).json({
         success: true,
         data: route
     });
-});
+};
 
-// @desc    Create new route
-// @route   POST /api/routes
-// @access  Private/Admin
-export const createRoute = catchAsync(async (req, res, next) => {
+export const createRoute = async (req, res) => {
     // Check if collector exists
     if (req.body.collector) {
         const collector = await User.findById(req.body.collector);
         if (!collector || collector.role !== 'garbage_collector') {
-            return next(new ErrorResponse('Invalid collector ID', 400));
+            throw new Error('Invalid collector ID', 400);
         }
     }
-    
+
     // Check if bins exist
     if (req.body.bins && req.body.bins.length > 0) {
         for (const binItem of req.body.bins) {
             const bin = await Collection.findById(binItem.bin);
             if (!bin) {
-                return next(new ErrorResponse(`Bin not found with id of ${binItem.bin}`, 404));
+                throw new Error(`Bin not found with id of ${binItem.bin}`, 404);
             }
         }
     }
-    
+
     const route = await Route.create(req.body);
-    
+
     // Notify collector if assigned
     if (req.body.collector) {
         const collector = await User.findById(req.body.collector);
-        
+
         if (collector && collector.fcmToken) {
             // Send push notification (implement with FCM)
             // ...
         }
-        
+
         // Create in-app notification
         await Notification.createNotification({
             recipient: req.body.collector,
@@ -160,54 +149,51 @@ export const createRoute = catchAsync(async (req, res, next) => {
             }
         });
     }
-    
+
     res.status(201).json({
         success: true,
         data: route
     });
-});
+};
 
-// @desc    Update route
-// @route   PUT /api/routes/:id
-// @access  Private/Admin
-export const updateRoute = catchAsync(async (req, res, next) => {
+export const updateRoute = async (req, res) => {
     let route = await Route.findById(req.params.id);
-    
+
     if (!route) {
-        return next(new ErrorResponse(`Route not found with id of ${req.params.id}`, 404));
+        throw new Error(`Route not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Check if collector changed
     let collectorChanged = false;
     let previousCollector = null;
-    
+
     if (req.body.collector && route.collector && req.body.collector.toString() !== route.collector.toString()) {
         collectorChanged = true;
         previousCollector = route.collector;
-        
+
         // Check if new collector exists
         const collector = await User.findById(req.body.collector);
         if (!collector || collector.role !== 'garbage_collector') {
-            return next(new ErrorResponse('Invalid collector ID', 400));
+            throw new Error('Invalid collector ID', 400);
         }
     }
-    
+
     // Update route
     route = await Route.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true
     });
-    
+
     // Notify new collector if assigned
     if (collectorChanged && req.body.collector) {
         // Notify new collector
         const collector = await User.findById(req.body.collector);
-        
+
         if (collector && collector.fcmToken) {
             // Send push notification (implement with FCM)
             // ...
         }
-        
+
         // Create in-app notification for new collector
         await Notification.createNotification({
             recipient: req.body.collector,
@@ -224,7 +210,7 @@ export const updateRoute = catchAsync(async (req, res, next) => {
                 url: `/collector/routes/${route._id}`
             }
         });
-        
+
         // Notify previous collector if there was one
         if (previousCollector) {
             await Notification.createNotification({
@@ -240,23 +226,20 @@ export const updateRoute = catchAsync(async (req, res, next) => {
             });
         }
     }
-    
+
     res.status(200).json({
         success: true,
         data: route
     });
-});
+};
 
-// @desc    Delete route
-// @route   DELETE /api/routes/:id
-// @access  Private/Admin
-export const deleteRoute = catchAsync(async (req, res, next) => {
+export const deleteRoute = async (req, res) => {
     const route = await Route.findById(req.params.id);
-    
+
     if (!route) {
-        return next(new ErrorResponse(`Route not found with id of ${req.params.id}`, 404));
+        throw new Error(`Route not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Notify collector if route is deleted
     if (route.collector) {
         await Notification.createNotification({
@@ -268,39 +251,36 @@ export const deleteRoute = catchAsync(async (req, res, next) => {
             icon: 'route'
         });
     }
-    
+
     await route.deleteOne();
-    
+
     res.status(200).json({
         success: true,
         data: {}
     });
-});
+};
 
-// @desc    Update route status
-// @route   PUT /api/routes/:id/status
-// @access  Private/Collector
-export const updateRouteStatus = catchAsync(async (req, res, next) => {
+export const updateRouteStatus = async (req, res) => {
     const { status, currentLocation } = req.body;
-    
+
     if (!status) {
-        return next(new ErrorResponse('Please provide a status', 400));
+        throw new Error('Please provide a status', 400);
     }
-    
+
     const route = await Route.findById(req.params.id);
-    
+
     if (!route) {
-        return next(new ErrorResponse(`Route not found with id of ${req.params.id}`, 404));
+        throw new Error(`Route not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Check if user is the assigned collector
     if (route.collector.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to update this route', 403));
+        throw new Error('Not authorized to update this route', 403);
     }
-    
+
     // Update status
     route.status = status;
-    
+
     // Update location if provided
     if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
         route.collectorLocation = {
@@ -308,29 +288,29 @@ export const updateRouteStatus = catchAsync(async (req, res, next) => {
             coordinates: [currentLocation.longitude, currentLocation.latitude]
         };
     }
-    
+
     // If status is completed, update completion details
     if (status === 'completed') {
         route.completedAt = new Date();
-        
+
         // Check if all bins are collected
         const allCollected = route.bins.every(bin => bin.isCollected);
-        
+
         if (!allCollected) {
-            return next(new ErrorResponse('Cannot mark route as completed until all bins are collected', 400));
+            throw new Error('Cannot mark route as completed until all bins are collected', 400);
         }
     }
-    
+
     // If status is in_progress, update start time
     if (status === 'in_progress' && !route.startedAt) {
         route.startedAt = new Date();
     }
-    
+
     await route.save();
-    
+
     // Notify admin about status change
     const admins = await User.find({ role: 'admin' });
-    
+
     for (const admin of admins) {
         await Notification.createNotification({
             recipient: admin._id,
@@ -348,58 +328,55 @@ export const updateRouteStatus = catchAsync(async (req, res, next) => {
             }
         });
     }
-    
+
     res.status(200).json({
         success: true,
         data: route
     });
-});
+};
 
-// @desc    Collect bin
-// @route   POST /api/routes/:id/collect/:binId
-// @access  Private/Collector
-export const collectBin = catchAsync(async (req, res, next) => {
+export const collectBin = async (req, res) => {
     const { wasteWeight, notes, currentLocation, images } = req.body;
-    
+
     const route = await Route.findById(req.params.id);
-    
+
     if (!route) {
-        return next(new ErrorResponse(`Route not found with id of ${req.params.id}`, 404));
+        throw new Error(`Route not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Check if user is the assigned collector
     if (route.collector.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to update this route', 403));
+        throw new Error('Not authorized to update this route', 403);
     }
-    
+
     // Find the bin in the route
     const binIndex = route.bins.findIndex(bin => bin.bin.toString() === req.params.binId);
-    
+
     if (binIndex === -1) {
-        return next(new ErrorResponse(`Bin not found in this route`, 404));
+        throw new Error(`Bin not found in this route`, 404);
     }
-    
+
     // Check if bin is already collected
     if (route.bins[binIndex].isCollected) {
-        return next(new ErrorResponse(`Bin already collected`, 400));
+        throw new Error(`Bin already collected`, 400);
     }
-    
+
     // Update bin collection status
     route.bins[binIndex].isCollected = true;
     route.bins[binIndex].collectedAt = new Date();
     route.bins[binIndex].wasteWeight = wasteWeight || 0;
     route.bins[binIndex].notes = notes;
-    
+
     if (images && images.length > 0) {
         route.bins[binIndex].images = images;
     }
-    
+
     // Update route status to in_progress if it's pending
     if (route.status === 'pending') {
         route.status = 'in_progress';
         route.startedAt = new Date();
     }
-    
+
     // Update collector location if provided
     if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
         route.collectorLocation = {
@@ -407,12 +384,12 @@ export const collectBin = catchAsync(async (req, res, next) => {
             coordinates: [currentLocation.longitude, currentLocation.latitude]
         };
     }
-    
+
     await route.save();
-    
+
     // Update the bin's last collection
     const bin = await Collection.findById(req.params.binId);
-    
+
     if (bin) {
         bin.lastCollected = {
             collectedAt: new Date(),
@@ -420,22 +397,22 @@ export const collectBin = catchAsync(async (req, res, next) => {
             route: route._id
         };
         bin.status = 'collected';
-        
+
         await bin.save();
-        
+
         // If bin was reported, reward the reporter
         if (bin.reporter && bin.reportedAt) {
             // Calculate days since report
             const daysSinceReport = Math.floor((new Date() - bin.reportedAt) / (1000 * 60 * 60 * 24));
-            
+
             // Only reward if collected within 3 days of report
             if (daysSinceReport <= 3) {
                 const reporter = await User.findById(bin.reporter);
-                
+
                 if (reporter) {
                     // Award points to reporter
                     const pointsAwarded = 10; // Base points
-                    
+
                     // Create reward transaction
                     await RewardTransaction.create({
                         user: reporter._id,
@@ -448,11 +425,11 @@ export const collectBin = catchAsync(async (req, res, next) => {
                         },
                         description: `Reward for reporting bin ${bin.binId}`
                     });
-                    
+
                     // Update user's reward points
                     reporter.rewardPoints += pointsAwarded;
                     await reporter.save();
-                    
+
                     // Notify reporter
                     await Notification.createNotification({
                         recipient: reporter._id,
@@ -467,7 +444,7 @@ export const collectBin = catchAsync(async (req, res, next) => {
                     });
                 }
             }
-            
+
             // Reset reporter info
             bin.reporter = null;
             bin.reportedAt = null;
@@ -476,46 +453,40 @@ export const collectBin = catchAsync(async (req, res, next) => {
             await bin.save();
         }
     }
-    
+
     res.status(200).json({
         success: true,
         data: route
     });
-});
+};
 
-// @desc    Get collector's active routes
-// @route   GET /api/routes/collector/active
-// @access  Private/Collector
-export const getCollectorActiveRoutes = catchAsync(async (req, res, next) => {
+export const getCollectorActiveRoutes = async (req, res) => {
     // Get today's date (start of day)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Get routes for today and future that are assigned to the collector
     const routes = await Route.find({
         collector: req.user.id,
         date: { $gte: today },
         status: { $in: ['pending', 'in_progress'] }
     })
-    .populate('bins.bin', 'binId location type capacity status')
-    .sort({ date: 1 });
-    
+        .populate('bins.bin', 'binId location type capacity status')
+        .sort({ date: 1 });
+
     res.status(200).json({
         success: true,
         count: routes.length,
         data: routes
     });
-});
+};
 
-// @desc    Get route statistics
-// @route   GET /api/routes/stats
-// @access  Private/Admin
-export const getRouteStats = catchAsync(async (req, res, next) => {
+export const getRouteStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
-    
+
     // Get total routes by status
     const routesByStatus = await Route.aggregate([
         {
@@ -525,7 +496,7 @@ export const getRouteStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get routes by month
     const routesByMonth = await Route.aggregate([
         {
@@ -549,7 +520,7 @@ export const getRouteStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get average completion time
     const avgCompletionTime = await Route.aggregate([
         {
@@ -576,7 +547,7 @@ export const getRouteStats = catchAsync(async (req, res, next) => {
             }
         }
     ]);
-    
+
     // Get collector performance
     const collectorPerformance = await Route.aggregate([
         {
@@ -630,42 +601,19 @@ export const getRouteStats = catchAsync(async (req, res, next) => {
                 completedRoutes: 1,
                 pendingRoutes: 1,
                 inProgressRoutes: 1,
-                cancelledRoutes: 1,
-                completionRate: {
-                    $cond: [
-                        { $eq: ['$totalRoutes', 0] },
-                        0,
-                        {
-                            $multiply: [
-                                {
-                                    $divide: ['$completedRoutes', '$totalRoutes']
-                                },
-                                100
-                            ]
-                        }
-                    ]
-                }
+                cancelledRoutes: 1
             }
-        },
-        {
-            $sort: { completionRate: -1 }
         }
     ]);
-    
-    // Format routes by status into an object
-    const formattedRoutesByStatus = {};
-    routesByStatus.forEach(item => {
-        formattedRoutesByStatus[item._id] = item.count;
-    });
-    
+
     res.status(200).json({
         success: true,
         data: {
             totalRoutes: await Route.countDocuments(),
-            routesByStatus: formattedRoutesByStatus,
+            routesByStatus,
             routesByMonth,
-            avgCompletionTime: avgCompletionTime.length > 0 ? Math.round(avgCompletionTime[0].avgTime) : 0,
+            avgCompletionTime: avgCompletionTime[0]?.avgTime ? Math.round(avgCompletionTime[0].avgTime) : 0,
             collectorPerformance
         }
     });
-});
+};

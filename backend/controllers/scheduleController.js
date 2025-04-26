@@ -2,13 +2,11 @@ import Schedule from '../models/scheduleModel.js';
 import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 
 // @desc    Get all schedules
 // @route   GET /api/schedules
 // @access  Private
-export const getSchedules = catchAsync(async (req, res, next) => {
+export const getSchedules = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
@@ -95,12 +93,12 @@ export const getSchedules = catchAsync(async (req, res, next) => {
         total,
         data: schedules
     });
-});
+};
 
 // @desc    Get single schedule
 // @route   GET /api/schedules/:id
 // @access  Private
-export const getSchedule = catchAsync(async (req, res, next) => {
+export const getSchedule = async (req, res) => {
     const schedule = await Schedule.findById(req.params.id)
         .populate('bin', 'binId location fillLevel wasteType')
         .populate('collector', 'name avatar phone')
@@ -109,36 +107,36 @@ export const getSchedule = catchAsync(async (req, res, next) => {
         .populate('completionDetails.report', 'status wasteVolume');
     
     if (!schedule) {
-        return next(new ErrorResponse(`Schedule not found with id of ${req.params.id}`, 404));
+        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
     }
     
     res.status(200).json({
         success: true,
         data: schedule
     });
-});
+};
 
 // @desc    Create new schedule
 // @route   POST /api/schedules
 // @access  Private/Admin
-export const createSchedule = catchAsync(async (req, res, next) => {
+export const createSchedule = async (req, res) => {
     // Add assigner
     req.body.assignedBy = req.user.id;
     
     // Check if required fields are provided
     if (!req.body.bin || !req.body.collector || !req.body.scheduledDate) {
-        return next(new ErrorResponse('Please provide bin, collector, and scheduled date', 400));
+        throw new Error('Please provide bin, collector, and scheduled date', 400);
     }
     
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Only admins can create schedules', 403));
+        throw new Error('Only admins can create schedules', 403);
     }
     
     // Check if bin exists
     const bin = await Collection.findById(req.body.bin);
     if (!bin) {
-        return next(new ErrorResponse(`Bin not found with id of ${req.body.bin}`, 404));
+        throw new Error(`Bin not found with id of ${req.body.bin}`, 404);
     }
     
     // Check if collector exists and has the right role
@@ -148,7 +146,7 @@ export const createSchedule = catchAsync(async (req, res, next) => {
     });
     
     if (!collector) {
-        return next(new ErrorResponse('Invalid garbage collector', 404));
+        throw new Error('Invalid garbage collector', 404);
     }
     
     // Set estimated fill level if not provided
@@ -199,21 +197,21 @@ export const createSchedule = catchAsync(async (req, res, next) => {
         success: true,
         data: schedule
     });
-});
+};
 
 // @desc    Update schedule
 // @route   PUT /api/schedules/:id
 // @access  Private/Admin
-export const updateSchedule = catchAsync(async (req, res, next) => {
+export const updateSchedule = async (req, res) => {
     let schedule = await Schedule.findById(req.params.id);
     
     if (!schedule) {
-        return next(new ErrorResponse(`Schedule not found with id of ${req.params.id}`, 404));
+        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
     }
     
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to update schedules', 403));
+        throw new Error('Not authorized to update schedules', 403);
     }
     
     // Fields to update
@@ -246,7 +244,7 @@ export const updateSchedule = catchAsync(async (req, res, next) => {
         });
         
         if (!collector) {
-            return next(new ErrorResponse('Invalid garbage collector', 404));
+            throw new Error('Invalid garbage collector', 404);
         }
         
         // Update bin with new collector
@@ -285,21 +283,21 @@ export const updateSchedule = catchAsync(async (req, res, next) => {
         success: true,
         data: schedule
     });
-});
+};
 
 // @desc    Delete schedule
 // @route   DELETE /api/schedules/:id
 // @access  Private/Admin
-export const deleteSchedule = catchAsync(async (req, res, next) => {
+export const deleteSchedule = async (req, res) => {
     const schedule = await Schedule.findById(req.params.id);
     
     if (!schedule) {
-        return next(new ErrorResponse(`Schedule not found with id of ${req.params.id}`, 404));
+        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
     }
     
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to delete schedules', 403));
+        throw new Error('Not authorized to delete schedules', 403);
     }
     
     // If schedule is pending, update bin's collection schedule
@@ -315,32 +313,32 @@ export const deleteSchedule = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
 // @desc    Complete schedule
 // @route   PUT /api/schedules/:id/complete
 // @access  Private/Garbage Collector
-export const completeSchedule = catchAsync(async (req, res, next) => {
+export const completeSchedule = async (req, res) => {
     const { fillLevel, collectionTime, reportId } = req.body;
     
     if (!fillLevel) {
-        return next(new ErrorResponse('Please provide fill level', 400));
+        throw new Error('Please provide fill level', 400);
     }
     
     const schedule = await Schedule.findById(req.params.id);
     
     if (!schedule) {
-        return next(new ErrorResponse(`Schedule not found with id of ${req.params.id}`, 404));
+        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
     }
     
     // Check user is the assigned collector
     if (schedule.collector.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to complete this schedule', 403));
+        throw new Error('Not authorized to complete this schedule', 403);
     }
     
     // Check if schedule is pending
     if (schedule.status !== 'pending') {
-        return next(new ErrorResponse('Schedule is not in pending status', 400));
+        throw new Error('Schedule is not in pending status', 400);
     }
     
     schedule.status = 'completed';
@@ -427,32 +425,32 @@ export const completeSchedule = catchAsync(async (req, res, next) => {
         success: true,
         data: schedule
     });
-});
+};
 
 // @desc    Reschedule collection
 // @route   PUT /api/schedules/:id/reschedule
 // @access  Private/Admin or Garbage Collector
-export const rescheduleCollection = catchAsync(async (req, res, next) => {
+export const rescheduleCollection = async (req, res) => {
     const { newDate, reason } = req.body;
     
     if (!newDate) {
-        return next(new ErrorResponse('Please provide new date', 400));
+        throw new Error('Please provide new date', 400);
     }
     
     const schedule = await Schedule.findById(req.params.id);
     
     if (!schedule) {
-        return next(new ErrorResponse(`Schedule not found with id of ${req.params.id}`, 404));
+        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
     }
     
     // Check user is admin or the assigned collector
     if (req.user.role !== 'admin' && schedule.collector.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to reschedule this collection', 403));
+        throw new Error('Not authorized to reschedule this collection', 403);
     }
     
     // Check if schedule is completed
     if (schedule.status === 'completed') {
-        return next(new ErrorResponse('Cannot reschedule a completed schedule', 400));
+        throw new Error('Cannot reschedule a completed schedule', 400);
     }
     
     schedule.status = 'rescheduled';
@@ -523,15 +521,15 @@ export const rescheduleCollection = catchAsync(async (req, res, next) => {
             newSchedule
         }
     });
-});
+};
 
 // @desc    Get collector's upcoming schedules
 // @route   GET /api/schedules/collector/upcoming
 // @access  Private/Garbage Collector
-export const getCollectorUpcomingSchedules = catchAsync(async (req, res, next) => {
+export const getCollectorUpcomingSchedules = async (req, res) => {
     // Check user is a garbage collector
     if (req.user.role !== 'garbage_collector') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
     
     const today = new Date();
@@ -551,15 +549,15 @@ export const getCollectorUpcomingSchedules = catchAsync(async (req, res, next) =
         count: schedules.length,
         data: schedules
     });
-});
+};
 
 // @desc    Get schedule statistics
 // @route   GET /api/schedules/stats
 // @access  Private/Admin
-export const getScheduleStats = catchAsync(async (req, res, next) => {
+export const getScheduleStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
     
     // Get schedules by status
@@ -668,4 +666,4 @@ export const getScheduleStats = catchAsync(async (req, res, next) => {
             topCollectors: formattedCollectors
         }
     });
-});
+};

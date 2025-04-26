@@ -1,15 +1,12 @@
 import Feedback from '../models/feedbackModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 
-
-export const getAllFeedback = catchAsync(async (req, res, next) => {
+export const getAllFeedback = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access all feedback', 403));
+        throw new Error('Not authorized to access all feedback', 403);
     }
 
     // Pagination
@@ -95,10 +92,9 @@ export const getAllFeedback = catchAsync(async (req, res, next) => {
         total,
         data: feedback
     });
-});
+};
 
-
-export const getUserFeedback = catchAsync(async (req, res, next) => {
+export const getUserFeedback = async (req, res) => {
     const feedback = await Feedback.find({ user: req.user.id })
         .populate('relatedTo.bin', 'binId location')
         .populate('relatedTo.collector', 'name avatar')
@@ -110,10 +106,9 @@ export const getUserFeedback = catchAsync(async (req, res, next) => {
         count: feedback.length,
         data: feedback
     });
-});
+};
 
-
-export const getFeedback = catchAsync(async (req, res, next) => {
+export const getFeedback = async (req, res) => {
     const feedback = await Feedback.findById(req.params.id)
         .populate('user', 'name avatar')
         .populate('relatedTo.bin', 'binId location')
@@ -121,28 +116,27 @@ export const getFeedback = catchAsync(async (req, res, next) => {
         .populate('response.respondedBy', 'name role');
 
     if (!feedback) {
-        return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
+        throw new Error(`Feedback not found with id of ${req.params.id}`, 404);
     }
 
     // Check if user is admin or the feedback creator
     if (req.user.role !== 'admin' && feedback.user.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to access this feedback', 403));
+        throw new Error('Not authorized to access this feedback', 403);
     }
 
     res.status(200).json({
         success: true,
         data: feedback
     });
-});
+};
 
-
-export const createFeedback = catchAsync(async (req, res, next) => {
+export const createFeedback = async (req, res) => {
     // Add user
     req.body.user = req.user.id;
 
     // Check if required fields are provided
     if (!req.body.type || !req.body.rating || !req.body.comment) {
-        return next(new ErrorResponse('Please provide type, rating, and comment', 400));
+        throw new Error('Please provide type, rating, and comment', 400);
     }
 
     // Process uploaded images
@@ -154,12 +148,12 @@ export const createFeedback = catchAsync(async (req, res, next) => {
         for (const file of files) {
             // Check file type
             if (!file.mimetype.startsWith('image')) {
-                return next(new ErrorResponse('Please upload an image file', 400));
+                throw new Error('Please upload an image file', 400);
             }
 
             // Check file size
             if (file.size > process.env.MAX_FILE_SIZE) {
-                return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400));
+                throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
             }
 
             try {
@@ -172,7 +166,7 @@ export const createFeedback = catchAsync(async (req, res, next) => {
                 });
             } catch (error) {
                 console.error('Image upload error:', error);
-                return next(new ErrorResponse('Problem with file upload', 500));
+                throw new Error('Problem with file upload', 500);
             }
         }
     }
@@ -226,24 +220,23 @@ export const createFeedback = catchAsync(async (req, res, next) => {
         success: true,
         data: feedback
     });
-});
+};
 
-
-export const updateFeedback = catchAsync(async (req, res, next) => {
+export const updateFeedback = async (req, res) => {
     let feedback = await Feedback.findById(req.params.id);
 
     if (!feedback) {
-        return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
+        throw new Error(`Feedback not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is the feedback creator
     if (feedback.user.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to update this feedback', 403));
+        throw new Error('Not authorized to update this feedback', 403);
     }
 
     // Check if feedback is already addressed
     if (feedback.status !== 'pending') {
-        return next(new ErrorResponse('Cannot update feedback that has been addressed', 400));
+        throw new Error('Cannot update feedback that has been addressed', 400);
     }
 
     // Fields to update
@@ -269,19 +262,18 @@ export const updateFeedback = catchAsync(async (req, res, next) => {
         success: true,
         data: feedback
     });
-});
+};
 
-
-export const deleteFeedback = catchAsync(async (req, res, next) => {
+export const deleteFeedback = async (req, res) => {
     const feedback = await Feedback.findById(req.params.id);
 
     if (!feedback) {
-        return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
+        throw new Error(`Feedback not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin or the feedback creator
     if (req.user.role !== 'admin' && feedback.user.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to delete this feedback', 403));
+        throw new Error('Not authorized to delete this feedback', 403);
     }
 
     // Delete images from cloudinary
@@ -297,25 +289,24 @@ export const deleteFeedback = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
-
-export const respondToFeedback = catchAsync(async (req, res, next) => {
+export const respondToFeedback = async (req, res) => {
     const { comment } = req.body;
 
     if (!comment) {
-        return next(new ErrorResponse('Please provide a response comment', 400));
+        throw new Error('Please provide a response comment', 400);
     }
 
     const feedback = await Feedback.findById(req.params.id);
 
     if (!feedback) {
-        return next(new ErrorResponse(`Feedback not found with id of ${req.params.id}`, 404));
+        throw new Error(`Feedback not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is admin
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to respond to feedback', 403));
+        throw new Error('Not authorized to respond to feedback', 403);
     }
 
     feedback.response = {
@@ -349,12 +340,12 @@ export const respondToFeedback = catchAsync(async (req, res, next) => {
         success: true,
         data: feedback
     });
-});
+};
 
-export const getFeedbackStats = catchAsync(async (req, res, next) => {
+export const getFeedbackStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
-        return next(new ErrorResponse('Not authorized to access this data', 403));
+        throw new Error('Not authorized to access this data', 403);
     }
 
     // Get average rating by type
@@ -430,4 +421,4 @@ export const getFeedbackStats = catchAsync(async (req, res, next) => {
             feedbackByMonth
         }
     });
-});
+};

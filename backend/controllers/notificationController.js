@@ -1,9 +1,6 @@
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 
-
-export const getUserNotifications = catchAsync(async (req, res, next) => {
+export const getUserNotifications = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
@@ -69,38 +66,36 @@ export const getUserNotifications = catchAsync(async (req, res, next) => {
         unreadCount,
         data: notifications
     });
-});
+};
 
-
-export const getNotification = catchAsync(async (req, res, next) => {
+export const getNotification = async (req, res) => {
     const notification = await Notification.findById(req.params.id);
 
     if (!notification) {
-        return next(new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404));
+        throw new Error(`Notification not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is the recipient
     if (notification.recipient.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to access this notification', 403));
+        throw new Error('Not authorized to access this notification', 403);
     }
 
     res.status(200).json({
         success: true,
         data: notification
     });
-});
+};
 
-
-export const markAsRead = catchAsync(async (req, res, next) => {
+export const markAsRead = async (req, res) => {
     const notification = await Notification.findById(req.params.id);
 
     if (!notification) {
-        return next(new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404));
+        throw new Error(`Notification not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is the recipient
     if (notification.recipient.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to update this notification', 403));
+        throw new Error('Not authorized to update this notification', 403);
     }
 
     if (!notification.isRead) {
@@ -113,10 +108,9 @@ export const markAsRead = catchAsync(async (req, res, next) => {
         success: true,
         data: notification
     });
-});
+};
 
-
-export const markAllAsRead = catchAsync(async (req, res, next) => {
+export const markAllAsRead = async (req, res) => {
     await Notification.updateMany(
         {
             recipient: req.user.id,
@@ -132,19 +126,18 @@ export const markAllAsRead = catchAsync(async (req, res, next) => {
         success: true,
         message: 'All notifications marked as read'
     });
-});
+};
 
-
-export const deleteNotification = catchAsync(async (req, res, next) => {
+export const deleteNotification = async (req, res) => {
     const notification = await Notification.findById(req.params.id);
 
     if (!notification) {
-        return next(new ErrorResponse(`Notification not found with id of ${req.params.id}`, 404));
+        throw new Error(`Notification not found with id of ${req.params.id}`, 404);
     }
 
     // Check user is the recipient
     if (notification.recipient.toString() !== req.user.id) {
-        return next(new ErrorResponse('Not authorized to delete this notification', 403));
+        throw new Error('Not authorized to delete this notification', 403);
     }
 
     await notification.deleteOne();
@@ -153,10 +146,9 @@ export const deleteNotification = catchAsync(async (req, res, next) => {
         success: true,
         data: {}
     });
-});
+};
 
-
-export const deleteReadNotifications = catchAsync(async (req, res, next) => {
+export const deleteReadNotifications = async (req, res) => {
     await Notification.deleteMany({
         recipient: req.user.id,
         isRead: true
@@ -166,10 +158,9 @@ export const deleteReadNotifications = catchAsync(async (req, res, next) => {
         success: true,
         message: 'All read notifications deleted'
     });
-});
+};
 
-
-export const getNotificationCount = catchAsync(async (req, res, next) => {
+export const getNotificationCount = async (req, res) => {
     const unreadCount = await Notification.countDocuments({
         recipient: req.user.id,
         isRead: false
@@ -181,4 +172,4 @@ export const getNotificationCount = catchAsync(async (req, res, next) => {
             unreadCount
         }
     });
-});
+};

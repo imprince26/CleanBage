@@ -2,24 +2,22 @@ import crypto from 'crypto';
 import User from '../models/userModel.js';
 import { RewardTransaction } from '../models/rewardModel.js';
 import Notification from '../models/notificationModel.js';
-import catchAsync from '../utils/catchAsync.js';
-import ErrorResponse from '../utils/errorResponse.js';
 import { sendTokenResponse } from '../utils/tokenUtils.js';
 import sendEmail from '../utils/emailService.js';
 
-export const registerUser = catchAsync(async (req, res, next) => {
+export const registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     // Validate required fields
     if (!name || !email || !password) {
-        return next(new ErrorResponse('Please provide name, email and password', 400));
+        throw new Error('Please provide name, email and password', 400);
     }
 
     // Check if user exists
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-        return next(new ErrorResponse('Email already registered', 400));
+        throw new Error('Email already registered', 400);
     }
 
     // Default role to resident if not specified or if trying to register as admin
@@ -92,12 +90,11 @@ export const registerUser = catchAsync(async (req, res, next) => {
         user.verificationToken = undefined;
         await user.save({ validateBeforeSave: false });
 
-        return next(new ErrorResponse('Email could not be sent', 500));
+        throw new Error('Email could not be sent', 500);
     }
-});
+};
 
-
-export const verifyEmail = catchAsync(async (req, res, next) => {
+export const verifyEmail = async (req, res) => {
     // Get hashed token
     const verificationToken = crypto
         .createHash('sha256')
@@ -110,7 +107,7 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
     });
 
     if (!user) {
-        return next(new ErrorResponse('Invalid token', 400));
+        throw new Error('Invalid token', 400);
     }
 
     // Set verified to true and unset verification token
@@ -122,49 +119,53 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
     const token = user.getSignedJwtToken();
 
-    // res.cookie('CleanBageToken', token, {
-    //     httpOnly: true,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    // });
+    // Set cookie
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
 
     sendTokenResponse(user, 200, res);
-});
+};
 
-export const loginUser = catchAsync(async (req, res, next) => {
+export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Validate email & password
     if (!email || !password) {
-        return next(new ErrorResponse('Please provide email and password', 400));
+        throw new Error('Please provide email and password', 400);
     }
 
     // Check for user
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-        return next(new ErrorResponse('Invalid credentials', 401));
+        throw new Error('Invalid credentials', 401);
     }
 
     // Check if password matches
     const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-        return next(new ErrorResponse('Invalid credentials', 401));
+        throw new Error('Invalid credentials', 401);
     }
 
     // Check if user is verified
     if (!user.verified) {
-        return next(new ErrorResponse('Please verify your email address', 403));
+        throw new Error('Please verify your email address', 403);
     }
 
     const token = user.getSignedJwtToken();
 
-    // res.cookie('CleanBageToken', token, {
-    //     httpOnly: true,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    // });
+    // Set cookie
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
 
     // Create notification for login
     await Notification.createNotification({
@@ -177,52 +178,69 @@ export const loginUser = catchAsync(async (req, res, next) => {
     });
 
     sendTokenResponse(user, 200, res);
-});
+};
 
-export const googleCallback = async (req, res, next) => {
+export const googleCallback = async (req, res) => {
     try {
-      // Create notification for Google login
-      await Notification.create({
-        recipient: req.user._id,
-        type: 'system_announcement',
-        title: 'Google Login Success',
-        message: `Successfully logged in with Google at ${new Date().toLocaleString()}`,
-        priority: 'medium',
-        icon: 'google',
-        read: false
-      });
-  
-      // Send token response
-      sendTokenResponse(req.user, 200, res);
-      
-      // Redirect to frontend with success
-      res.redirect(`${process.env.CLIENT_URL}/auth/google/success`);
-    } catch (error) {
-      // Redirect to frontend with error
-      res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
-    }
-  };
+        // Create notification for Google login
+        await Notification.createNotification({
+            recipient: req.user._id,
+            type: 'system_announcement',
+            title: 'Google Login Success',
+            message: `Successfully logged in with Google at ${new Date().toLocaleString()}`,
+            priority: 'medium',
+            icon: 'google',
+            read: false
+        });
 
-export const logoutUser = catchAsync(async (req, res, next) => {
-    res.clearCookie('CleanBageToken');
+        // Generate JWT token
+        const token = req.user.getSignedJwtToken();
+
+        // Set cookie
+        res.cookie('CleanBageToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+        });
+
+        // Redirect to frontend with token as query parameter
+        res.redirect(`${process.env.CLIENT_URL}/auth/google/success?token=${token}`);
+    } catch (error) {
+        // Redirect to frontend with error
+        res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
+    }
+};
+
+export const logoutUser = async (req, res) => {
+    res.clearCookie('CleanBageToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
 
     res.status(200).json({
         success: true,
         data: {}
     });
-});
+};
 
+export const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);  
+        res.status(200).json({
+            success: true,
+            user: user
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
 
-export const getMe = catchAsync(async (req, res, next) => {
-    const user = await User.findById(req.user.id);
-    res.status(200).json({
-        success: true,
-        user: user
-    });
-});
-
-
-export const updateDetails = catchAsync(async (req, res, next) => {
+export const updateDetails = async (req, res) => {
     const fieldsToUpdate = {
         name: req.body.name,
         email: req.body.email,
@@ -239,7 +257,7 @@ export const updateDetails = catchAsync(async (req, res, next) => {
     if (fieldsToUpdate.email) {
         const existingUser = await User.findOne({ email: fieldsToUpdate.email });
         if (existingUser && existingUser._id.toString() !== req.user._id.toString()) {
-            return next(new ErrorResponse('Email already in use', 400));
+            throw new Error('Email already in use', 400);
         }
     }
 
@@ -252,15 +270,14 @@ export const updateDetails = catchAsync(async (req, res, next) => {
         success: true,
         data: user
     });
-});
+};
 
-
-export const updatePassword = catchAsync(async (req, res, next) => {
+export const updatePassword = async (req, res) => {
     const user = await User.findById(req.user.id).select('+password');
 
     // Check current password
     if (!(await user.matchPassword(req.body.currentPassword))) {
-        return next(new ErrorResponse('Password is incorrect', 401));
+        throw new Error('Password is incorrect', 401);
     }
 
     user.password = req.body.newPassword;
@@ -276,15 +293,24 @@ export const updatePassword = catchAsync(async (req, res, next) => {
         icon: 'key'
     });
 
+    const token = user.getSignedJwtToken();
+
+    // Set cookie
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
+
     sendTokenResponse(user, 200, res);
-});
+};
 
-
-export const forgotPassword = catchAsync(async (req, res, next) => {
+export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-        return next(new ErrorResponse('There is no user with that email', 404));
+        throw new Error('There is no user with that email', 404);
     }
 
     // Get reset token
@@ -318,12 +344,11 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
 
         await user.save({ validateBeforeSave: false });
 
-        return next(new ErrorResponse('Email could not be sent', 500));
+        throw new Error('Email could not be sent', 500);
     }
-});
+};
 
-
-export const resetPassword = catchAsync(async (req, res, next) => {
+export const resetPassword = async (req, res) => {
     // Get hashed token
     const resetPasswordToken = crypto
         .createHash('sha256')
@@ -336,7 +361,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     });
 
     if (!user) {
-        return next(new ErrorResponse('Invalid token', 400));
+        throw new Error('Invalid token', 400);
     }
 
     // Set new password
@@ -356,14 +381,24 @@ export const resetPassword = catchAsync(async (req, res, next) => {
         icon: 'refresh-cw'
     });
 
-    sendTokenResponse(user, 200, res);
-});
+    const token = user.getSignedJwtToken();
 
-export const updateFcmToken = catchAsync(async (req, res, next) => {
+    // Set cookie
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
+
+    sendTokenResponse(user, 200, res);
+};
+
+export const updateFcmToken = async (req, res) => {
     const { fcmToken } = req.body;
 
     if (!fcmToken) {
-        return next(new ErrorResponse('FCM token is required', 400));
+        throw new Error('FCM token is required', 400);
     }
 
     const user = await User.findByIdAndUpdate(
@@ -376,4 +411,4 @@ export const updateFcmToken = catchAsync(async (req, res, next) => {
         success: true,
         data: user
     });
-});
+};
