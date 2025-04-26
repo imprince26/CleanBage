@@ -10,16 +10,34 @@ import { Navigate } from 'react-router-dom'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmail from './pages/auth/VerifyEmail'
+import Profile from './pages/Profile'
+
 import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
 import BinMap from './pages/resident/BinMap'
 import ResidentDashboard from './pages/resident/ResidentDashboard'
-import Profile from './pages/Profile'
 import RewardStore from './pages/resident/RewardStore'
 import RewardDetails from './pages/resident/RewardDetails'
 import RewardHistory from './pages/resident/RewardHistory'
 import Leaderboard from './pages/resident/Leaderboard'
 import SubmitFeedback from './pages/resident/SubmitFeedback'
+import FeedbackHistory from './pages/resident/FeedbackHistory'
+
+
+import CollectorDashboard from './pages/collector/CollectorDashboard'
+import ActiveRoutes from './pages/collector/ActiveRoutes'
+import RouteDetails from './pages/collector/RouteDetails'
+import CollectionSchedule from './pages/collector/CollectionSchedule'
+import BinDetails from './pages/collector/BinDetails'
+import SubmitReport from './pages/collector/SubmitReport'
+import ReportHistory from './pages/collector/ReportHistory'
+import CollectorReports from './pages/collector/CollectorReports'
+import RouteHistory from './pages/collector/RouteHistory'
+import AssignedBins from './pages/collector/AssignedBins'
+import CollectorCalendar from './pages/collector/CollectorCalendar'
+import SafetyGuidelines from './pages/collector/SafetyGuidelines'
+import CollectorPerformance from './pages/collector/CollectorPerformance'
+import BinCollectionHistory from './pages/collector/BinCollectionHistory'
 
 const Temp = () => {
   return (
@@ -45,6 +63,35 @@ const Temp = () => {
         <Route path="/resident/reward-history" element={<RewardHistory />} />
         <Route path="/resident/leaderboard" element={<Leaderboard />} />
         <Route path="/resident/feedback" element={<SubmitFeedback />} /> 
+        <Route path="/feedback/history" element={<FeedbackHistory />} />
+
+
+       {/* Collector Routes */}
+          <Route path="/collector">
+            <Route path="dashboard" element={<CollectorDashboard />} />
+            <Route path="routes">
+              <Route index element={<ActiveRoutes />} />
+              <Route path=":id" element={<RouteDetails />} />
+              <Route path="history" element={<RouteHistory />} />
+            </Route>
+            <Route path="schedule">
+              <Route index element={<CollectionSchedule />} />
+              <Route path="calendar" element={<CollectorCalendar />} />
+            </Route>
+            <Route path="bins">
+              <Route index element={<AssignedBins />} />
+              <Route path=":id" element={<BinDetails />} />
+              <Route path=":id/history" element={<BinCollectionHistory />} />
+            </Route>
+            <Route path="reports">
+              <Route index element={<CollectorReports />} />
+              <Route path="submit/:binId" element={<SubmitReport />} />
+              <Route path="history" element={<ReportHistory />} />
+            </Route>
+            <Route path="performance" element={<CollectorPerformance />} />
+            <Route path="safety" element={<SafetyGuidelines />} />
+          </Route>
+
       </Route>
     </Routes>
   )
