@@ -47,7 +47,7 @@ const reportSchema = z.object({
       street: z.string().min(1, "Street is required"),
       area: z.string().min(1, "Area is required"),
       landmark: z.string().optional(),
-      city: z.string().default("Jamnagar"),
+      city: z.string().default("Ahmedabad"),
       postalCode: z.string().min(6, "Valid postal code required"),
     }),
   }),
@@ -137,7 +137,7 @@ export default function ReportBin() {
           street: "",
           area: "",
           landmark: "",
-          city: "Jamnagar",
+          city: "Ahmedabad",
           postalCode: "",
         },
       },
@@ -203,7 +203,7 @@ export default function ReportBin() {
         street: data.address.road || data.address.street || "",
         area: data.address.suburb || data.address.neighbourhood || "",
         landmark: data.address.landmark || "",
-        city: "Jamnagar",
+        city: "Ahmedabad",
         postalCode: data.address.postcode || "",
       };
 
@@ -305,11 +305,11 @@ export default function ReportBin() {
     setIsLoading(true);
     setUploadProgress(0);
     try {
-      if (data.location.coordinates[0] === 0 && data.location.coordinates[1] === 0) {
-        toast.error("Please provide valid location coordinates");
-        setIsLoading(false);
-        return;
-      }
+      // if (data.location.coordinates[0] === 0 && data.location.coordinates[1] === 0) {
+      //   toast.error("Please provide valid location coordinates");
+      //   setIsLoading(false);
+      //   return;
+      // }
   
       const formData = new FormData();
   

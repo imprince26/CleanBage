@@ -153,7 +153,7 @@ export const createCollection = catchAsync(async (req, res, next) => {
         location: {
             type: 'Point',
             coordinates,
-            address: req.body.location.address || {}
+            address: location.address || {}
         },
         fillLevel: req.body.fillLevel || 80,
         status: 'pending',
@@ -453,27 +453,39 @@ export const deleteCollection = catchAsync(async (req, res, next) => {
 
 export const getNearbyBins = catchAsync(async (req, res, next) => {
     const { longitude, latitude, distance = 1000, wasteType } = req.query;
-
+  
     // Check if coordinates are provided
     if (!longitude || !latitude) {
-        return next(new ErrorResponse('Please provide longitude and latitude', 400));
+      return next(new ErrorResponse('Please provide longitude and latitude', 400));
     }
-
+  
     const coordinates = [parseFloat(longitude), parseFloat(latitude)];
-
-    // Find nearby bins
-    const bins = await Collection.findNearby(
+  
+    // Validate coordinates
+    if (isNaN(coordinates[0]) || isNaN(coordinates[1])) {
+      return next(new ErrorResponse('Invalid longitude or latitude', 400));
+    }
+  
+    try {
+      // Find nearby bins
+      const bins = await Collection.findNearby(
         coordinates,
         parseFloat(distance),
         wasteType
-    );
-
-    res.status(200).json({
+      );
+  
+      res.status(200).json({
         success: true,
         count: bins.length,
         data: bins
-    });
-});
+      });
+    } catch (error) {
+      if (error.message.includes('unable to find index for $geoNear query')) {
+        return next(new ErrorResponse('Geospatial index missing on location field. Please contact the administrator.', 500));
+      }
+      return next(new ErrorResponse('Error fetching nearby bins', 500));
+    }
+  });
 
 
 export const submitComplaint = catchAsync(async (req, res, next) => {

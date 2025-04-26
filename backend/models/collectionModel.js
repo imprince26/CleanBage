@@ -33,7 +33,7 @@ const collectionSchema = new mongoose.Schema({
             },
             city: {
                 type: String,
-                default: 'Jamnagar',
+                default: 'Ahmedabad',
                 trim: true
             },
             postalCode: {
@@ -298,26 +298,26 @@ collectionSchema.methods.updateFillLevel = async function (newLevel) {
 // Static method to find nearby bins
 collectionSchema.statics.findNearby = async function (coordinates, maxDistance = 1000, wasteType = null) {
     const query = {
-        location: {
-            $near: {
-                $geometry: {
-                    type: 'Point',
-                    coordinates: coordinates
-                },
-                $maxDistance: maxDistance
-            }
-        },
-        isActive: true
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: coordinates
+          },
+          $maxDistance: maxDistance
+        }
+      },
+      isActive: true
     };
-
+  
     if (wasteType) {
-        query.wasteType = wasteType;
+      query.wasteType = wasteType;
     }
-
+  
     return this.find(query)
-        .populate('assignedCollector', 'name avatar')
-        .sort({ fillLevel: -1 });
-};
+      .populate('assignedCollector', 'name avatar')
+      .sort({ fillLevel: -1 });
+  };
 
 const Collection = mongoose.model('Collection', collectionSchema);
 

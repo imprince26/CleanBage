@@ -100,21 +100,28 @@ export function CollectionProvider({ children }) {
 
     // Get nearby collections
     const getNearbyCollections = async (coordinates, distance, wasteType) => {
+        console.log("getNearbyCollections called with:", { coordinates, distance, wasteType });
         try {
-            const { data } = await api.get('/collections/nearby', {
-                params: {
-                    lat: coordinates[1],
-                    lng: coordinates[0],
-                    distance,
-                    wasteType
-                }
-            });
-            return data.data;
+          const { data } = await api.get('/collections/nearby', {
+            params: {
+              longitude: coordinates[0],
+              latitude: coordinates[1],
+              distance,
+              wasteType: wasteType ? wasteType : undefined
+            }
+          });
+    
+          if (!data || !Array.isArray(data.data)) {
+            throw new Error("Invalid response format from API");
+          }
+    
+          return data.data;
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Error fetching nearby collections');
-            return [];
+          console.error("Error in getNearbyCollections:", error.response?.data || error.message);
+          toast.error(error.response?.data?.message || 'Error fetching nearby collections');
+          return [];
         }
-    };
+      };
 
     // Get collection statistics
     const getCollectionStats = async () => {
@@ -125,6 +132,20 @@ export function CollectionProvider({ children }) {
             toast.error(error.response?.data?.message || 'Error fetching collection stats');
             return null;
         }
+    };
+    const submitComplaint = async (id, complaintData) => {
+      try {
+        const { data } = await api.post(`/collections/${id}/complaint`, complaintData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        toast.success('Complaint submitted successfully');
+        return data.data;
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Error submitting complaint');
+        return null;
+      }
     };
 
     const value = {
@@ -137,7 +158,8 @@ export function CollectionProvider({ children }) {
         deleteCollection,
         assignCollector,
         getNearbyCollections,
-        getCollectionStats
+        getCollectionStats,
+        submitComplaint
     };
 
     return (
