@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useUser } from "@/context/UserContext"; 
+import { useUser } from "@/context/UserContext";
 import {
   Card,
   CardContent,
@@ -78,8 +78,8 @@ const profileSchema = z.object({
 });
 
 const Profile = () => {
-  const { user , updateProfile } = useAuth();
-  const { getUserStats ,uploadAvatar} = useUser();
+  const { user, updateProfile } = useAuth();
+  const { getUserStats, uploadAvatar } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar?.url);
@@ -168,7 +168,7 @@ const Profile = () => {
       // const formData = new FormData();
       // formData.append("avatar", avatar);
       // await updateProfile(formData);
-      
+
       setUploadProgress(100);
       toast.success("Avatar updated successfully");
     } catch (error) {
@@ -450,7 +450,7 @@ const Profile = () => {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
+                  <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
@@ -495,7 +495,7 @@ const Profile = () => {
                         )}
                       />
 
-                
+
 
                       <FormField
                         control={form.control}
@@ -510,7 +510,7 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                     
+
 
                       <FormField
                         control={form.control}
@@ -525,7 +525,7 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                       <FormField
+                      <FormField
                         control={form.control}
                         name="address.city"
                         render={({ field }) => (
