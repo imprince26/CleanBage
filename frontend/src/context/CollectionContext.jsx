@@ -46,7 +46,6 @@ export function CollectionProvider({ children }) {
               const percentCompleted = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
               );
-              // You can emit this progress if needed
             }
           });
           

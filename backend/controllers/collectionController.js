@@ -114,8 +114,7 @@ export const getCollection = async (req, res) => {
 };
 
 export const createCollection = async (req, res) => {
-    console.log(req.body);
-
+    
     // Add reporting user
     req.body.reportedBy = req.user.id;
 

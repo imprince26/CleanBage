@@ -14,6 +14,7 @@ import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
 import BinMap from './pages/resident/BinMap'
 import ResidentDashboard from './pages/resident/ResidentDashboard'
+import Profile from './pages/Profile'
 
 const Temp = () => {
   return (
@@ -21,6 +22,7 @@ const Temp = () => {
       <Route element={<Layout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/" element={<Home />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/auth/google/success" element={<GoogleAuthHandler />} />

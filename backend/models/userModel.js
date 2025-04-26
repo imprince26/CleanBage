@@ -37,10 +37,20 @@ const userSchema = new mongoose.Schema({
             trim: true,
             default: ''
         },
+        area: {
+            type: String,
+            trim: true,
+            default: ''
+        },
+        landmark: {
+            type: String,
+            trim: true,
+            default: ''
+        },
         city: {
             type: String,
             trim: true,
-            default: 'Jamnagar'
+            default: 'Ahmedabad'
         },
         state: {
             type: String,

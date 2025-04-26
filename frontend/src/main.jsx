@@ -7,6 +7,7 @@ import './index.css'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { CollectionProvider } from './context/CollectionContext'
+import UserProvider from './context/UserContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -14,7 +15,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
         <AuthProvider>
           <CollectionProvider>
-          <Temp />
+            <UserProvider>
+
+              <Temp />
+            </UserProvider>
           </CollectionProvider>
           <Toaster position="top-center" />
         </AuthProvider>

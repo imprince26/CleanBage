@@ -214,9 +214,9 @@ export const deleteUser = async (req, res) => {
 
 export const uploadAvatar = async (req, res) => {
     // Check if user is admin or self
-    if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
-        throw new Error('Not authorized to update this user', 403);
-    }
+    // if (req.user.role !== 'admin' && req.user.id !== req.params.id) {
+    //     throw new Error('Not authorized to update this user', 403);
+    // }
 
     const user = await User.findById(req.params.id);
 
