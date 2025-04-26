@@ -10,7 +10,11 @@ import { Navigate } from 'react-router-dom'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmail from './pages/auth/VerifyEmail'
-import Profile from './pages/Profile'
+
+import Profile from './pages/common/Profile'
+import Notifications from './pages/common/Notifications'
+import Settings from './pages/common/Settings'
+import Help from './pages/common/Help'
 
 import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
@@ -43,9 +47,16 @@ const Temp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
+
+
+        {/* Common Routes (Protected) */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/help" element={<Help />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/" element={<Home />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
