@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import api from '@/utils/api';
-import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -21,8 +20,8 @@ export function AuthProvider({ children }) {
 
   const checkAuthStatus = async () => {
     try {
-      const { data } = await axios.get('/api/auth/me');
-      setUser(data.data);
+      const response= await api.get('/auth/me');
+      setUser(response.data.user);
       setIsAuthenticated(true);
     } catch (error) {
       setUser(null);
@@ -31,7 +30,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-
+  
   const login = async (credentials) => {
     try {
       const { data } = await api.post('/auth/login', credentials);
@@ -48,7 +47,7 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
-      const { data } = await axios.post('/api/auth/register', userData);
+      const { data } = await api.post('/api/auth/register', userData);
       toast.success('Registration successful. Please verify your email.');
       return true;
     } catch (error) {
@@ -59,7 +58,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await axios.get('/api/auth/logout');
+      await api.get('/auth/logout');
       setUser(null);
       setIsAuthenticated(false);
       toast.success('Logged out successfully');
@@ -71,7 +70,7 @@ export function AuthProvider({ children }) {
 
   const forgotPassword = async (email) => {
     try {
-      const { data } = await axios.post('/api/auth/forgotpassword', { email });
+      const { data } = await api.post('/auth/forgotpassword', { email });
       toast.success('Password reset link sent to your email');
       return true;
     } catch (error) {
@@ -82,7 +81,7 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (token, passwords) => {
     try {
-      const { data } = await axios.put(`/api/auth/resetpassword/${token}`, passwords);
+      const { data } = await api.put(`/auth/resetpassword/${token}`, passwords);
       toast.success('Password reset successful');
       return true;
     } catch (error) {
@@ -93,7 +92,7 @@ export function AuthProvider({ children }) {
 
   const updateProfile = async (userData) => {
     try {
-      const { data } = await axios.put('/api/auth/updatedetails', userData);
+      const { data } = await api.put('/auth/updatedetails', userData);
       setUser(data.data);
       toast.success('Profile updated successfully');
       return true;
@@ -105,7 +104,7 @@ export function AuthProvider({ children }) {
 
   const updatePassword = async (passwords) => {
     try {
-      await axios.put('/api/auth/updatepassword', passwords);
+      await api.put('/auth/updatepassword', passwords);
       toast.success('Password updated successfully');
       return true;
     } catch (error) {
@@ -120,7 +119,7 @@ export function AuthProvider({ children }) {
   // Handle Google OAuth callback
   const handleGoogleCallback = async (code) => {
     try {
-      const response = await axios.get(`/api/auth/google/callback?code=${code}`, {
+      const response = await api.get(`/auth/google/callback?code=${code}`, {
         withCredentials: true
       })
 

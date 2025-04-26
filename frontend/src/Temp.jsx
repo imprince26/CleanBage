@@ -13,6 +13,7 @@ import VerifyEmail from './pages/auth/VerifyEmail'
 import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
 import BinMap from './pages/resident/BinMap'
+import ResidentDashboard from './pages/resident/ResidentDashboard'
 
 const Temp = () => {
   return (
@@ -27,6 +28,8 @@ const Temp = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
+
+        <Route path="/resident/dashboard" element={<ResidentDashboard />} />
         <Route path="/resident/report-bin" element={<ReportBin />} />
         <Route path="/resident/bin-map" element={<BinMap />}/>
         <Route path="/resident/collections/:id" element={<CollectionDetails />}/>

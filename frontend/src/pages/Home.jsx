@@ -1,75 +1,3 @@
-
-  // // Role-based features
-  // const features = {
-  //   public: [
-  //     {
-  //       title: "Real-time Tracking",
-  //       description: "Monitor waste collection vehicles and bin status in real-time.",
-  //       icon: MapPin,
-  //     },
-  //     {
-  //       title: "Smart Rewards",
-  //       description: "Earn points for responsible waste disposal.",
-  //       icon: Gift,
-  //     },
-  //     {
-  //       title: "Community Impact",
-  //       description: "See your contribution to city's cleanliness goals.",
-  //       icon: Users,
-  //     },
-  //   ],
-  //   resident: [
-  //     {
-  //       title: "Bin Locator",
-  //       description: "Find the nearest smart bins in your area.",
-  //       icon: MapPin,
-  //     },
-  //     {
-  //       title: "Reward Points",
-  //       description: "Track and redeem your earned points.",
-  //       icon: Gift,
-  //     },
-  //     {
-  //       title: "Collection Schedule",
-  //       description: "View upcoming waste collection times.",
-  //       icon: Calendar,
-  //     },
-  //   ],
-  //   garbage_collector: [
-  //     {
-  //       title: "Route Optimization",
-  //       description: "Get the most efficient collection routes.",
-  //       icon: Route,
-  //     },
-  //     {
-  //       title: "Bin Status",
-  //       description: "Real-time updates on bin fill levels.",
-  //       icon: Trash2,
-  //     },
-  //     {
-  //       title: "Schedule Management",
-  //       description: "Manage your collection schedules.",
-  //       icon: Calendar,
-  //     },
-  //   ],
-  //   admin: [
-  //     {
-  //       title: "Analytics Dashboard",
-  //       description: "Comprehensive waste management analytics.",
-  //       icon: LineChart,
-  //     },
-  //     {
-  //       title: "Fleet Management",
-  //       description: "Monitor and manage collection vehicles.",
-  //       icon: Truck,
-  //     },
-  //     {
-  //       title: "System Reports",
-  //       description: "Generate detailed performance reports.",
-  //       icon: FileText,
-  //     },
-  //   ],
-  // }
   import { Link } from "react-router-dom"
   import { useAuth } from "@/context/AuthContext"
   import { Button } from "@/components/ui/button"
@@ -96,7 +24,6 @@
   
   const Home = () => {
     const { user } = useAuth()
-  
 const features = {
     public: [
       {

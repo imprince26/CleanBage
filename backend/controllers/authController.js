@@ -218,10 +218,9 @@ export const logoutUser = catchAsync(async (req, res, next) => {
 
 export const getMe = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.user.id);
-
     res.status(200).json({
         success: true,
-        data: user
+        user: user
     });
 });
 
