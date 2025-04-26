@@ -15,6 +15,11 @@ import CollectionDetails from './pages/resident/CollectionDetails'
 import BinMap from './pages/resident/BinMap'
 import ResidentDashboard from './pages/resident/ResidentDashboard'
 import Profile from './pages/Profile'
+import RewardStore from './pages/resident/RewardStore'
+import RewardDetails from './pages/resident/RewardDetails'
+import RewardHistory from './pages/resident/RewardHistory'
+import Leaderboard from './pages/resident/Leaderboard'
+import SubmitFeedback from './pages/resident/SubmitFeedback'
 
 const Temp = () => {
   return (
@@ -35,6 +40,11 @@ const Temp = () => {
         <Route path="/resident/report-bin" element={<ReportBin />} />
         <Route path="/resident/bin-map" element={<BinMap />}/>
         <Route path="/resident/collections/:id" element={<CollectionDetails />}/>
+        <Route path="/resident/rewards" element={<RewardStore />} />
+        <Route path="/resident/rewards/:id" element={<RewardDetails />} />
+        <Route path="/resident/reward-history" element={<RewardHistory />} />
+        <Route path="/resident/leaderboard" element={<Leaderboard />} />
+        <Route path="/resident/feedback" element={<SubmitFeedback />} /> 
       </Route>
     </Routes>
   )
