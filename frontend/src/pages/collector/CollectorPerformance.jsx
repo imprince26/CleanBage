@@ -266,16 +266,14 @@ const CollectorPerformance = () => {
               <Card key={achievement._id}>
                 <CardHeader>
                   <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${
-                      achievement.completed 
-                        ? "bg-primary/10" 
+                    <div className={`p-2 rounded-lg ${achievement.completed
+                        ? "bg-primary/10"
                         : "bg-muted"
-                    }`}>
-                      <Award className={`h-5 w-5 ${
-                        achievement.completed 
-                          ? "text-primary" 
+                      }`}>
+                      <Award className={`h-5 w-5 ${achievement.completed
+                          ? "text-primary"
                           : "text-muted-foreground"
-                      }`} />
+                        }`} />
                     </div>
                     <div>
                       <CardTitle className="text-base">{achievement.name}</CardTitle>

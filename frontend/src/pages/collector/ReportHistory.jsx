@@ -437,44 +437,44 @@ const ReportHistory = () => {
                 {(selectedReport.issues ||
                   selectedReport.maintenanceNeeded ||
                   selectedReport.weather) && (
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-medium">Additional Information</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {selectedReport.weather && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <ThermometerSun className="h-4 w-4 text-muted-foreground" />
-                            <span className="capitalize">
-                              {selectedReport.weather.condition}
-                            </span>
-                          </div>
-                          {selectedReport.weather.temperature && (
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-medium">Additional Information</h4>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {selectedReport.weather && (
+                          <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <Wind className="h-4 w-4 text-muted-foreground" />
-                              <span>{selectedReport.weather.temperature}°C</span>
+                              <ThermometerSun className="h-4 w-4 text-muted-foreground" />
+                              <span className="capitalize">
+                                {selectedReport.weather.condition}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      )}
-                      {selectedReport.issues && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Issues</p>
-                          <p className="text-sm">{selectedReport.issues}</p>
-                        </div>
-                      )}
-                      {selectedReport.maintenanceNeeded && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">
-                            Maintenance Required
-                          </p>
-                          <p className="text-sm">
-                            {selectedReport.maintenanceDetails}
-                          </p>
-                        </div>
-                      )}
+                            {selectedReport.weather.temperature && (
+                              <div className="flex items-center gap-2">
+                                <Wind className="h-4 w-4 text-muted-foreground" />
+                                <span>{selectedReport.weather.temperature}°C</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {selectedReport.issues && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Issues</p>
+                            <p className="text-sm">{selectedReport.issues}</p>
+                          </div>
+                        )}
+                        {selectedReport.maintenanceNeeded && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              Maintenance Required
+                            </p>
+                            <p className="text-sm">
+                              {selectedReport.maintenanceDetails}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Photos */}
                 {selectedReport.photos?.length > 0 && (
