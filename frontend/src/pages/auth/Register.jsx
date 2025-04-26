@@ -136,12 +136,9 @@ export default function Register() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="">
-                                {/* <Button variant="outline" disabled={isLoading}>
-                                    <Icons.gitHub className="mr-2 h-4 w-4" />
-                                    Github
-                                </Button> */}
-                                <Button variant="outline" onClick={handleGoogleAuth}  disabled={isLoading}>
+                            <div className="w-full">
+                              
+                                <Button variant="outline" className="w-full" onClick={handleGoogleAuth}  disabled={isLoading}>
                                     <Icons.google className="mr-2 h-4 w-4" />
                                     Google
                                 </Button>

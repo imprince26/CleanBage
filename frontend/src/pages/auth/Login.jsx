@@ -18,7 +18,7 @@ import { Icons } from "@/components/Icons"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, initiateGoogleAuth } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm({
@@ -28,6 +28,14 @@ export default function Login() {
       password: "",
     },
   })
+
+  const handleGoogleAuth = async () => {
+    try {
+        await initiateGoogleAuth()
+    } catch (error) {
+        console.error(error)
+    }
+}
 
   async function onSubmit(values) {
     setIsLoading(true)
@@ -120,16 +128,14 @@ export default function Login() {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                <Button variant="outline" disabled={isLoading}>
-                  <Icons.gitHub className="mr-2 h-4 w-4" />
-                  Github
-                </Button>
-                <Button variant="outline" disabled={isLoading}>
+            <div className="flex w-full">
+
+                <Button variant="outline" className="w-full" onClick={handleGoogleAuth}  disabled={isLoading}>
                   <Icons.google className="mr-2 h-4 w-4" />
                   Google
                 </Button>
-              </div>
+            </div>
+             
               <p className="px-8 text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link to="/register" className="hover:text-primary">
