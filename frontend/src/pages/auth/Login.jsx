@@ -31,11 +31,11 @@ export default function Login() {
 
   const handleGoogleAuth = async () => {
     try {
-        await initiateGoogleAuth()
+      await initiateGoogleAuth()
     } catch (error) {
-        console.error(error)
+      console.error(error)
     }
-}
+  }
 
   async function onSubmit(values) {
     setIsLoading(true)
@@ -128,14 +128,14 @@ export default function Login() {
                   </span>
                 </div>
               </div>
-            <div className="flex w-full">
+              <div className="flex w-full">
 
-                <Button variant="outline" className="w-full" onClick={handleGoogleAuth}  disabled={isLoading}>
+                <Button variant="outline" className="w-full" onClick={handleGoogleAuth} disabled={isLoading}>
                   <Icons.google className="mr-2 h-4 w-4" />
                   Google
                 </Button>
-            </div>
-             
+              </div>
+
               <p className="px-8 text-center text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Link to="/register" className="hover:text-primary">

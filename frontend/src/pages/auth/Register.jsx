@@ -18,7 +18,7 @@ import { Icons } from "@/components/Icons"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function Register() {
-    const { register,initiateGoogleAuth } = useAuth()
+    const { register, initiateGoogleAuth } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
 
     const form = useForm({
@@ -137,8 +137,8 @@ export default function Register() {
                                 </div>
                             </div>
                             <div className="w-full">
-                              
-                                <Button variant="outline" className="w-full" onClick={handleGoogleAuth}  disabled={isLoading}>
+
+                                <Button variant="outline" className="w-full" onClick={handleGoogleAuth} disabled={isLoading}>
                                     <Icons.google className="mr-2 h-4 w-4" />
                                     Google
                                 </Button>
