@@ -21,7 +21,7 @@ router.post('/register', registerUser);
 router.get('/verify-email/:token', verifyEmail);
 router.post('/login', loginUser);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL}/auth/google/error` }), googleCallback);
+router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), googleCallback);
 router.get('/logout', logoutUser);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);

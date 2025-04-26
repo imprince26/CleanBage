@@ -122,11 +122,11 @@ export const verifyEmail = catchAsync(async (req, res, next) => {
 
     const token = user.getSignedJwtToken();
 
-    res.cookie('CleanBageToken', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    });
+    // res.cookie('CleanBageToken', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    // });
 
     sendTokenResponse(user, 200, res);
 });
@@ -160,11 +160,11 @@ export const loginUser = catchAsync(async (req, res, next) => {
 
     const token = user.getSignedJwtToken();
 
-    res.cookie('CleanBageToken', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    });
+    // res.cookie('CleanBageToken', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    // });
 
     // Create notification for login
     await Notification.createNotification({
@@ -204,10 +204,7 @@ export const googleCallback = async (req, res, next) => {
   };
 
 export const logoutUser = catchAsync(async (req, res, next) => {
-    res.cookie('token', 'none', {
-        expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
-    });
+    res.clearCookie('CleanBageToken');
 
     res.status(200).json({
         success: true,
