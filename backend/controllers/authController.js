@@ -195,15 +195,15 @@ export const googleCallback = async (req, res) => {
 
         // Generate JWT token
         const token = req.user.getSignedJwtToken();
-  
+
         // Set cookie
         res.cookie('CleanBageToken', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax', // Changed to lax for OAuth redirects
-          expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax', // Changed to lax for OAuth redirects
+            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
         });
-  
+
         // Redirect to frontend with success
         res.redirect(`${process.env.CLIENT_URL}/`);
     } catch (error) {
@@ -228,7 +228,7 @@ export const logoutUser = async (req, res) => {
 
 export const getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);  
+        const user = await User.findById(req.user.id);
         res.status(200).json({
             success: true,
             user: user
