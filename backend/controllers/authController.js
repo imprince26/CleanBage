@@ -195,18 +195,19 @@ export const googleCallback = async (req, res) => {
 
         // Generate JWT token
         const token = req.user.getSignedJwtToken();
-
+  
         // Set cookie
         res.cookie('CleanBageToken', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax', // Changed to lax for OAuth redirects
+          expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
         });
-
-        // Redirect to frontend with token as query parameter
-        res.redirect(`${process.env.CLIENT_URL}/auth/google/success?token=${token}`);
+  
+        // Redirect to frontend with success
+        res.redirect(`${process.env.CLIENT_URL}/`);
     } catch (error) {
+        console.error('Google callback error:', error);
         // Redirect to frontend with error
         res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
     }

@@ -22,31 +22,10 @@ router.get('/verify-email/:token', verifyEmail);
 router.post('/login', loginUser);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback',
-    passport.authenticate('google', { 
-      session: false,
-      failureRedirect: `${process.env.CLIENT_URL}/login?error=google_auth_failed`
-    }),
-    (req, res) => {
-      try {
-        // Generate JWT token
-        const token = req.user.getSignedJwtToken();
-  
-        // Set cookie
-        res.cookie('CleanBageToken', token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax', // Changed to lax for OAuth redirects
-          expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-        });
-  
-        // Redirect to frontend with success
-        res.redirect(`${process.env.CLIENT_URL}/`);
-      } catch (error) {
-        console.error('Google callback error:', error);
-        res.redirect(`${process.env.CLIENT_URL}/login?error=google_auth_failed`);
-      }
-    }
-  );
+    passport.authenticate('google', {
+        session: false,
+        failureRedirect: `${process.env.CLIENT_URL}/login?error=google_auth_failed`
+    }), googleCallback);
 router.get('/logout', logoutUser);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
