@@ -1,12 +1,19 @@
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes,Navigate } from 'react-router-dom'
+
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import Services from './pages/Services'
+import FAQ from './pages/FAQ'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import GoogleCallback from '@/components/GoogleCallBack'
 import GoogleAuthHandler from '@/components/GoogleAuthHandler'
-import { Navigate } from 'react-router-dom'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmail from './pages/auth/VerifyEmail'
@@ -48,6 +55,13 @@ const Temp = () => {
     <Routes>
       <Route element={<Layout />}>
 
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
 
         {/* Common Routes (Protected) */}
         <Route path="/profile" element={<Profile />} />
@@ -57,7 +71,6 @@ const Temp = () => {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Home />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
         <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
         <Route path="/auth/google/error" element={<Navigate to="/login" />} />
