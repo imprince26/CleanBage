@@ -18,7 +18,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <CollectionProvider>
             <UserProvider>
-
               <Temp />
             </UserProvider>
           </CollectionProvider>
