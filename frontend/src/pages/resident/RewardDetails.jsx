@@ -261,10 +261,10 @@ const RewardDetails = () => {
             {isExpired
               ? "Reward Expired"
               : isOutOfStock
-              ? "Out of Stock"
-              : insufficientPoints
-              ? `Need ${reward.pointsCost - user?.rewardPoints} more points`
-              : "Redeem Now"}
+                ? "Out of Stock"
+                : insufficientPoints
+                  ? `Need ${reward.pointsCost - user?.rewardPoints} more points`
+                  : "Redeem Now"}
           </Button>
         </div>
       </div>
