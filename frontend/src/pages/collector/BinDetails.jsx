@@ -98,7 +98,7 @@ const BinDetails = () => {
     const fetchBinDetails = async () => {
       try {
         const response = await api.get(`/collections/${id}`);
-  
+
         if (response.data.success) {
           setBin(response.data.data);
         }
@@ -231,8 +231,8 @@ const BinDetails = () => {
                 bin.status === "collected"
                   ? "success"
                   : bin.status === "overflow"
-                  ? "destructive"
-                  : "default"
+                    ? "destructive"
+                    : "default"
               }
             >
               {bin.status}
