@@ -13,18 +13,18 @@ import ErrorBoundary from './components/ErrorBoundary'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
-        <AuthProvider>
-          <CollectionProvider>
-            <UserProvider>
-              <Temp />
-            </UserProvider>
-          </CollectionProvider>
-          <Toaster position="top-center" />
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
+          <AuthProvider>
+            <CollectionProvider>
+              <UserProvider>
+                <Temp />
+              </UserProvider>
+            </CollectionProvider>
+            <Toaster position="top-center" />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>
 )
