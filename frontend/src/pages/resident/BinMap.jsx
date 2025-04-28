@@ -79,13 +79,13 @@ const WASTE_TYPES = [
 // Map controller component for handling view updates
 const MapController = ({ center, zoom }) => {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center && !isNaN(center[0]) && !isNaN(center[1])) {
       map.setView(center, zoom);
     }
   }, [center, zoom, map]);
-  
+
   return null;
 };
 
@@ -206,8 +206,8 @@ const BinMap = () => {
   }, [navigate]);
 
   const filteredBins = useMemo(() => {
-    const result = selectedType === "all" 
-      ? bins 
+    const result = selectedType === "all"
+      ? bins
       : bins.filter((bin) => bin.wasteType === selectedType);
     console.log("Filtered bins:", result);
     return result;
@@ -252,7 +252,7 @@ const BinMap = () => {
                 My Location
               </Button>
 
-              <Button 
+              <Button
                 onClick={fetchNearbyBins}
                 disabled={loading}
                 className="flex-shrink-0"
@@ -299,7 +299,7 @@ const BinMap = () => {
               />
               <MapController center={position} zoom={mapZoom} />
               <SearchRadius center={position} radius={searchRadius} />
-              
+
               <Marker position={position} icon={markerIcons.current}>
                 <Popup>Your location</Popup>
               </Marker>
