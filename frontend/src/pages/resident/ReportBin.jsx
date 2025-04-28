@@ -341,7 +341,6 @@ export default function ReportBin() {
         timeSlot: data.regularSchedule.timeSlot
       }));
   
-      // Use the createCollection function from CollectionContext
       const response = await createCollection(formData);
   
       if (response) {
