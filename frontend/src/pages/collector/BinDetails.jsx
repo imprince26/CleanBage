@@ -60,6 +60,7 @@ import {
   Activity,
 } from "lucide-react";
 import { format } from "date-fns";
+import api from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,10 +97,10 @@ const BinDetails = () => {
   useEffect(() => {
     const fetchBinDetails = async () => {
       try {
-        const response = await fetch(`/api/collections/${id}`);
-        const data = await response.json();
-        if (data.success) {
-          setBin(data.data);
+        const response = await api.get(`/collections/${id}`);
+  
+        if (response.data.success) {
+          setBin(response.data.data);
         }
       } catch (error) {
         console.error("Error fetching bin details:", error);
@@ -156,7 +157,7 @@ const BinDetails = () => {
         }
       });
 
-      const response = await fetch(`/api/reports/bin/${id}`, {
+      const response = await api.post(`/reports/bin/${id}`, {
         method: "POST",
         body: formData,
       });
@@ -166,7 +167,7 @@ const BinDetails = () => {
         toast.success("Collection report submitted successfully");
         setIsReportDialogOpen(false);
         // Refresh bin details
-        const updatedBin = await fetch(`/api/collections/${id}`).then((res) =>
+        const updatedBin = await api.get(`/collections/${id}`).then((res) =>
           res.json()
         );
         setBin(updatedBin.data);

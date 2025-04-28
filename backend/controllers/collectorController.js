@@ -332,3 +332,78 @@ export const updateBinStatus = async (req, res) => {
         handleError(res, error);
     }
 };
+
+// @desc    Get collector activity
+// @route   GET /api/collector/activity
+// @access  Private/Collector
+export const getCollectorActivity = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 5;
+        
+        // Get recent activities from various sources
+        const [collections, reports, routes] = await Promise.all([
+            Collection.find({ 
+                assignedCollector: req.user.id,
+                lastCollected: { $exists: true }
+            })
+            .sort({ lastCollected: -1 })
+            .limit(limit)
+            .select('binId location lastCollected status'),
+
+            Report.find({ collector: req.user.id })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .select('binId status createdAt notes'),
+
+            Route.find({ 
+                collector: req.user.id,
+                status: { $in: ['completed', 'in_progress'] }
+            })
+            .sort({ updatedAt: -1 })
+            .limit(limit)
+            .select('name status updatedAt')
+        ]);
+
+        // Transform and combine activities
+        const activities = [
+            ...collections.map(c => ({
+                _id: c._id,
+                title: `Bin #${c.binId} Collected`,
+                description: `Collected waste from ${c.location?.address || 'Unknown Location'}`,
+                timestamp: c.lastCollected,
+                type: 'collection',
+                icon: 'Truck'
+            })),
+            ...reports.map(r => ({
+                _id: r._id,
+                title: `Report Submitted`,
+                description: r.notes || `Submitted report for collection`,
+                timestamp: r.createdAt,
+                type: 'report',
+                icon: 'FileText'
+            })),
+            ...routes.map(r => ({
+                _id: r._id,
+                title: `Route ${r.status === 'completed' ? 'Completed' : 'Started'}`,
+                description: `${r.name}`,
+                timestamp: r.updatedAt,
+                type: 'route',
+                icon: 'MapPin'
+            }))
+        ]
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, limit);
+
+        res.status(200).json({
+            success: true,
+            data: activities
+        });
+
+    } catch (error) {
+       console.log(error);
+       res.status(500).json({
+            success: false,
+            message: 'Failed to fetch activity'
+        });
+    }
+};
