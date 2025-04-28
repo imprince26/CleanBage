@@ -1,161 +1,112 @@
-// import { useEffect, Suspense, lazy } from 'react';
-// import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-// import { useAuth } from './context/AuthContext';
-// import { Toaster } from './components/ui/toaster';
-// import { Loader } from './components/Loader';
-// import Layout from './components/Layout';
-// import ProtectedRoute from './components/ProtectedRoute';
-// import RoleRoute from './components/RoleRoute';
-
-// // Lazy loaded pages
-// const Home = lazy(() => import('./pages/Home'));
-// const Login = lazy(() => import('./pages/auth/Login'));
-// const Register = lazy(() => import('./pages/auth/Register'));
-// const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
-// const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
-// const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail'));
-
-// // Resident pages
-// const ResidentDashboard = lazy(() => import('./pages/resident/Dashboard'));
-// const ReportBin = lazy(() => import('./pages/resident/ReportBin'));
-// const BinMap = lazy(() => import('./pages/resident/BinMap'));
-// const RewardStore = lazy(() => import('./pages/resident/RewardStore'));
-// const RewardDetails = lazy(() => import('./pages/resident/RewardDetails'));
-// const RewardHistory = lazy(() => import('./pages/resident/RewardHistory'));
-// const Leaderboard = lazy(() => import('./pages/resident/Leaderboard'));
-// const SubmitFeedback = lazy(() => import('./pages/resident/SubmitFeedback'));
-
-// // Collector pages
-// const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'));
-// const ActiveRoutes = lazy(() => import('./pages/collector/ActiveRoutes'));
-// const RouteDetails = lazy(() => import('./pages/collector/RouteDetails'));
-// const CollectionSchedule = lazy(() => import('./pages/collector/CollectionSchedule'));
-// const BinDetails = lazy(() => import('./pages/collector/BinDetails'));
-// const SubmitReport = lazy(() => import('./pages/collector/SubmitReport'));
-
-// // Admin pages
-// const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
-// const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
-// const BinManagement = lazy(() => import('./pages/admin/BinManagement'));
-// const RouteManagement = lazy(() => import('./pages/admin/RouteManagement'));
-// const ScheduleManagement = lazy(() => import('./pages/admin/ScheduleManagement'));
-// const ReportManagement = lazy(() => import('./pages/admin/ReportManagement'));
-// const FeedbackManagement = lazy(() => import('./pages/admin/FeedbackManagement'));
-// const RewardManagement = lazy(() => import('./pages/admin/RewardManagement'));
-// const CreateRoute = lazy(() => import('./pages/admin/CreateRoute'));
-// const EditRoute = lazy(() => import('./pages/admin/EditRoute'));
-// const CreateBin = lazy(() => import('./pages/admin/CreateBin'));
-// const EditBin = lazy(() => import('./pages/admin/EditBin'));
-
-// // Common pages
-// const Profile = lazy(() => import('./pages/common/Profile'));
-// const Notifications = lazy(() => import('./pages/common/Notifications'));
-// const Settings = lazy(() => import('./pages/common/Settings'));
-// const NotFound = lazy(() => import('./pages/NotFound'));
-
-// function App() {
-//   const { isAuthenticated, user, loading } = useAuth();
-//   const location = useLocation();
-
-//   useEffect(() => {
-//     // Scroll to top on route change
-//     window.scrollTo(0, 0);
-//   }, [location.pathname]);
-
-//   if (loading) {
-//     return <Loader fullScreen />;
-//   }
-
-//   return (
-//     <>
-//       <Suspense fallback={<Loader fullScreen />}>
-//         <Routes>
-//           {/* Public routes */}
-//           <Route path="/" element={<Home />} />
-//           {/* <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
-//           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />} />
-//           <Route path="/forgot-password" element={<ForgotPassword />} />
-//           <Route path="/reset-password/:token" element={<ResetPassword />} />
-//           <Route path="/verify-email/:token" element={<VerifyEmail />} /> */}
-
-//           {/* Protected routes */}
-//           <Route element={<ProtectedRoute />}>
-//             <Route element={<Layout />}>
-//               {/* Dashboard redirect based on role */}
-//               <Route path="/dashboard" element={
-//                 user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> :
-//                 user?.role === 'garbage_collector' ? <Navigate to="/collector/dashboard" /> :
-//                 <Navigate to="/resident/dashboard" />
-//               } />
-
-//               {/* Common routes */}
-//               <Route path="/profile" element={<Profile />} />
-//               <Route path="/notifications" element={<Notifications />} />
-//               <Route path="/settings" element={<Settings />} />
-
-//               {/* Resident routes */}
-//               <Route element={<RoleRoute allowedRoles={['resident']} />}>
-//                 <Route path="/resident/dashboard" element={<ResidentDashboard />} />
-//                 <Route path="/resident/report-bin" element={<ReportBin />} />
-//                 {/* <Route path="/resident/bin-map" element={<BinMap />} />
-//                 <Route path="/resident/rewards" element={<RewardStore />} />
-//                 <Route path="/resident/rewards/:id" element={<RewardDetails />} />
-//                 <Route path="/resident/reward-history" element={<RewardHistory />} />
-//                 <Route path="/resident/leaderboard" element={<Leaderboard />} />
-//                 <Route path="/resident/feedback" element={<SubmitFeedback />} /> */}
-//               </Route>
-
-//               {/* Collector routes */}
-//               <Route element={<RoleRoute allowedRoles={['garbage_collector']} />}>
-//                 <Route path="/collector/dashboard" element={<CollectorDashboard />} />
-//                 {/* <Route path="/collector/routes" element={<ActiveRoutes />} />
-//                 <Route path="/collector/routes/:id" element={<RouteDetails />} />
-//                 <Route path="/collector/schedule" element={<CollectionSchedule />} />
-//                 <Route path="/collector/bins/:id" element={<BinDetails />} />
-//                 <Route path="/collector/submit-report/:binId" element={<SubmitReport />} /> */}
-//               </Route>
-
-//               {/* Admin routes */}
-//               <Route element={<RoleRoute allowedRoles={['admin']} />}>
-//                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
-//                 {/* <Route path="/admin/users" element={<UserManagement />} />
-//                 <Route path="/admin/bins" element={<BinManagement />} />
-//                 <Route path="/admin/routes" element={<RouteManagement />} />
-//                 <Route path="/admin/schedules" element={<ScheduleManagement />} />
-//                 <Route path="/admin/reports" element={<ReportManagement />} />
-//                 <Route path="/admin/feedback" element={<FeedbackManagement />} />
-//                 <Route path="/admin/rewards" element={<RewardManagement />} />
-//                 <Route path="/admin/routes/create" element={<CreateRoute />} />
-//                 <Route path="/admin/routes/edit/:id" element={<EditRoute />} />
-//                 <Route path="/admin/bins/create" element={<CreateBin />} />
-//                 <Route path="/admin/bins/edit/:id" element={<EditBin />} /> */}
-//               </Route>
-//             </Route>
-//           </Route>
-
-//           {/* 404 route */}
-//           <Route path="*" element={<NotFound />} />
-//         </Routes>
-//       </Suspense>
-//       <Toaster />
-//     </>
-//   );
-// }
-
-// export default App;
-
-
-
-//===========================================//
-
 import React from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, Navigate } from 'react-router-dom'
+
 import Layout from './components/Layout'
+
+{/* Public pages */ }
+import Home from './pages/public/Home'
+import About from './pages/public/About'
+import Contact from './pages/public/Contact'
+import Services from './pages/public/Services'
+import FAQ from './pages/public/FAQ'
+import PrivacyPolicy from './pages/public/PrivacyPolicy'
+import TermsOfService from './pages/public/TermsOfService'
+
+{/* Authentication pages */ }
+import Login from './pages/auth/Login'
+import Register from './pages/auth/Register'
+import GoogleCallback from '@/components/GoogleCallBack'
+import GoogleAuthHandler from '@/components/GoogleAuthHandler'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
+import VerifyEmail from './pages/auth/VerifyEmail'
+
+{/* Common pages */ }
+import Profile from './pages/common/Profile'
+import Notifications from './pages/common/Notifications'
+import Settings from './pages/common/Settings'
+import Help from './pages/common/Help'
+
+{/*Error pages */ }
+import ErrorPage from './pages/error/ErrorPage'
+import MaintenancePage from './pages/error/MaintenancePage'
+import NotFound from './pages/error/NotFound'
+
+{/* Resident pages */ }
+import ReportBin from './pages/resident/ReportBin'
+import CollectionDetails from './pages/resident/CollectionDetails'
+import CollectionHistory from './pages/resident/CollectionHistory'
+import BinMap from './pages/resident/BinMap'
+import ResidentDashboard from './pages/resident/ResidentDashboard'
+import RewardStore from './pages/resident/RewardStore'
+import RewardDetails from './pages/resident/RewardDetails'
+import RewardHistory from './pages/resident/RewardHistory'
+import Leaderboard from './pages/resident/Leaderboard'
+import SubmitFeedback from './pages/resident/SubmitFeedback'
+import FeedbackHistory from './pages/resident/FeedbackHistory'
+import ResidentSchedule from './pages/resident/ResidentSchedule'
+import WasteEducation from './pages/resident/WasteEducation'
+import EnvironmentalImpact from './pages/resident/EnvironmentalImpact'
+
+{/* Collector pages */ }
+import CollectorDashboard from './pages/collector/CollectorDashboard'
+import ActiveRoutes from './pages/collector/ActiveRoutes'
+import RouteDetails from './pages/collector/RouteDetails'
+import CollectionSchedule from './pages/collector/CollectionSchedule'
+import BinDetails from './pages/collector/BinDetails'
+import SubmitReport from './pages/collector/SubmitReport'
+import ReportHistory from './pages/collector/ReportHistory'
+import CollectorReports from './pages/collector/CollectorReports'
+import RouteHistory from './pages/collector/RouteHistory'
+import AssignedBins from './pages/collector/AssignedBins'
+import CollectorCalendar from './pages/collector/CollectorCalendar'
+import SafetyGuidelines from './pages/collector/SafetyGuidelines'
+import CollectorPerformance from './pages/collector/CollectorPerformance'
+import BinCollectionHistory from './pages/collector/BinCollectionHistory'
+
+{/* Admin pages */ }
+import AdminDashboard from './pages/admin/AdminDashboard'
+import UserManagement from './pages/admin/users/UserManagement'
+import CreateUser from './pages/admin/users/CreateUser'
+import UserDetails from './pages/admin/users/UserDetails'
+import EditUser from './pages/admin/users/EditUser'
+import BinManagement from './pages/admin/bins/BinManagement'
+import CreateBin from './pages/admin/bins/CreateBin'
+import AdminBinDetails from './pages/admin/bins/AdminBinDetails'
+import EditBin from './pages/admin/bins/EditBin'
+import BinLocationMap from './pages/admin/bins/BinLocationMap'
+import RouteManagement from './pages/admin/routes/RouteManagement'
+import CreateRoute from './pages/admin/routes/CreateRoute'
+import AdminRouteDetails from './pages/admin/routes/AdminRouteDetails'
+import EditRoute from './pages/admin/routes/EditRoute'
+import RouteOptimization from './pages/admin/routes/RouteOptimization'
+import ScheduleManagement from './pages/admin/schedules/ScheduleManagement'
+import CreateSchedule from './pages/admin/schedules/CreateSchedule'
+import EditSchedule from './pages/admin/schedules/EditSchedule'
+import ScheduleCalendar from './pages/admin/schedules/ScheduleCalendar'
+import ReportManagement from './pages/admin/reports/ReportManagement'
+import ReportDetails from './pages/admin/reports/ReportDetails'
+import ReportAnalytics from './pages/admin/reports/ReportAnalytics'
+import FeedbackManagement from './pages/admin/feedback/FeedbackManagement'
+import FeedbackDetails from './pages/admin/feedback/FeedbackDetails'
+import FeedbackAnalytics from './pages/admin/feedback/FeedbackAnalytics'
+import RewardManagement from './pages/admin/rewards/RewardManagement'
+import CreateReward from './pages/admin/rewards/CreateReward'
+import EditReward from './pages/admin/rewards/EditReward'
+import RewardAnalytics from './pages/admin/rewards/RewardAnalytics'
+import SystemAnalytics from './pages/admin/analytics/SystemAnalytics'
+import WasteAnalytics from './pages/admin/analytics/WasteAnalytics'
+import PerformanceAnalytics from './pages/admin/analytics/PerformanceAnalytics'
+import UserAnalytics from './pages/admin/analytics/UserAnalytics'
+import SystemSettings from './pages/admin/settings/SystemSettings'
+import NotificationSettings from './pages/admin/settings/NotificationSettings'
+import APISettings from './pages/admin/settings/APISettings'
 
 const Temp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
+
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -165,21 +116,23 @@ const Temp = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
 
-        {/* Authentication Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/verify-email/:token" element={<VerifyEmail />} />
-        <Route path="/auth/google/callback" element={<GoogleCallback />} />
-        <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
-        <Route path="/auth/google/error" element={<Navigate to="/login" />} />
-
         {/* Common Routes (Protected) */}
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/help" element={<Help />} />
+
+
+        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
+        <Route path="/auth/google/success" element={<GoogleAuthHandler />} />
+        <Route path="/auth/google/error" element={<Navigate to="/login" />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+
 
         {/* Resident Routes */}
         <Route path="/resident">
@@ -204,6 +157,7 @@ const Temp = () => {
           <Route path="impact" element={<EnvironmentalImpact />} />
           <Route path="education" element={<WasteEducation />} />
         </Route>
+
 
         {/* Collector Routes */}
         <Route path="/collector">
@@ -230,6 +184,7 @@ const Temp = () => {
           <Route path="performance" element={<CollectorPerformance />} />
           <Route path="safety" element={<SafetyGuidelines />} />
         </Route>
+
 
         {/* Admin Routes */}
         <Route path="/admin">
