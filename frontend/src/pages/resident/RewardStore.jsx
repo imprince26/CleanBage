@@ -264,7 +264,6 @@ const RewardStore = () => {
         </div>
       )}
 
-      {/* Redeem Dialog */}
       <Dialog open={isRedeemDialogOpen} onOpenChange={setIsRedeemDialogOpen}>
         <DialogContent>
           <DialogHeader>
