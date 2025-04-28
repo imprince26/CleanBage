@@ -13,7 +13,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true,v7_relativeSplatPath: true }}>
         <ThemeProvider defaultTheme="system" storageKey="cleanbag-theme">
           <AuthProvider>
             <CollectionProvider>

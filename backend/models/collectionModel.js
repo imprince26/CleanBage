@@ -222,6 +222,11 @@ const collectionSchema = new mongoose.Schema({
             default: null
         }
     },
+    lastCollectionReport: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Report',
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -237,6 +242,7 @@ collectionSchema.index({ location: '2dsphere' });
 collectionSchema.index({ status: 1 });
 collectionSchema.index({ fillLevel: -1 });
 collectionSchema.index({ wasteType: 1 });
+collectionSchema.index({ lastCollectionReport: 1 });
 
 collectionSchema.pre('save', async function (next) {
     this.updatedAt = Date.now();

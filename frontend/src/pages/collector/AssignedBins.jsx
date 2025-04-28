@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -81,13 +82,11 @@ const AssignedBins = () => {
         ...filters,
       });
 
-      const response = await fetch(`/api/collector/bins?${queryParams}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setBins(data.data);
-        setTotalBins(data.total);
-      }
+      const response = await api.get(`/collector/bins?${queryParams}`);
+ 
+        setBins(response.data.data);
+        setTotalBins(response.data.total);
+     
     } catch (error) {
       console.error("Error fetching bins:", error);
       toast.error("Failed to load assigned bins");
@@ -351,7 +350,7 @@ const AssignedBins = () => {
                         <Progress
                           value={bin.fillLevel}
                           className="h-2"
-                          indicatorClassName={getFillLevelColor(bin.fillLevel)}
+                          indicatorclassname={getFillLevelColor(bin.fillLevel)}
                         />
                       </div>
                     </TableCell>

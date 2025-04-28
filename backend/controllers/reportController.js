@@ -202,6 +202,12 @@ export const createReport = async (req, res) => {
 
     const report = await Report.create(req.body);
 
+    await Collection.findByIdAndUpdate(req.body.bin, {
+        lastCollectionReport: report._id,
+        lastCollected: new Date(),
+        status: 'collected',
+        fillLevel: req.body.fillLevelAfter || 0
+    });
     // Update bin status if report is completed
     if (req.body.status === 'completed') {
         await Collection.findByIdAndUpdate(req.body.bin, {

@@ -15,6 +15,7 @@ import scheduleRoutes from './routes/scheduleRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import rewardRoutes from './routes/rewardRoutes.js';
+import collectorRoutes from './routes/collectorRoutes.js';
 // import { handleImageUpload } from './middlewares/uploadMiddleware.js';
 // import { uploadImage } from './utils/cloudinary.js';
 
@@ -58,6 +59,7 @@ app.use('/api/schedules', scheduleRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rewards', rewardRoutes);
+app.use('/api/collector', collectorRoutes);
 
 
 // app.post("/upload",handleImageUpload('images'), async (req, res) => {
