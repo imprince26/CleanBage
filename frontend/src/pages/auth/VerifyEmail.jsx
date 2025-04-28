@@ -7,7 +7,7 @@ import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function VerifyEmail() {
   const { token } = useParams();
-  const [status, setStatus] = useState('verifying'); // verifying, success, error
+  const [status, setStatus] = useState('verifying'); 
 
   useEffect(() => {
     const verifyEmail = async () => {
