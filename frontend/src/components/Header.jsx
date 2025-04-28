@@ -64,49 +64,49 @@ export function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifications, setNotifications] = useState([]);
-const [unreadCount, setUnreadCount] = useState(0);
-const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   const location = useLocation();
 
   // Add this useEffect hook
-useEffect(() => {
-  if (user) {
-    fetchNotifications();
-  }
-}, [user]);
-
-// Add this function in the Header component
-const fetchNotifications = async () => {
-  try {
-    setLoadingNotifications(true);
-    const response = await api.get("/notifications?limit=5");
-    if (response.data.success) {
-      setNotifications(response.data.data);
-      setUnreadCount(response.data.unreadCount);
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
     }
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-  } finally {
-    setLoadingNotifications(false);
-  }
-};
+  }, [user]);
 
-// Add this function to get notification icon
-const getNotificationIcon = (type) => {
-  const icons = {
-    collection_scheduled: Calendar,
-    collection_completed: CheckCircle2,
-    bin_reported: AlertTriangle,
-    report_submitted: FileText,
-    reward_earned: Award,
-    feedback_response: MessageSquare,
-    route_assigned: RouteIcon,
-    system_announcement: Bell,
-    maintenance_alert: Settings,
+  // Add this function in the Header component
+  const fetchNotifications = async () => {
+    try {
+      setLoadingNotifications(true);
+      const response = await api.get("/notifications?limit=5");
+      if (response.data.success) {
+        setNotifications(response.data.data);
+        setUnreadCount(response.data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoadingNotifications(false);
+    }
   };
-  return icons[type] || Bell;
-};
+
+  // Add this function to get notification icon
+  const getNotificationIcon = (type) => {
+    const icons = {
+      collection_scheduled: Calendar,
+      collection_completed: CheckCircle2,
+      bin_reported: AlertTriangle,
+      report_submitted: FileText,
+      reward_earned: Award,
+      feedback_response: MessageSquare,
+      route_assigned: RouteIcon,
+      system_announcement: Bell,
+      maintenance_alert: Settings,
+    };
+    return icons[type] || Bell;
+  };
 
   // Handle scroll effect
   useEffect(() => {
@@ -230,94 +230,94 @@ const getNotificationIcon = (type) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80">
-  <DropdownMenuLabel className="flex items-center justify-between">
-    Notifications
-    {unreadCount > 0 && (
-      <Badge variant="secondary" className="ml-2">
-        {unreadCount} New
-      </Badge>
-    )}
-  </DropdownMenuLabel>
-  <DropdownMenuSeparator />
-  
-  <ScrollArea className="h-[300px]">
-    {loadingNotifications ? (
-      <div className="flex items-center justify-center py-4">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    ) : notifications.length === 0 ? (
-      <div className="flex flex-col items-center justify-center py-8 text-center">
-        <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-sm text-muted-foreground">No notifications yet</p>
-      </div>
-    ) : (
-      notifications.map((notification) => {
-        const NotificationIcon = getNotificationIcon(notification.type);
-        return (
-          <Link
-            key={notification._id}
-            to={notification.action?.url || "/notifications"}
-            className={cn(
-              "flex items-start gap-3 p-4 hover:bg-muted transition-colors",
-              !notification.isRead && "bg-primary/5"
-            )}
-            onClick={async () => {
-              if (!notification.isRead) {
-                try {
-                  await api.put(`/notifications/${notification._id}/read`);
-                  fetchNotifications();
-                } catch (error) {
-                  console.error("Error marking notification as read:", error);
-                }
-              }
-            }}
-          >
-            <div
-              className={cn(
-                "p-2 rounded-full",
-                !notification.isRead ? "bg-primary/10" : "bg-muted"
-              )}
-            >
-              <NotificationIcon
-                className={cn(
-                  "h-4 w-4",
-                  !notification.isRead ? "text-primary" : "text-muted-foreground"
-                )}
-              />
-            </div>
-            <div className="flex-1 space-y-1">
-              <p className={cn("text-sm", !notification.isRead && "font-medium")}>
-                {notification.title}
-              </p>
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {notification.message}
-              </p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>
-                  {format(new Date(notification.createdAt), "MMM d, h:mm a")}
-                </span>
-              </div>
-            </div>
-          </Link>
-        );
-      })
-    )}
-  </ScrollArea>
-  
-  <DropdownMenuSeparator />
-  <div className="p-2">
-    <Button
-      variant="outline"
-      className="w-full"
-      asChild
-    >
-      <Link to="/notifications">
-        View All Notifications
-      </Link>
-    </Button>
-  </div>
-</DropdownMenuContent>
+                  <DropdownMenuLabel className="flex items-center justify-between">
+                    Notifications
+                    {unreadCount > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {unreadCount} New
+                      </Badge>
+                    )}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  <ScrollArea className="h-[300px]">
+                    {loadingNotifications ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Bell className="h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-sm text-muted-foreground">No notifications yet</p>
+                      </div>
+                    ) : (
+                      notifications.map((notification) => {
+                        const NotificationIcon = getNotificationIcon(notification.type);
+                        return (
+                          <Link
+                            key={notification._id}
+                            to={notification.action?.url || "/notifications"}
+                            className={cn(
+                              "flex items-start gap-3 p-4 hover:bg-muted transition-colors",
+                              !notification.isRead && "bg-primary/5"
+                            )}
+                            onClick={async () => {
+                              if (!notification.isRead) {
+                                try {
+                                  await api.put(`/notifications/${notification._id}/read`);
+                                  fetchNotifications();
+                                } catch (error) {
+                                  console.error("Error marking notification as read:", error);
+                                }
+                              }
+                            }}
+                          >
+                            <div
+                              className={cn(
+                                "p-2 rounded-full",
+                                !notification.isRead ? "bg-primary/10" : "bg-muted"
+                              )}
+                            >
+                              <NotificationIcon
+                                className={cn(
+                                  "h-4 w-4",
+                                  !notification.isRead ? "text-primary" : "text-muted-foreground"
+                                )}
+                              />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className={cn("text-sm", !notification.isRead && "font-medium")}>
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {notification.message}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  {format(new Date(notification.createdAt), "MMM d, h:mm a")}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })
+                    )}
+                  </ScrollArea>
+
+                  <DropdownMenuSeparator />
+                  <div className="p-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      asChild
+                    >
+                      <Link to="/notifications">
+                        View All Notifications
+                      </Link>
+                    </Button>
+                  </div>
+                </DropdownMenuContent>
               </DropdownMenu>
 
               {/* User Menu */}
