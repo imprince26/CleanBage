@@ -133,28 +133,28 @@ const Temp = () => {
 
 
         {/* Resident Routes */}
-            <Route path="/resident">
-              <Route path="dashboard" element={<ResidentDashboard />} />
-              <Route path="report-bin" element={<ReportBin />} />
-              <Route path="bin-map" element={<BinMap />} />
-              <Route path="collections">
-                <Route index element={<CollectionHistory />} />
-                <Route path=":id" element={<CollectionDetails />} />
-              </Route>
-              <Route path="rewards">
-                <Route index element={<RewardStore />} />
-                <Route path=":id" element={<RewardDetails />} />
-                <Route path="history" element={<RewardHistory />} />
-              </Route>
-              <Route path="leaderboard" element={<Leaderboard />} />
-              <Route path="feedback">
-                <Route index element={<SubmitFeedback />} />
-                <Route path="history" element={<FeedbackHistory />} />
-              </Route>
-              <Route path="schedule" element={<ResidentSchedule />} />
-              <Route path="impact" element={<EnvironmentalImpact />} />
-              <Route path="education" element={<WasteEducation />} />
-            </Route>
+        <Route path="/resident">
+          <Route path="dashboard" element={<ResidentDashboard />} />
+          <Route path="report-bin" element={<ReportBin />} />
+          <Route path="bin-map" element={<BinMap />} />
+          <Route path="collections">
+            <Route index element={<CollectionHistory />} />
+            <Route path=":id" element={<CollectionDetails />} />
+          </Route>
+          <Route path="rewards">
+            <Route index element={<RewardStore />} />
+            <Route path=":id" element={<RewardDetails />} />
+            <Route path="history" element={<RewardHistory />} />
+          </Route>
+          <Route path="leaderboard" element={<Leaderboard />} />
+          <Route path="feedback">
+            <Route index element={<SubmitFeedback />} />
+            <Route path="history" element={<FeedbackHistory />} />
+          </Route>
+          <Route path="schedule" element={<ResidentSchedule />} />
+          <Route path="impact" element={<EnvironmentalImpact />} />
+          <Route path="education" element={<WasteEducation />} />
+        </Route>
 
 
         {/* Collector Routes */}
@@ -184,63 +184,63 @@ const Temp = () => {
         </Route>
 
 
-          {/* Admin Routes */}
-                <Route path="/admin">
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="users">
-                    <Route index element={<UserManagement />} />
-                    <Route path="create" element={<CreateUser />} />
-                    <Route path=":id" element={<UserDetails />} />
-                    <Route path=":id/edit" element={<EditUser />} />
-                  </Route>
-                  <Route path="bins">
-                    <Route index element={<BinManagement />} />
-                    <Route path="create" element={<CreateBin />} />
-                    <Route path=":id" element={<AdminBinDetails />} />
-                    <Route path=":id/edit" element={<EditBin />} />
-                    <Route path="map" element={<BinLocationMap />} />
-                  </Route>
-                  <Route path="routes">
-                    <Route index element={<RouteManagement />} />
-                    <Route path="create" element={<CreateRoute />} />
-                    <Route path=":id" element={<AdminRouteDetails />} />
-                    <Route path=":id/edit" element={<EditRoute />} />
-                    <Route path="optimize" element={<RouteOptimization />} />
-                  </Route>
-                  <Route path="schedules">
-                    <Route index element={<ScheduleManagement />} />
-                    <Route path="create" element={<CreateSchedule />} />
-                    <Route path=":id/edit" element={<EditSchedule />} />
-                    <Route path="calendar" element={<ScheduleCalendar />} />
-                  </Route>
-                  <Route path="reports">
-                    <Route index element={<ReportManagement />} />
-                    <Route path=":id" element={<ReportDetails />} />
-                    <Route path="analytics" element={<ReportAnalytics />} />
-                  </Route>
-                  <Route path="feedback">
-                    <Route index element={<FeedbackManagement />} />
-                    <Route path=":id" element={<FeedbackDetails />} />
-                    <Route path="analytics" element={<FeedbackAnalytics />} />
-                  </Route>
-                  <Route path="rewards">
-                    <Route index element={<RewardManagement />} />
-                    <Route path="create" element={<CreateReward />} />
-                    <Route path=":id/edit" element={<EditReward />} />
-                    <Route path="analytics" element={<RewardAnalytics />} />
-                  </Route>
-                  <Route path="analytics">
-                    <Route index element={<SystemAnalytics />} />
-                    <Route path="waste" element={<WasteAnalytics />} />
-                    <Route path="performance" element={<PerformanceAnalytics />} />
-                    <Route path="user" element={<UserAnalytics />} />
-                  </Route>
-                  <Route path="settings">
-                    <Route index element={<SystemSettings />} />
-                    <Route path="notifications" element={<NotificationSettings />} />
-                    <Route path="api" element={<APISettings />} />
-                  </Route>
-                </Route>
+        {/* Admin Routes */}
+        <Route path="/admin">
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users">
+            <Route index element={<UserManagement />} />
+            <Route path="create" element={<CreateUser />} />
+            <Route path=":id" element={<UserDetails />} />
+            <Route path=":id/edit" element={<EditUser />} />
+          </Route>
+          <Route path="bins">
+            <Route index element={<BinManagement />} />
+            <Route path="create" element={<CreateBin />} />
+            <Route path=":id" element={<AdminBinDetails />} />
+            <Route path=":id/edit" element={<EditBin />} />
+            <Route path="map" element={<BinLocationMap />} />
+          </Route>
+          <Route path="routes">
+            <Route index element={<RouteManagement />} />
+            <Route path="create" element={<CreateRoute />} />
+            <Route path=":id" element={<AdminRouteDetails />} />
+            <Route path=":id/edit" element={<EditRoute />} />
+            <Route path="optimize" element={<RouteOptimization />} />
+          </Route>
+          <Route path="schedules">
+            <Route index element={<ScheduleManagement />} />
+            <Route path="create" element={<CreateSchedule />} />
+            <Route path=":id/edit" element={<EditSchedule />} />
+            <Route path="calendar" element={<ScheduleCalendar />} />
+          </Route>
+          <Route path="reports">
+            <Route index element={<ReportManagement />} />
+            <Route path=":id" element={<ReportDetails />} />
+            <Route path="analytics" element={<ReportAnalytics />} />
+          </Route>
+          <Route path="feedback">
+            <Route index element={<FeedbackManagement />} />
+            <Route path=":id" element={<FeedbackDetails />} />
+            <Route path="analytics" element={<FeedbackAnalytics />} />
+          </Route>
+          <Route path="rewards">
+            <Route index element={<RewardManagement />} />
+            <Route path="create" element={<CreateReward />} />
+            <Route path=":id/edit" element={<EditReward />} />
+            <Route path="analytics" element={<RewardAnalytics />} />
+          </Route>
+          <Route path="analytics">
+            <Route index element={<SystemAnalytics />} />
+            <Route path="waste" element={<WasteAnalytics />} />
+            <Route path="performance" element={<PerformanceAnalytics />} />
+            <Route path="user" element={<UserAnalytics />} />
+          </Route>
+          <Route path="settings">
+            <Route index element={<SystemSettings />} />
+            <Route path="notifications" element={<NotificationSettings />} />
+            <Route path="api" element={<APISettings />} />
+          </Route>
+        </Route>
 
         {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
