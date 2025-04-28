@@ -18,10 +18,17 @@ import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import VerifyEmail from './pages/auth/VerifyEmail'
 
+
 import Profile from './pages/common/Profile'
 import Notifications from './pages/common/Notifications'
 import Settings from './pages/common/Settings'
 import Help from './pages/common/Help'
+
+
+import ErrorPage from './pages/error/ErrorPage'
+import MaintenancePage from './pages/error/MaintenancePage'
+import NotFound from './pages/error/NotFound'
+
 
 import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
@@ -54,7 +61,8 @@ const Temp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-
+      
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
@@ -69,6 +77,8 @@ const Temp = () => {
         <Route path="/settings" element={<Settings />} />
         <Route path="/help" element={<Help />} />
 
+
+        {/* Authentication Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/auth/google/callback" element={<GoogleCallback />} />
@@ -78,6 +88,8 @@ const Temp = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
+
+        {/* Resident Routes */}
         <Route path="/resident/dashboard" element={<ResidentDashboard />} />
         <Route path="/resident/report-bin" element={<ReportBin />} />
         <Route path="/resident/bin-map" element={<BinMap />} />
@@ -116,6 +128,10 @@ const Temp = () => {
           <Route path="safety" element={<SafetyGuidelines />} />
         </Route>
 
+       {/* Error Routes */}
+              <Route path="/error" element={<ErrorPage />} />
+              <Route path="/maintenance" element={<MaintenancePage />} />
+              <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )
