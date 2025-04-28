@@ -36,8 +36,6 @@ import {
   Trash2,
   FileText,
   Clock,
-  Home,
-  X,
   Search,
   HelpCircle,
   LayoutDashboard,
@@ -69,14 +67,12 @@ export function Header() {
 
   const location = useLocation();
 
-  // Add this useEffect hook
   useEffect(() => {
     if (user) {
       fetchNotifications();
     }
   }, [user]);
 
-  // Add this function in the Header component
   const fetchNotifications = async () => {
     try {
       setLoadingNotifications(true);
@@ -92,7 +88,6 @@ export function Header() {
     }
   };
 
-  // Add this function to get notification icon
   const getNotificationIcon = (type) => {
     const icons = {
       collection_scheduled: Calendar,
@@ -108,7 +103,6 @@ export function Header() {
     return icons[type] || Bell;
   };
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
