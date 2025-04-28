@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
-      const { data } = await api.post('/api/auth/register', userData);
+      const { data } = await api.post('/auth/register', userData);
       toast.success('Registration successful. Please verify your email.');
       return true;
     } catch (error) {

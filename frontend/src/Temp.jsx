@@ -32,6 +32,7 @@ import NotFound from './pages/error/NotFound'
 
 import ReportBin from './pages/resident/ReportBin'
 import CollectionDetails from './pages/resident/CollectionDetails'
+import CollectionHistory from './pages/resident/CollectionHistory'
 import BinMap from './pages/resident/BinMap'
 import ResidentDashboard from './pages/resident/ResidentDashboard'
 import RewardStore from './pages/resident/RewardStore'
@@ -40,6 +41,9 @@ import RewardHistory from './pages/resident/RewardHistory'
 import Leaderboard from './pages/resident/Leaderboard'
 import SubmitFeedback from './pages/resident/SubmitFeedback'
 import FeedbackHistory from './pages/resident/FeedbackHistory'
+import ResidentSchedule from './pages/resident/ResidentSchedule'
+import WasteEducation from './pages/resident/WasteEducation'
+import EnvironmentalImpact from './pages/resident/EnvironmentalImpact'
 
 
 import CollectorDashboard from './pages/collector/CollectorDashboard'
@@ -90,16 +94,28 @@ const Temp = () => {
 
 
         {/* Resident Routes */}
-        <Route path="/resident/dashboard" element={<ResidentDashboard />} />
-        <Route path="/resident/report-bin" element={<ReportBin />} />
-        <Route path="/resident/bin-map" element={<BinMap />} />
-        <Route path="/resident/collections/:id" element={<CollectionDetails />} />
-        <Route path="/resident/rewards" element={<RewardStore />} />
-        <Route path="/resident/rewards/:id" element={<RewardDetails />} />
-        <Route path="/resident/reward-history" element={<RewardHistory />} />
-        <Route path="/resident/leaderboard" element={<Leaderboard />} />
-        <Route path="/resident/feedback" element={<SubmitFeedback />} />
-        <Route path="/feedback/history" element={<FeedbackHistory />} />
+            <Route path="/resident">
+              <Route path="dashboard" element={<ResidentDashboard />} />
+              <Route path="report-bin" element={<ReportBin />} />
+              <Route path="bin-map" element={<BinMap />} />
+              <Route path="collections">
+                <Route index element={<CollectionHistory />} />
+                <Route path=":id" element={<CollectionDetails />} />
+              </Route>
+              <Route path="rewards">
+                <Route index element={<RewardStore />} />
+                <Route path=":id" element={<RewardDetails />} />
+                <Route path="history" element={<RewardHistory />} />
+              </Route>
+              <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="feedback">
+                <Route index element={<SubmitFeedback />} />
+                <Route path="history" element={<FeedbackHistory />} />
+              </Route>
+              <Route path="schedule" element={<ResidentSchedule />} />
+              <Route path="impact" element={<EnvironmentalImpact />} />
+              <Route path="education" element={<WasteEducation />} />
+            </Route>
 
 
         {/* Collector Routes */}
