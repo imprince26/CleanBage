@@ -65,7 +65,7 @@ const FeedbackHistory = () => {
       try {
         const response = await fetch("/api/feedback/me");
         const data = await response.json();
-        
+
         if (data.success) {
           setFeedbacks(data.data);
         }
@@ -84,9 +84,8 @@ const FeedbackHistory = () => {
     return [...Array(5)].map((_, index) => (
       <Star
         key={index}
-        className={`h-4 w-4 ${
-          index < rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
-        }`}
+        className={`h-4 w-4 ${index < rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+          }`}
       />
     ));
   };
@@ -218,7 +217,7 @@ const FeedbackHistory = () => {
                   {renderStars(selectedFeedback.rating)}
                 </div>
               </div>
-              
+
               <Separator />
 
               <div className="space-y-2">
