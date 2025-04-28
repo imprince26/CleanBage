@@ -61,7 +61,7 @@ const Temp = () => {
   return (
     <Routes>
       <Route element={<Layout />}>
-      
+
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -128,10 +128,10 @@ const Temp = () => {
           <Route path="safety" element={<SafetyGuidelines />} />
         </Route>
 
-       {/* Error Routes */}
-              <Route path="/error" element={<ErrorPage />} />
-              <Route path="/maintenance" element={<MaintenancePage />} />
-              <Route path="*" element={<NotFound />} />
+        {/* Error Routes */}
+        <Route path="/error" element={<ErrorPage />} />
+        <Route path="/maintenance" element={<MaintenancePage />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )
