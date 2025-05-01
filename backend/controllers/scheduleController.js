@@ -11,87 +11,47 @@ export const getSchedules = async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    
-    // Filter
+
+    // Filters
     const filter = {};
-    
-    // Filter by collector
-    if (req.query.collector) {
-        filter.collector = req.query.collector;
-    }
-    
-    // Filter by bin
-    if (req.query.bin) {
-        filter.bin = req.query.bin;
-    }
-    
-    // Filter by date range
+    if (req.query.collector) filter.collector = req.query.collector;
+    if (req.query.bin) filter.bin = req.query.bin;
     if (req.query.startDate || req.query.endDate) {
         filter.scheduledDate = {};
-        if (req.query.startDate) {
+        if (req.query.startDate)
             filter.scheduledDate.$gte = new Date(req.query.startDate);
-        }
-        if (req.query.endDate) {
+        if (req.query.endDate)
             filter.scheduledDate.$lte = new Date(req.query.endDate);
-        }
     }
-    
-    // Filter by status
-    if (req.query.status) {
-        filter.status = req.query.status;
-    }
-    
-    // Filter by priority
-    if (req.query.minPriority) {
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.minPriority)
         filter.priority = { $gte: parseInt(req.query.minPriority) };
-    }
-    
-    // Sort
+
+    // Sorting (default by scheduledDate asc, priority desc)
     const sort = {};
     if (req.query.sortBy) {
-        const parts = req.query.sortBy.split(':');
-        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1;
+        const parts = req.query.sortBy.split(":");
+        sort[parts[0]] = parts[1] === "desc" ? -1 : 1;
     } else {
-        // Default sort by scheduled date and priority
         sort.scheduledDate = 1;
         sort.priority = -1;
     }
-    
+
     const total = await Schedule.countDocuments(filter);
-    
     const schedules = await Schedule.find(filter)
-        .populate('bin', 'binId location fillLevel wasteType')
-        .populate('collector', 'name avatar')
-        .populate('assignedBy', 'name role')
-        .populate('route', 'name')
+        .populate("bin", "binId location fillLevel wasteType")
+        .populate("collector", "name avatar")
+        .populate("assignedBy", "name role")
+        .populate("route", "name")
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
     
-    // Pagination result
-    const pagination = {};
-    
-    if (endIndex < total) {
-        pagination.next = {
-            page: page + 1,
-            limit
-        };
-    }
-    
-    if (startIndex > 0) {
-        pagination.prev = {
-            page: page - 1,
-            limit
-        };
-    }
-    
     res.status(200).json({
         success: true,
         count: schedules.length,
-        pagination,
         total,
-        data: schedules
+        data: schedules,
     });
 };
 
@@ -315,89 +275,68 @@ export const deleteSchedule = async (req, res) => {
     });
 };
 
+
 // @desc    Complete schedule
 // @route   PUT /api/schedules/:id/complete
 // @access  Private/Garbage Collector
 export const completeSchedule = async (req, res) => {
     const { fillLevel, collectionTime, reportId } = req.body;
-    
-    if (!fillLevel) {
-        throw new Error('Please provide fill level', 400);
-    }
-    
+    if (!fillLevel) throw new Error("Please provide fill level", 400);
+
     const schedule = await Schedule.findById(req.params.id);
-    
-    if (!schedule) {
-        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
-    }
-    
-    // Check user is the assigned collector
-    if (schedule.collector.toString() !== req.user.id) {
-        throw new Error('Not authorized to complete this schedule', 403);
-    }
-    
-    // Check if schedule is pending
-    if (schedule.status !== 'pending') {
-        throw new Error('Schedule is not in pending status', 400);
-    }
-    
-    schedule.status = 'completed';
+    if (!schedule) throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
+    if (schedule.collector.toString() !== req.user.id)
+        throw new Error("Not authorized to complete this schedule", 403);
+    if (schedule.status !== "pending")
+        throw new Error("Schedule is not in pending status", 400);
+
+    schedule.status = "completed";
     schedule.completionDetails = {
         completedAt: new Date(),
         actualFillLevel: fillLevel,
         collectionTime: collectionTime || null,
-        report: reportId || null
+        report: reportId || null,
     };
-    
     await schedule.save();
-    
-    // Update the bin's status and fill level
-    await Collection.findByIdAndUpdate(
-        schedule.bin,
-        { 
-            status: 'collected',
-            fillLevel: 0,
-            lastCollected: new Date()
-        }
-    );
-    
-    // Create notification for admin
-    const admins = await User.find({ role: 'admin' });
+
+    // Update bin data
+    await Collection.findByIdAndUpdate(schedule.bin, {
+        status: "collected",
+        fillLevel: 0,
+        lastCollected: new Date(),
+    });
+
+    // Notify admins
+    const admins = await User.find({ role: "admin" });
     for (const admin of admins) {
         await Notification.createNotification({
             recipient: admin._id,
-            type: 'collection_completed',
-            title: 'Schedule Completed',
+            type: "collection_completed",
+            title: "Schedule Completed",
             message: `Schedule for bin ${(await Collection.findById(schedule.bin)).binId} has been completed.`,
-            priority: 'medium',
-            icon: 'check-circle',
-            relatedTo: {
-                bin: schedule.bin,
-                schedule: schedule._id
-            }
+            priority: "medium",
+            icon: "check-circle",
+            relatedTo: { bin: schedule.bin, schedule: schedule._id },
         });
     }
     
     // Generate next schedule if recurrence is set
-    if (schedule.recurrence !== 'none') {
+    if (schedule.recurrence !== "none") {
         const nextDate = new Date(schedule.scheduledDate);
-        
-        switch(schedule.recurrence) {
-            case 'daily':
+        switch (schedule.recurrence) {
+            case "daily":
                 nextDate.setDate(nextDate.getDate() + 1);
                 break;
-            case 'weekly':
+            case "weekly":
                 nextDate.setDate(nextDate.getDate() + 7);
                 break;
-            case 'biweekly':
+            case "biweekly":
                 nextDate.setDate(nextDate.getDate() + 14);
                 break;
-            case 'monthly':
+            case "monthly":
                 nextDate.setMonth(nextDate.getMonth() + 1);
                 break;
         }
-        
-        // Check if recurrence is still valid
         if (!schedule.recurrenceEndDate || nextDate <= schedule.recurrenceEndDate) {
             const newSchedule = new Schedule({
                 bin: schedule.bin,
@@ -409,21 +348,18 @@ export const completeSchedule = async (req, res) => {
                 recurrence: schedule.recurrence,
                 recurrenceEndDate: schedule.recurrenceEndDate,
                 notes: schedule.notes,
-                assignedBy: schedule.assignedBy
+                assignedBy: schedule.assignedBy,
             });
-            
             await newSchedule.save();
-            
-            // Update bin's collection schedule
             await Collection.findByIdAndUpdate(schedule.bin, {
-                collectionSchedule: nextDate
+                collectionSchedule: nextDate,
             });
         }
     }
-    
+
     res.status(200).json({
         success: true,
-        data: schedule
+        data: schedule,
     });
 };
 
@@ -432,32 +368,19 @@ export const completeSchedule = async (req, res) => {
 // @access  Private/Admin or Garbage Collector
 export const rescheduleCollection = async (req, res) => {
     const { newDate, reason } = req.body;
-    
-    if (!newDate) {
-        throw new Error('Please provide new date', 400);
-    }
-    
+    if (!newDate) throw new Error("Please provide new date", 400);
+
     const schedule = await Schedule.findById(req.params.id);
-    
-    if (!schedule) {
-        throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
-    }
-    
-    // Check user is admin or the assigned collector
-    if (req.user.role !== 'admin' && schedule.collector.toString() !== req.user.id) {
-        throw new Error('Not authorized to reschedule this collection', 403);
-    }
-    
-    // Check if schedule is completed
-    if (schedule.status === 'completed') {
-        throw new Error('Cannot reschedule a completed schedule', 400);
-    }
-    
-    schedule.status = 'rescheduled';
+    if (!schedule) throw new Error(`Schedule not found with id of ${req.params.id}`, 404);
+    if (req.user.role !== "admin" && schedule.collector.toString() !== req.user.id)
+        throw new Error("Not authorized to reschedule this collection", 403);
+    if (schedule.status === "completed")
+        throw new Error("Cannot reschedule a completed schedule", 400);
+
+    schedule.status = "rescheduled";
     schedule.updatedBy = req.user.id;
     await schedule.save();
-    
-    // Create a new schedule with the new date
+
     const newSchedule = new Schedule({
         bin: schedule.bin,
         collector: schedule.collector,
@@ -467,59 +390,44 @@ export const rescheduleCollection = async (req, res) => {
         route: schedule.route,
         recurrence: schedule.recurrence,
         recurrenceEndDate: schedule.recurrenceEndDate,
-        notes: `Rescheduled from ${schedule.scheduledDate.toLocaleDateString()}. ${reason || ''}\n${schedule.notes || ''}`.trim(),
-        assignedBy: req.user.id
+        notes: `Rescheduled from ${schedule.scheduledDate.toLocaleDateString()}. ${reason || ""}\n${schedule.notes || ""}`.trim(),
+        assignedBy: req.user.id,
     });
-    
     await newSchedule.save();
-    
-    // Update the bin's collection schedule
-    await Collection.findByIdAndUpdate(
-        schedule.bin,
-        { collectionSchedule: new Date(newDate) }
-    );
-    
-    // Create notification for collector if rescheduled by admin
-    if (req.user.role === 'admin') {
+
+    await Collection.findByIdAndUpdate(schedule.bin, {
+        collectionSchedule: new Date(newDate),
+    });
+
+    if (req.user.role === "admin") {
         await Notification.createNotification({
             recipient: schedule.collector,
-            type: 'collection_scheduled',
-            title: 'Collection Rescheduled',
+            type: "collection_scheduled",
+            title: "Collection Rescheduled",
             message: `Your collection for bin ${(await Collection.findById(schedule.bin)).binId} has been rescheduled to ${new Date(newDate).toLocaleDateString()}.`,
-            priority: 'high',
-            icon: 'calendar',
-            relatedTo: {
-                bin: schedule.bin,
-                schedule: newSchedule._id
-            }
+            priority: "high",
+            icon: "calendar",
+            relatedTo: { bin: schedule.bin, schedule: newSchedule._id },
         });
     }
-    
-    // Create notification for admin if rescheduled by collector
-    if (req.user.role === 'garbage_collector') {
-        const admins = await User.find({ role: 'admin' });
+    if (req.user.role === "garbage_collector") {
+        const admins = await User.find({ role: "admin" });
         for (const admin of admins) {
             await Notification.createNotification({
                 recipient: admin._id,
-                type: 'collection_scheduled',
-                title: 'Collection Rescheduled by Collector',
+                type: "collection_scheduled",
+                title: "Collection Rescheduled by Collector",
                 message: `Collection for bin ${(await Collection.findById(schedule.bin)).binId} has been rescheduled to ${new Date(newDate).toLocaleDateString()} by ${req.user.name}.`,
-                priority: 'medium',
-                icon: 'calendar',
-                relatedTo: {
-                    bin: schedule.bin,
-                    schedule: newSchedule._id
-                }
+                priority: "medium",
+                icon: "calendar",
+                relatedTo: { bin: schedule.bin, schedule: newSchedule._id },
             });
         }
     }
-    
+
     res.status(200).json({
         success: true,
-        data: {
-            oldSchedule: schedule,
-            newSchedule
-        }
+        data: { oldSchedule: schedule, newSchedule },
     });
 };
 
@@ -527,27 +435,22 @@ export const rescheduleCollection = async (req, res) => {
 // @route   GET /api/schedules/collector/upcoming
 // @access  Private/Garbage Collector
 export const getCollectorUpcomingSchedules = async (req, res) => {
-    // Check user is a garbage collector
-    if (req.user.role !== 'garbage_collector') {
-        throw new Error('Not authorized to access this data', 403);
-    }
-    
+    if (req.user.role !== "garbage_collector")
+        throw new Error("Not authorized to access this data", 403);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
     const schedules = await Schedule.find({
         collector: req.user.id,
-        status: 'pending',
-        scheduledDate: { $gte: today }
+        status: "pending",
+        scheduledDate: { $gte: today },
     })
-    .populate('bin', 'binId location fillLevel wasteType')
-    .sort({ scheduledDate: 1, priority: -1 })
-    .limit(10);
-    
+        .populate("bin", "binId location fillLevel wasteType")
+        .sort({ scheduledDate: 1, priority: -1 })
+        .limit(10);
     res.status(200).json({
         success: true,
         count: schedules.length,
-        data: schedules
+        data: schedules,
     });
 };
 
@@ -555,115 +458,58 @@ export const getCollectorUpcomingSchedules = async (req, res) => {
 // @route   GET /api/schedules/stats
 // @access  Private/Admin
 export const getScheduleStats = async (req, res) => {
-    // Only allow admins
-    if (req.user.role !== 'admin') {
-        throw new Error('Not authorized to access this data', 403);
-    }
-    
-    // Get schedules by status
+    if (req.user.role !== "admin")
+        throw new Error("Not authorized to access this data", 403);
     const schedulesByStatus = await Schedule.aggregate([
-        {
-            $group: {
-                _id: '$status',
-                count: { $sum: 1 }
-            }
-        }
+        { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
-    
-    // Get schedules by recurrence
     const schedulesByRecurrence = await Schedule.aggregate([
-        {
-            $group: {
-                _id: '$recurrence',
-                count: { $sum: 1 }
-            }
-        }
+        { $group: { _id: "$recurrence", count: { $sum: 1 } } },
     ]);
-    
-    // Get schedules by month
     const schedulesByMonth = await Schedule.aggregate([
         {
             $group: {
-                _id: {
-                    month: { $month: '$scheduledDate' },
-                    year: { $year: '$scheduledDate' }
-                },
+                _id: { month: { $month: "$scheduledDate" }, year: { $year: "$scheduledDate" } },
                 count: { $sum: 1 },
-                completed: {
-                    $sum: {
-                        $cond: [{ $eq: ['$status', 'completed'] }, 1, 0]
-                    }
-                },
-                missed: {
-                    $sum: {
-                        $cond: [{ $eq: ['$status', 'missed'] }, 1, 0]
-                    }
-                }
-            }
+                completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
+                missed: { $sum: { $cond: [{ $eq: ["$status", "missed"] }, 1, 0] } },
+            },
         },
-        {
-            $sort: {
-                '_id.year': 1,
-                '_id.month': 1
-            }
-        }
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
-    
-    // Get top collectors by completed schedules
-    const topCollectors = await Schedule.aggregate([
-        {
-            $match: {
-                status: 'completed'
-            }
-        },
-        {
-            $group: {
-                _id: '$collector',
-                completedCount: { $sum: 1 }
-            }
-        },
-        {
-            $sort: { completedCount: -1 }
-        },
-        {
-            $limit: 5
-        }
+    const topCollectorsAgg = await Schedule.aggregate([
+        { $match: { status: "completed" } },
+        { $group: { _id: "$collector", completedCount: { $sum: 1 } } },
+        { $sort: { completedCount: -1 } },
+        { $limit: 5 },
     ]);
-    
-    // Get collector details
-    const populatedCollectors = await User.populate(topCollectors, {
-        path: '_id',
-        select: 'name avatar'
+    const populatedCollectors = await User.populate(topCollectorsAgg, {
+        path: "_id",
+        select: "name avatar",
     });
-    
-    const formattedCollectors = populatedCollectors.map(item => ({
+    const formattedCollectors = populatedCollectors.map((item) => ({
         collector: item._id,
-        completedCount: item.completedCount
+        completedCount: item.completedCount,
     }));
-    
-    // Format status counts into an object
     const formattedStatusCounts = {};
-    schedulesByStatus.forEach(item => {
+    schedulesByStatus.forEach((item) => {
         formattedStatusCounts[item._id] = item.count;
     });
-    
-    // Format recurrence counts into an object
     const formattedRecurrenceCounts = {};
-    schedulesByRecurrence.forEach(item => {
+    schedulesByRecurrence.forEach((item) => {
         formattedRecurrenceCounts[item._id] = item.count;
     });
-    
     res.status(200).json({
         success: true,
         data: {
             totalSchedules: await Schedule.countDocuments(),
-            pendingSchedules: await Schedule.countDocuments({ status: 'pending' }),
-            completedSchedules: await Schedule.countDocuments({ status: 'completed' }),
-            missedSchedules: await Schedule.countDocuments({ status: 'missed' }),
+            pendingSchedules: await Schedule.countDocuments({ status: "pending" }),
+            completedSchedules: await Schedule.countDocuments({ status: "completed" }),
+            missedSchedules: await Schedule.countDocuments({ status: "missed" }),
             statusCounts: formattedStatusCounts,
             recurrenceCounts: formattedRecurrenceCounts,
             schedulesByMonth,
-            topCollectors: formattedCollectors
-        }
+            topCollectors: formattedCollectors,
+        },
     });
 };

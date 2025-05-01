@@ -52,14 +52,33 @@ const deleteImage = async (publicId) => {
 
 const uploadImage = async (file, folder = 'cleanbage') => {
   console.log('Uploading image to Cloudinary...');
-  console.log(file);
   try {
-    const result = await cloudinary.uploader.upload(file.tempFilePath, {
+    // Handle both buffer and path-based uploads
+    const uploadOptions = {
       folder: folder,
       width: 800,
       crop: "scale"
-    });
-    return result;
+    };
+
+    // If file is from Multer (has buffer)
+    if (file.buffer) {
+      const b64 = Buffer.from(file.buffer).toString('base64');
+      const dataURI = `data:${file.mimetype};base64,${b64}`;
+      const result = await cloudinary.uploader.upload(dataURI, uploadOptions);
+      return result;
+    }
+    // If file has path (from other upload methods)
+    else if (file.path) {
+      const result = await cloudinary.uploader.upload(file.path, uploadOptions);
+      return result;
+    }
+    // If file is a temp file path string
+    else if (typeof file === 'string') {
+      const result = await cloudinary.uploader.upload(file, uploadOptions);
+      return result;
+    } else {
+      throw new Error('Invalid file format for upload');
+    }
   } catch (error) {
     console.error('Error uploading to Cloudinary:', error.message);
     throw error;

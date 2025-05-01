@@ -17,13 +17,26 @@ router.use(protect);
 
 router.route('/')
     .get(getReports)
-    .post(authorize('garbage_collector'), handleImageUpload.array('images',3), createReport);
+    .post(
+        authorize('garbage_collector'), 
+        handleImageUpload.fields([
+            { name: 'photoBefore', maxCount: 1 },
+            { name: 'photoAfter', maxCount: 1 }
+        ]), 
+        createReport
+    );
 
 router.get('/stats', authorize('admin'), getReportStats);
 
 router.route('/:id')
     .get(getReport)
-    .put(handleImageUpload.array('images',3), updateReport)
+    .put(
+        handleImageUpload.fields([
+            { name: 'photoBefore', maxCount: 1 },
+            { name: 'photoAfter', maxCount: 1 }
+        ]),
+        updateReport
+    )
     .delete(authorize('admin'), deleteReport);
 
 router.post('/:id/feedback', authorize('admin'), submitFeedback);

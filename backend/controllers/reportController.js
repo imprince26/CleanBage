@@ -102,162 +102,111 @@ export const getReport = async (req, res) => {
 };
 
 export const createReport = async (req, res) => {
-    // Add collector
-    req.body.collector = req.user.id;
+    try {
+        req.body.collector = req.user.id;
 
-    // Check if required fields are provided
-    if (!req.body.bin || !req.body.wasteVolume) {
-        throw new Error('Please provide bin ID and waste volume', 400);
-    }
+        // Handle photo uploads
+        const imageUrls = {
+            photoBefore: null,
+            photoAfter: null
+        };
 
-    // Check if user is a garbage collector
-    if (req.user.role !== 'garbage_collector') {
-        throw new Error('Only garbage collectors can create reports', 403);
-    }
+        if (req.files) {
+            // Handle before photo
+            if (req.files.photoBefore && req.files.photoBefore[0]) {
+                try {
+                    const beforeResult = await uploadImage(req.files.photoBefore[0], 'cleanbage/reports');
+                    imageUrls.photoBefore = {
+                        public_id: beforeResult.public_id,
+                        url: beforeResult.secure_url
+                    };
+                } catch (error) {
+                    throw new Error(`Error uploading before photo: ${error.message}`);
+                }
+            }
 
-    // Check if bin exists
-    const bin = await Collection.findById(req.body.bin);
-    if (!bin) {
-        throw new Error(`Bin not found with id of ${req.body.bin}`, 404);
-    }
-
-    // Check if collector is assigned to the bin
-    if (bin.assignedCollector && bin.assignedCollector.toString() !== req.user.id) {
-        throw new Error('You are not assigned to this bin', 403);
-    }
-
-    // Set collection date if not provided
-    if (!req.body.collectionDate) {
-        req.body.collectionDate = new Date();
-    }
-
-    // Set start and end time
-    if (!req.body.startTime) {
-        req.body.startTime = new Date();
-    }
-    if (!req.body.endTime && req.body.status === 'completed') {
-        req.body.endTime = new Date();
-    }
-
-    // Set fill level before
-    if (!req.body.fillLevelBefore) {
-        req.body.fillLevelBefore = bin.fillLevel;
-    }
-
-    // Process before photo
-    if (req.files && req.files.photoBefore) {
-        const file = req.files.photoBefore;
-
-        // Check file type
-        if (!file.mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file', 400);
+            // Handle after photo
+            if (req.files.photoAfter && req.files.photoAfter[0]) {
+                try {
+                    const afterResult = await uploadImage(req.files.photoAfter[0], 'cleanbage/reports');
+                    imageUrls.photoAfter = {
+                        public_id: afterResult.public_id,
+                        url: afterResult.secure_url
+                    };
+                } catch (error) {
+                    // If before photo was uploaded, delete it
+                    if (imageUrls.photoBefore?.public_id) {
+                        await deleteImage(imageUrls.photoBefore.public_id);
+                    }
+                    throw new Error(`Error uploading after photo: ${error.message}`);
+                }
+            }
         }
 
-        // Check file size
-        if (file.size > process.env.MAX_FILE_SIZE) {
-            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
-        }
+        // Parse JSON strings back to objects
+        const wasteCategories = typeof req.body.wasteCategories === 'string' 
+            ? JSON.parse(req.body.wasteCategories)
+            : req.body.wasteCategories;
 
-        try {
-            // Upload to cloudinary
-            const result = await uploadImage(file, 'cleanbage/reports');
+        const weather = typeof req.body.weather === 'string'
+            ? JSON.parse(req.body.weather)
+            : req.body.weather;
 
-            req.body.photoBefore = {
-                public_id: result.public_id,
-                url: result.secure_url
-            };
-        } catch (error) {
-            console.error('Image upload error:', error);
-            throw new Error('Problem with file upload', 500);
-        }
-    }
+        // Create report object with all fields from model
+        const reportData = {
+            bin: req.body.bin,
+            collector: req.user.id,
+            collectionDate: new Date(),
+            startTime: new Date(),
+            status: req.body.status,
+            wasteVolume: Number(req.body.wasteVolume),
+            wasteMeasurementUnit: req.body.wasteMeasurementUnit,
+            wasteCategories: wasteCategories,
+            fillLevelBefore: Number(req.body.fillLevelBefore),
+            fillLevelAfter: Number(req.body.fillLevelAfter),
+            photoBefore: imageUrls.photoBefore,
+            photoAfter: imageUrls.photoAfter,
+            issues: req.body.issues,
+            maintenanceNeeded: req.body.maintenanceNeeded === 'true',
+            maintenanceDetails: req.body.maintenanceDetails,
+            weather: weather,
+            locationConfirmed: req.body.locationConfirmed === 'true',
+            notes: req.body.notes,
+        };
 
-    // Process after photo
-    if (req.files && req.files.photoAfter) {
-        const file = req.files.photoAfter;
+        const report = await Report.create(reportData);
 
-        // Check file type
-        if (!file.mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file', 400);
-        }
-
-        // Check file size
-        if (file.size > process.env.MAX_FILE_SIZE) {
-            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
-        }
-
-        try {
-            // Upload to cloudinary
-            const result = await uploadImage(file, 'cleanbage/reports');
-
-            req.body.photoAfter = {
-                public_id: result.public_id,
-                url: result.secure_url
-            };
-        } catch (error) {
-            console.error('Image upload error:', error);
-            throw new Error('Problem with file upload', 500);
-        }
-    }
-
-    const report = await Report.create(req.body);
-
-    await Collection.findByIdAndUpdate(req.body.bin, {
-        lastCollectionReport: report._id,
-        lastCollected: new Date(),
-        status: 'collected',
-        fillLevel: req.body.fillLevelAfter || 0
-    });
-    // Update bin status if report is completed
-    if (req.body.status === 'completed') {
+        // Update bin status
         await Collection.findByIdAndUpdate(req.body.bin, {
-            status: 'collected',
-            fillLevel: req.body.fillLevelAfter || 0,
-            lastCollected: req.body.collectionDate
+            lastCollectionReport: report._id,
+            lastCollected: new Date(),
+            status: req.body.status === 'completed' ? 'collected' : req.body.status,
+            fillLevel: Number(req.body.fillLevelAfter) || 0
         });
 
-        // Create notification for admin
-        const admins = await User.find({ role: 'admin' });
-        for (const admin of admins) {
-            await Notification.createNotification({
-                recipient: admin._id,
-                type: 'report_submitted',
-                title: 'Collection Report Submitted',
-                message: `A collection report has been submitted for bin ${bin.binId}.`,
-                priority: 'medium',
-                icon: 'file-text',
-                relatedTo: {
-                    bin: bin._id,
-                    report: report._id
-                },
-                action: {
-                    text: 'View Report',
-                    url: `/admin/reports/${report._id}`
-                }
-            });
+        res.status(201).json({
+            success: true,
+            data: report
+        });
+
+    } catch (error) {
+        console.error("Error creating report:", error);
+
+        // Delete uploaded images if report creation fails
+        if (req.files) {
+            if (req.files.photoBefore && req.files.photoBefore[0]?.public_id) {
+                await deleteImage(req.files.photoBefore[0].public_id);
+            }
+            if (req.files.photoAfter && req.files.photoAfter[0]?.public_id) {
+                await deleteImage(req.files.photoAfter[0].public_id);
+            }
         }
 
-        // Create notification for resident if bin was reported
-        if (bin.reportedBy) {
-            await Notification.createNotification({
-                recipient: bin.reportedBy,
-                type: 'collection_completed',
-                title: 'Bin Collection Completed',
-                message: `Your reported waste bin (${bin.binId}) has been collected. Thank you for helping keep our city clean!`,
-                priority: 'high',
-                icon: 'check-circle',
-                relatedTo: {
-                    bin: bin._id,
-                    report: report._id
-                }
-            });
-        }
+        res.status(500).json({
+            success: false,
+            message: error.message || "Error creating report"
+        });
     }
-
-    res.status(201).json({
-        success: true,
-        data: report
-    });
 };
 
 export const updateReport = async (req, res) => {

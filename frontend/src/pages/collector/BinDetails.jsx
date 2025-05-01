@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -46,16 +46,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Trash2,
   MapPin,
   Clock,
-  Calendar,
   AlertTriangle,
-  CheckCircle2,
   ChevronLeft,
   Loader2,
-  Camera,
   FileText,
   Activity,
 } from "lucide-react";
@@ -66,12 +64,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
+// Validation schema with all required fields for createReport
 const reportSchema = z.object({
+  fillLevelBefore: z.number().min(0).max(100, "Fill level must be between 0 and 100"),
   fillLevel: z.number().min(0).max(100, "Fill level must be between 0 and 100"),
-  status: z.enum(["collected", "pending", "skipped"]),
+  wasteVolume: z.number().min(0.01, "Waste volume is required"),
+  status: z.enum(["completed", "pending", "skipped"]),
   notes: z.string().optional(),
-  photos: z.array(z.any()).optional(),
-  issueTags: z.array(z.string()).optional(),
+  images: z.array(z.any()).optional(),
 });
 
 const BinDetails = () => {
@@ -87,20 +87,22 @@ const BinDetails = () => {
   const form = useForm({
     resolver: zodResolver(reportSchema),
     defaultValues: {
+      fillLevelBefore: 0,
       fillLevel: 0,
-      status: "collected",
+      wasteVolume: 0,
+      status: "completed",
       notes: "",
-      issueTags: [],
     },
   });
 
+  // Fetch bin details and set initial fillLevelBefore
   useEffect(() => {
     const fetchBinDetails = async () => {
       try {
         const response = await api.get(`/collections/${id}`);
-
         if (response.data.success) {
           setBin(response.data.data);
+          form.setValue("fillLevelBefore", response.data.data.fillLevel || 0);
         }
       } catch (error) {
         console.error("Error fetching bin details:", error);
@@ -111,6 +113,7 @@ const BinDetails = () => {
     };
 
     fetchBinDetails();
+    // eslint-disable-next-line
   }, [id]);
 
   const handleImageChange = (e) => {
@@ -120,61 +123,69 @@ const BinDetails = () => {
       return;
     }
 
-    const newImages = [];
-    const newPreviews = [];
+    const validFiles = [];
+    const validUrls = [];
 
     files.forEach((file) => {
+      // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error(`${file.name} is too large (max 5MB)`);
         return;
       }
 
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} is not an image`);
+      // Validate file type
+      if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
+        toast.error(`${file.name} is not a valid image type`);
         return;
       }
 
-      newImages.push(file);
-      newPreviews.push(URL.createObjectURL(file));
+      validFiles.push(file);
+      validUrls.push(URL.createObjectURL(file));
     });
 
-    setSelectedImages([...selectedImages, ...newImages]);
-    setPreviewUrls([...previewUrls, ...newPreviews]);
-    form.setValue("photos", [...selectedImages, ...newImages]);
+    setSelectedImages([...selectedImages, ...validFiles]);
+    setPreviewUrls([...previewUrls, ...validUrls]);
+    form.setValue("images", [...selectedImages, ...validFiles]);
   };
 
   const onSubmit = async (data) => {
-    setIsSubmittingReport(true);
     try {
+      setIsSubmittingReport(true);
       const formData = new FormData();
-      Object.keys(data).forEach((key) => {
-        if (key === "photos") {
-          selectedImages.forEach((image) => {
-            formData.append("photos", image);
-          });
-        } else {
-          formData.append(key, data[key]);
-        }
+
+      // Append required fields
+      formData.append("bin", id);
+      formData.append("fillLevelBefore", data.fillLevelBefore);
+      formData.append("fillLevel", data.fillLevel);
+      formData.append("wasteVolume", data.wasteVolume);
+      formData.append("status", data.status);
+      formData.append("notes", data.notes || "");
+
+      // Append images
+      selectedImages.forEach((image) => {
+        formData.append("images", image);
       });
 
-      const response = await api.post(`/reports/bin/${id}`, {
-        method: "POST",
-        body: formData,
+      const response = await api.post("/reports", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const result = await response.json();
-      if (result.success) {
+      if (response.data.success) {
         toast.success("Collection report submitted successfully");
         setIsReportDialogOpen(false);
+        form.reset();
+        setSelectedImages([]);
+        setPreviewUrls([]);
+
         // Refresh bin details
-        const updatedBin = await api.get(`/collections/${id}`).then((res) =>
-          res.json()
-        );
-        setBin(updatedBin.data);
+        const updatedBin = await api.get(`/collections/${id}`);
+        if (updatedBin.data.success) {
+          setBin(updatedBin.data.data);
+        }
       }
     } catch (error) {
       console.error("Error submitting report:", error);
-      toast.error("Failed to submit collection report");
+      toast.error(error.response?.data?.message || "Failed to submit report");
     } finally {
       setIsSubmittingReport(false);
     }
@@ -231,8 +242,8 @@ const BinDetails = () => {
                 bin.status === "collected"
                   ? "success"
                   : bin.status === "overflow"
-                    ? "destructive"
-                    : "default"
+                  ? "destructive"
+                  : "default"
               }
             >
               {bin.status}
@@ -289,9 +300,7 @@ const BinDetails = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Priority</p>
-                <Badge
-                  variant={bin.priority >= 8 ? "destructive" : "secondary"}
-                >
+                <Badge variant={bin.priority >= 8 ? "destructive" : "secondary"}>
                   P{bin.priority}
                 </Badge>
               </div>
@@ -348,15 +357,16 @@ const BinDetails = () => {
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex justify-between md:flex-row flex-col space-y-3">
           <Button
             variant="outline"
             onClick={() => navigate(`/collector/routes/${bin.route}`)}
+            className="w-full md:w-auto"
           >
             <MapPin className="mr-2 h-4 w-4" />
             View Route
           </Button>
-          <Button onClick={() => setIsReportDialogOpen(true)}>
+          <Button onClick={() => navigate(`/collector/reports/submit/${bin._id}`)} className="w-full md:w-auto">
             <FileText className="mr-2 h-4 w-4" />
             Submit Collection Report
           </Button>
@@ -372,138 +382,186 @@ const BinDetails = () => {
               Record the collection details for this bin
             </DialogDescription>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="fillLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fill Level (%)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="100"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Enter the bin's fill level after collection
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Collection Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+          <ScrollArea className="max-h-[70vh] pr-2">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="fillLevelBefore"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fill Level Before Collection (%)</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="collected">Collected</SelectItem>
-                        <SelectItem value="skipped">Skipped</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Notes</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add any notes about the collection"
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-2">
-                <FormLabel>Photos</FormLabel>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageChange}
-                />
-                <FormDescription>
-                  Upload up to 3 photos (max 5MB each)
-                </FormDescription>
-                {previewUrls.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {previewUrls.map((url, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={url}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-md"
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          {...field}
+                          disabled
                         />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-1 right-1 h-6 w-6"
-                          onClick={() => {
-                            const newImages = [...selectedImages];
-                            const newUrls = [...previewUrls];
-                            URL.revokeObjectURL(newUrls[index]);
-                            newImages.splice(index, 1);
-                            newUrls.splice(index, 1);
-                            setSelectedImages(newImages);
-                            setPreviewUrls(newUrls);
-                            form.setValue("photos", newImages);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsReportDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmittingReport}>
-                  {isSubmittingReport && (
-                    <Loader2 className="mr-2 h-4 w-4 animate
-
--spin" />
+                      </FormControl>
+                      <FormDescription>
+                        This is the bin's fill level before collection (auto-filled).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  Submit Report
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="fillLevel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fill Level After Collection (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the bin's fill level after collection
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="wasteVolume"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Waste Volume (kg)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter the total waste volume collected (in kg)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Collection Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="skipped">Skipped</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add any notes about the collection"
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-2">
+                  <FormLabel>Photos</FormLabel>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                   
+                    onChange={handleImageChange}
+                  />
+                  <FormDescription>
+                    Upload up to 3 photos (max 5MB each)
+                  </FormDescription>
+                  {previewUrls.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {previewUrls.map((url, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-md"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => {
+                              const newImages = [...selectedImages];
+                              const newUrls = [...previewUrls];
+                              URL.revokeObjectURL(newUrls[index]);
+                              newImages.splice(index, 1);
+                              newUrls.splice(index, 1);
+                              setSelectedImages(newImages);
+                              setPreviewUrls(newUrls);
+                              form.setValue("images", newImages);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsReportDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmittingReport}>
+                    {isSubmittingReport && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Submit Report
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>

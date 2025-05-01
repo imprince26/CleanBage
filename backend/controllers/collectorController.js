@@ -77,16 +77,11 @@ export const getAssignedBins = async (req, res) => {
     }
 };
 
-// @desc    Get bin details
-// @route   GET /api/collector/bins/:id
-// @access  Private/Collector
 export const getBinDetails = async (req, res) => {
     try {
-        const bin = await Collection.findOne({
-            _id: req.params.id,
-            assignedCollector: req.user.id
-        }).populate('reportedBy', 'name avatar')
-          .populate('lastCollectionReport');
+        const bin = await Collection.findById(req.params.id)
+            .populate('assignedCollector', 'name avatar')
+            .select('binId location status fillLevel lastCollected');
 
         if (!bin) {
             return res.status(404).json({
@@ -99,27 +94,41 @@ export const getBinDetails = async (req, res) => {
             success: true,
             data: bin
         });
-
     } catch (error) {
         handleError(res, error);
     }
 };
 
-// @desc    Get bin collection history
-// @route   GET /api/collector/bins/:id/history
-// @access  Private/Collector
+// Get bin collection history with filters
 export const getBinHistory = async (req, res) => {
     try {
-        const reports = await Report.find({
-            bin: req.params.id,
-            collector: req.user.id
-        }).sort({ collectedAt: -1 });
+        const { from, to, status } = req.query;
+        
+        // Build query
+        const query = {
+            bin: req.params.id
+        };
+
+        // Add date range filter
+        if (from || to) {
+            query.collectedAt = {};
+            if (from) query.collectedAt.$gte = new Date(from);
+            if (to) query.collectedAt.$lte = new Date(to);
+        }
+
+        // Add status filter
+        if (status && status !== 'all') {
+            query.status = status;
+        }
+
+        const history = await Report.find(query)
+            .populate('collector', 'name')
+            .sort({ collectedAt: -1 });
 
         res.status(200).json({
             success: true,
-            data: reports
+            data: history
         });
-
     } catch (error) {
         handleError(res, error);
     }
@@ -405,5 +414,87 @@ export const getCollectorActivity = async (req, res) => {
             success: false,
             message: 'Failed to fetch activity'
         });
+    }
+};
+
+// Get collector's routes with status filter
+export const getCollectorRoutes = async (req, res) => {
+    try {
+        const query = {
+            collector: req.user.id
+        };
+
+        // Apply status filter
+        if (req.query.status && req.query.status !== 'all') {
+            query.status = req.query.status;
+        }
+
+        const routes = await Route.find(query)
+            .populate('bins.bin', 'binId location fillLevel wasteType')
+            .sort({ createdAt: -1 });
+
+        // Calculate additional stats for each route
+        const routesWithStats = routes.map(route => {
+            const completedBins = route.bins.filter(bin => bin.isCollected).length;
+            const priorityBins = route.bins.filter(bin => bin.bin.fillLevel > 80).length;
+            
+            return {
+                _id: route._id,
+                name: route.name,
+                routeNumber: route.routeNumber,
+                status: route.status,
+                bins: route.bins,
+                estimatedTime: route.estimatedTime,
+                completedBins,
+                priorityBins,
+                completionRate: Math.round((completedBins / route.bins.length) * 100),
+                distance: route.distance,
+                startedAt: route.startedAt,
+                completedAt: route.completedAt
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: routesWithStats
+        });
+    } catch (error) {
+        handleError(res, error);
+    }
+};
+
+// Update route status
+export const updateRouteStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const route = await Route.findOne({ 
+            _id: req.params.id,
+            collector: req.user.id
+        });
+
+        if (!route) {
+            return res.status(404).json({
+                success: false,
+                error: 'Route not found'
+            });
+        }
+
+        // Update status and timestamps
+        route.status = status;
+        if (status === 'in_progress' && !route.startedAt) {
+            route.startedAt = new Date();
+        }
+        if (status === 'completed' && !route.completedAt) {
+            route.completedAt = new Date();
+        }
+
+        await route.save();
+
+        res.status(200).json({
+            success: true,
+            data: route
+        });
+    } catch (error) {
+        handleError(res, error);
     }
 };

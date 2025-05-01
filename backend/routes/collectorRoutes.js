@@ -10,7 +10,9 @@ import {
     getCollectorStats,
     getUpcomingCollections,
     getRouteHistory,
-    getCollectorActivity
+    getCollectorActivity,
+    getCollectorRoutes,
+    updateRouteStatus
 } from '../controllers/collectorController.js';
 
 const router = express.Router();
@@ -30,5 +32,6 @@ router.get('/routes/history', getRouteHistory);
 router.get('/stats', getCollectorStats);
 router.get('/collections/upcoming', getUpcomingCollections);
 router.get('/activity', getCollectorActivity);
-
+router.get('/routes', getCollectorRoutes);
+router.put('/routes/:id/status', updateRouteStatus);
 export default router;

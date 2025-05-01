@@ -1,14 +1,22 @@
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import {cloudinary} from '../utils/cloudinary.js';
+import { cloudinary } from '../utils/cloudinary.js';
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'cleanbage',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }],
+// Use memory storage instead of CloudinaryStorage
+const storage = multer.memoryStorage();
+
+export const handleImageUpload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
+  fileFilter: (req, file, cb) => {
+    // Check if file is an image
+    if (!file.mimetype.startsWith('image/')) {
+      cb(new Error('Only image files are allowed!'), false);
+      return;
+    }
+    // Accept file
+    cb(null, true);
+  }
 });
-
-export const handleImageUpload = multer({ storage });

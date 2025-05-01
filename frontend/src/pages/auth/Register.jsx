@@ -54,6 +54,7 @@ export default function Register() {
         try {
             await register(values)
             toast.success("Verification email sent! Please check your inbox.")
+           form.reset()
         } catch (error) {
             toast.error(error.message || "Registration failed. Please try again.")
         } finally {

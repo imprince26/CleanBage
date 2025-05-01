@@ -47,9 +47,11 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
+import { formatAddress } from "@/utils/formatters";
 
 const BinCollectionHistory = () => {
-  const { binId } = useParams();
+  const { id : binId} = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [bin, setBin] = useState(null);
@@ -75,13 +77,13 @@ const BinCollectionHistory = () => {
       });
 
       const [binResponse, historyResponse] = await Promise.all([
-        fetch(`/api/collections/${binId}`),
-        fetch(`/api/collections/${binId}/history?${queryParams}`),
+        api.get(`/collector/bins/${binId}`),
+        api.get(`/collector/bins/${binId}/history?${queryParams}`),
       ]);
 
       const [binData, historyData] = await Promise.all([
-        binResponse.json(),
-        historyResponse.json(),
+        binResponse.data,
+        historyResponse.data,
       ]);
 
       if (binData.success && historyData.success) {
@@ -147,7 +149,7 @@ const BinCollectionHistory = () => {
 
       {/* Header Card */}
       <Card>
-        <CardHeader>
+      <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Bin #{bin.binId} History</CardTitle>
@@ -168,7 +170,7 @@ const BinCollectionHistory = () => {
               <p className="text-sm text-muted-foreground">Location</p>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
-                <span>{bin.location.address}</span>
+                <span>{formatAddress(bin.location)}</span>
               </div>
             </div>
             <div className="space-y-1">
@@ -251,7 +253,9 @@ const BinCollectionHistory = () => {
                 {history.map((record) => (
                   <TableRow key={record._id}>
                     <TableCell>
-                      {format(parseISO(record.collectedAt), "PPp")}
+                      {record.collectedAt ? 
+                        format(new Date(record.collectedAt), "PPp") : 
+                        "N/A"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

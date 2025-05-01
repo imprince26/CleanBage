@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
 
 const ActiveRoutes = () => {
   const [loading, setLoading] = useState(true);
@@ -39,47 +40,53 @@ const ActiveRoutes = () => {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    const fetchRoutes = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/collector/routes?status=${filter}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setRoutes(data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching routes:", error);
-        toast.error("Failed to load routes");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRoutes();
   }, [filter]);
 
+  const fetchRoutes = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/collector/routes`, {
+        params: {
+          status: filter
+        }
+      });
+      
+      if (response.data.success) {
+        setRoutes(response.data.data);
+      } else {
+        toast.error("Failed to load routes");
+      }
+    } catch (error) {
+      console.error("Error fetching routes:", error);
+      toast.error(error.response?.data?.error || "Failed to load routes");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStatusChange = async (routeId, status) => {
     try {
-      const response = await fetch(`/api/collector/routes/${routeId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
+      const response = await api.put(`/collector/routes/${routeId}/status`, {
+        status
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
+        // Update the local state with the new route data
         setRoutes(routes.map(route => 
-          route._id === routeId ? { ...route, status } : route
+          route._id === routeId ? {
+            ...route,
+            status,
+            startedAt: status === 'in_progress' && !route.startedAt ? new Date().toISOString() : route.startedAt,
+            completedAt: status === 'completed' ? new Date().toISOString() : route.completedAt
+          } : route
         ));
+        
         toast.success(`Route ${status === 'in_progress' ? 'started' : 'paused'} successfully`);
       }
     } catch (error) {
       console.error("Error updating route status:", error);
-      toast.error("Failed to update route status");
+      toast.error(error.response?.data?.error || "Failed to update route status");
     }
   };
 
@@ -184,7 +191,7 @@ const ActiveRoutes = () => {
                               Priority Bins
                             </p>
                             <p className="font-medium">
-                              {route.priorityBins || 0} bins
+                              {route.priorityBins} bins
                             </p>
                           </div>
                           <div>
@@ -192,7 +199,7 @@ const ActiveRoutes = () => {
                               Completion
                             </p>
                             <p className="font-medium">
-                              {route.completionRate || 0}%
+                              {route.completionRate}%
                             </p>
                           </div>
                         </div>
@@ -204,13 +211,11 @@ const ActiveRoutes = () => {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Progress</span>
                         <span>
-                          {route.completedBins || 0}/{route.bins.length} bins
+                          {route.completedBins}/{route.bins.length} bins
                         </span>
                       </div>
                       <Progress
-                        value={
-                          ((route.completedBins || 0) / route.bins.length) * 100
-                        }
+                        value={route.completionRate}
                       />
                     </div>
                   </div>
