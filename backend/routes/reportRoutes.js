@@ -6,7 +6,8 @@ import {
     updateReport,
     deleteReport,
     submitFeedback,
-    getReportStats
+    getReportStats,
+    getReportHistory
 } from '../controllers/reportController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
@@ -25,6 +26,7 @@ router.route('/')
         ]), 
         createReport
     );
+router.get('/history', authorize('garbage_collector'), getReportHistory);
 
 router.get('/stats', authorize('admin'), getReportStats);
 

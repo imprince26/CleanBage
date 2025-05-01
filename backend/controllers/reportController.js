@@ -489,3 +489,73 @@ export const getReportStats = async (req, res) => {
         }
     });
 };
+
+export const getReportHistory = async (req, res) => {
+    try {
+        // Pagination
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const startIndex = (page - 1) * limit;
+
+        // Build filter object
+        const filter = {
+            collector: req.user.id // Only get reports for current collector
+        };
+
+        // Add status filter
+        if (req.query.status && req.query.status !== 'all') {
+            filter.status = req.query.status;
+        }
+
+        // Add date range filter
+        if (req.query.startDate || req.query.endDate) {
+            filter.createdAt = {};
+            if (req.query.startDate) {
+                filter.createdAt.$gte = new Date(req.query.startDate);
+            }
+            if (req.query.endDate) {
+                filter.createdAt.$lte = new Date(req.query.endDate);
+            }
+        }
+
+        // Add search filter
+        if (req.query.search) {
+            filter.$or = [
+                { 'bin.binId': new RegExp(req.query.search, 'i') },
+                { 'bin.location.address': new RegExp(req.query.search, 'i') }
+            ];
+        }
+
+        // Build sort object
+        const sort = {};
+        if (req.query.sort) {
+            const [field, order] = req.query.sort.split(':');
+            sort[field] = order === 'desc' ? -1 : 1;
+        } else {
+            sort.createdAt = -1; // Default sort by date desc
+        }
+
+        // Execute query
+        const total = await Report.countDocuments(filter);
+        const reports = await Report.find(filter)
+            .populate('bin', 'binId location fillLevel')
+            .sort(sort)
+            .skip(startIndex)
+            .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            data: reports,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit)
+        });
+
+    } catch (error) {
+        console.error('Error fetching report history:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching report history'
+        });
+    }
+};
