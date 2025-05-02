@@ -120,7 +120,7 @@ const BinLocationMap = () => {
       });
 
       const response = await api.get(`/admin/bins?${queryParams}`);
-      
+
       if (!response.data.success) {
         throw new Error(response.data.message || "Failed to fetch bins");
       }
@@ -287,7 +287,7 @@ const BinLocationMap = () => {
                         <h3 className="font-semibold">{bin.binId}</h3>
                         <Badge variant="outline">{bin.wasteType}</Badge>
                       </div>
-                      
+
                       <p className="text-sm">
                         {bin.location.address.street}, {bin.location.address.area}
                       </p>

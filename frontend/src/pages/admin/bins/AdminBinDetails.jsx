@@ -60,7 +60,7 @@ const AdminBinDetails = () => {
       setLoading(true);
       const { data } = await api.get(`/collections/${id}`);
       setBin(data.data);
-      
+
       // Fetch collection history
       const historyResponse = await api.get(`/collections/${id}/history`);
       setCollectionHistory(historyResponse.data.data);
@@ -124,7 +124,7 @@ const AdminBinDetails = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="flex justify-end space-x-4 mt-4">
-                <Button variant="outline" onClick={() => {}}>
+                <Button variant="outline" onClick={() => { }}>
                   Cancel
                 </Button>
                 <Button variant="destructive" onClick={handleDelete}>
