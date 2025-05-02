@@ -83,10 +83,10 @@ const AssignedBins = () => {
       });
 
       const response = await api.get(`/collector/bins?${queryParams}`);
- 
-        setBins(response.data.data);
-        setTotalBins(response.data.total);
-     
+
+      setBins(response.data.data);
+      setTotalBins(response.data.total);
+
     } catch (error) {
       console.error("Error fetching bins:", error);
       toast.error("Failed to load assigned bins");
