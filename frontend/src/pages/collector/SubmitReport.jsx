@@ -396,7 +396,7 @@ const SubmitReport = () => {
               {/* Collection Details */}
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Collection Details</h3>
-                
+
                 {/* Fill Levels */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
@@ -540,7 +540,7 @@ const SubmitReport = () => {
               {/* Additional Information */}
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Additional Information</h3>
-                
+
                 {/* Issues & Maintenance */}
                 <div className="space-y-4">
                   <FormField
