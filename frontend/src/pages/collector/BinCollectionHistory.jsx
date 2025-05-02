@@ -51,7 +51,7 @@ import api from "@/utils/api";
 import { formatAddress } from "@/utils/formatters";
 
 const BinCollectionHistory = () => {
-  const { id : binId} = useParams();
+  const { id: binId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [bin, setBin] = useState(null);
@@ -149,7 +149,7 @@ const BinCollectionHistory = () => {
 
       {/* Header Card */}
       <Card>
-      <CardHeader>
+        <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Bin #{bin.binId} History</CardTitle>
@@ -253,8 +253,8 @@ const BinCollectionHistory = () => {
                 {history.map((record) => (
                   <TableRow key={record._id}>
                     <TableCell>
-                      {record.collectedAt ? 
-                        format(new Date(record.collectedAt), "PPp") : 
+                      {record.collectedAt ?
+                        format(new Date(record.collectedAt), "PPp") :
                         "N/A"}
                     </TableCell>
                     <TableCell>

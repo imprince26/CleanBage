@@ -436,7 +436,7 @@ const CollectorDashboard = () => {
         </CardContent>
       </Card>
     </div>
-    
+
   );
 };
 
