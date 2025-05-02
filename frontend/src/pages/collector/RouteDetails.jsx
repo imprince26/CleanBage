@@ -176,8 +176,8 @@ const RouteDetails = () => {
                 route.status === "completed"
                   ? "success"
                   : route.status === "in_progress"
-                  ? "default"
-                  : "secondary"
+                    ? "default"
+                    : "secondary"
               }
               className="capitalize"
             >
@@ -350,12 +350,10 @@ const RouteDetails = () => {
                   open: true,
                   action:
                     route.status === "in_progress" ? "pause" : "start",
-                  title: `${
-                    route.status === "in_progress" ? "Pause" : "Start"
-                  } Route?`,
-                  description: `Are you sure you want to ${
-                    route.status === "in_progress" ? "pause" : "start"
-                  } this route?`,
+                  title: `${route.status === "in_progress" ? "Pause" : "Start"
+                    } Route?`,
+                  description: `Are you sure you want to ${route.status === "in_progress" ? "pause" : "start"
+                    } this route?`,
                 })
               }
             >

@@ -91,7 +91,7 @@ const CollectorPerformance = () => {
   }, [timeframe]);
 
   // ...keep rest of the component code (performanceMetrics array and JSX)...
-  
+
   if (error) {
     return (
       <div className="container py-8">
