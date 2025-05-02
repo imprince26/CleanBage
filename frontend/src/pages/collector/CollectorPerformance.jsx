@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import api from "@/utils/api";
 import {
   Card,
   CardContent,
@@ -46,43 +47,72 @@ import { toast } from "react-hot-toast";
 const CollectorPerformance = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [timeframe, setTimeframe] = useState("month");
-  const [performance, setPerformance] = useState(null);
-  const [achievements, setAchievements] = useState([]);
-
-  useEffect(() => {
-    fetchPerformanceData();
-  }, [timeframe]);
+  const [performance, setPerformance] = useState({
+    collectionRate: 0,
+    avgTime: 0,
+    punctuality: 0,
+    efficiency: 0,
+    completedRoutes: 0,
+    totalRoutes: 0,
+    collectedBins: 0,
+    totalBins: 0,
+    priorityCompletionRate: 0,
+    recentCollections: [],
+    achievements: []
+  });
 
   const fetchPerformanceData = async () => {
-    setLoading(true);
     try {
-      const [performanceRes, achievementsRes] = await Promise.all([
-        fetch(`/api/collector/performance?timeframe=${timeframe}`),
-        fetch("/api/collector/achievements"),
-      ]);
+      setLoading(true);
+      setError(null);
 
-      const [performanceData, achievementsData] = await Promise.all([
-        performanceRes.json(),
-        achievementsRes.json(),
-      ]);
+      const response = await api.get("/collector/performance", {
+        params: { timeframe }
+      });
 
-      if (performanceData.success && achievementsData.success) {
-        setPerformance(performanceData.data);
-        setAchievements(achievementsData.data);
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to fetch performance data");
       }
+
+      setPerformance(response.data.data);
     } catch (error) {
       console.error("Error fetching performance data:", error);
+      setError(error.message || "Failed to load performance data");
       toast.error("Failed to load performance data");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchPerformanceData();
+  }, [timeframe]);
+
+  // ...keep rest of the component code (performanceMetrics array and JSX)...
+  
+  if (error) {
+    return (
+      <div className="container py-8">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Error Loading Performance Data</h2>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={fetchPerformanceData}>
+              Retry Loading
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const performanceMetrics = [
     {
       title: "Collection Rate",
-      value: `${performance?.collectionRate || 0}%`,
+      value: `${performance.collectionRate}%`,
       description: "Successfully collected bins",
       icon: CheckCircle2,
       color: "text-green-500",
@@ -90,7 +120,7 @@ const CollectorPerformance = () => {
     },
     {
       title: "Average Time",
-      value: `${performance?.avgTime || 0}min`,
+      value: `${performance.avgTime}min`,
       description: "Per collection",
       icon: Clock,
       color: "text-blue-500",
@@ -98,7 +128,7 @@ const CollectorPerformance = () => {
     },
     {
       title: "Punctuality",
-      value: `${performance?.punctuality || 0}%`,
+      value: `${performance.punctuality}%`,
       description: "On-time collections",
       icon: Calendar,
       color: "text-purple-500",
@@ -106,7 +136,7 @@ const CollectorPerformance = () => {
     },
     {
       title: "Efficiency Score",
-      value: `${performance?.efficiency || 0}%`,
+      value: `${performance.efficiency}%`,
       description: "Overall performance",
       icon: TrendingUp,
       color: "text-orange-500",
@@ -132,17 +162,27 @@ const CollectorPerformance = () => {
             Track your collection performance and achievements
           </p>
         </div>
-        <Select value={timeframe} onValueChange={setTimeframe}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select timeframe" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="quarter">This Quarter</SelectItem>
-            <SelectItem value="year">This Year</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-4">
+          <Select value={timeframe} onValueChange={setTimeframe}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select timeframe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="year">This Year</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchPerformanceData}
+            className="h-10 w-10"
+          >
+            <Activity className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Performance Metrics Grid */}
@@ -182,38 +222,30 @@ const CollectorPerformance = () => {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Route Completion</span>
                 <span>
-                  {performance?.completedRoutes || 0}/{performance?.totalRoutes || 0} routes
+                  {performance.completedRoutes}/{performance.totalRoutes} routes
                 </span>
               </div>
               <Progress
-                value={
-                  ((performance?.completedRoutes || 0) /
-                    (performance?.totalRoutes || 1)) *
-                  100
-                }
+                value={(performance.completedRoutes / Math.max(performance.totalRoutes, 1)) * 100}
               />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Bin Collection Rate</span>
                 <span>
-                  {performance?.collectedBins || 0}/{performance?.totalBins || 0} bins
+                  {performance.collectedBins}/{performance.totalBins} bins
                 </span>
               </div>
               <Progress
-                value={
-                  ((performance?.collectedBins || 0) /
-                    (performance?.totalBins || 1)) *
-                  100
-                }
+                value={(performance.collectedBins / Math.max(performance.totalBins, 1)) * 100}
               />
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">High Priority Completion</span>
-                <span>{performance?.priorityCompletionRate || 0}%</span>
+                <span>{performance.priorityCompletionRate}%</span>
               </div>
-              <Progress value={performance?.priorityCompletionRate || 0} />
+              <Progress value={performance.priorityCompletionRate} />
             </div>
           </CardContent>
         </Card>
@@ -225,80 +257,102 @@ const CollectorPerformance = () => {
             <CardDescription>Latest collection records</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {performance?.recentCollections?.map((collection) => (
-                <div
-                  key={collection._id}
-                  className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Truck className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Bin #{collection.binId}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(collection.collectedAt), "PPp")}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={collection.onTime ? "success" : "warning"}
+            {performance.recentCollections.length === 0 ? (
+              <div className="text-center py-8">
+                <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No recent collections</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {performance.recentCollections.map((collection) => (
+                  <div
+                    key={collection._id}
+                    className="flex items-center justify-between border-b last:border-0 pb-4 last:pb-0"
                   >
-                    {collection.onTime ? "On Time" : "Delayed"}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Truck className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Bin #{collection.binId}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(collection.collectedAt), "PPp")}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={collection.onTime ? "success" : "warning"}
+                    >
+                      {collection.onTime ? "On Time" : "Delayed"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Achievements Section */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Achievements</CardTitle>
           <CardDescription>Your collection milestones</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {achievements.map((achievement) => (
-              <Card key={achievement._id}>
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${achievement.completed
-                        ? "bg-primary/10"
-                        : "bg-muted"
-                      }`}>
-                      <Award className={`h-5 w-5 ${achievement.completed
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                        }`} />
+          {achievements.length === 0 ? (
+            <div className="text-center py-8">
+              <Trophy className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No achievements yet</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {achievements.map((achievement) => (
+                <Card key={achievement._id}>
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          achievement.completed
+                            ? "bg-primary/10"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <Award
+                          className={`h-5 w-5 ${
+                            achievement.completed
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">
+                          {achievement.name}
+                        </CardTitle>
+                        <CardDescription>{achievement.description}</CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{achievement.name}</CardTitle>
-                      <CardDescription>{achievement.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress</span>
+                        <span>
+                          {achievement.current}/{achievement.target}
+                        </span>
+                      </div>
+                      <Progress
+                        value={(achievement.current / achievement.target) * 100}
+                      />
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>
-                        {achievement.current}/{achievement.target}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(achievement.current / achievement.target) * 100}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };

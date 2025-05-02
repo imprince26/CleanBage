@@ -8,6 +8,10 @@ import {
     submitReport,
     updateBinStatus,
     getCollectorStats,
+  getRecentCollections,
+  getUpcomingSchedules,
+  getUrgentBins,
+  getCollectorPerformance,
     getUpcomingCollections,
     getRouteHistory,
     getCollectorActivity,
@@ -30,6 +34,11 @@ router.get('/routes/active', getActiveRoutes);
 router.get('/routes/history', getRouteHistory);
 
 router.get('/stats', getCollectorStats);
+router.get('/collections/recent', getRecentCollections);
+router.get('/schedules/upcoming', getUpcomingSchedules);
+router.get('/bins/urgent', getUrgentBins);
+router.get('/performance', getCollectorPerformance);
+// router.get('/achievements', getAchievements);
 router.get('/collections/upcoming', getUpcomingCollections);
 router.get('/activity', getCollectorActivity);
 router.get('/routes', getCollectorRoutes);

@@ -1,8 +1,8 @@
 import Collection from '../models/collectionModel.js';
 import Route from '../models/routeModel.js';
 import Report from '../models/reportModel.js';
+import Schedule from '../models/scheduleModel.js';
 import { handleError } from '../utils/errorHandler.js';
-
 export const getAssignedBins = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
@@ -176,47 +176,199 @@ export const submitReport = async (req, res) => {
     } catch (error) {
         handleError(res, error);
     }
+}
+  
+export const getCollectorPerformance = async (req, res) => {
+  try {
+    const { timeframe = 'month' } = req.query;
+    const timeframeFilter = getTimeframeFilter(timeframe);
+
+    // Get collection stats
+    const [collectionStats, routeStats, recentCollections] = await Promise.all([
+      Collection.aggregate([
+        {
+          $match: {
+            collectorId: req.user._id,
+            createdAt: timeframeFilter,
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalCollections: { $sum: 1 },
+            completedCollections: {
+              $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+            },
+            onTimeCollections: {
+              $sum: { $cond: [{ $lte: ['$completionTime', 30] }, 1, 0] }
+            },
+            avgCompletionTime: { $avg: '$completionTime' },
+            totalBins: { $sum: 1 },
+            priorityBins: {
+              $sum: { $cond: [{ $gte: ['$fillLevel', 80] }, 1, 0] }
+            },
+            completedPriorityBins: {
+              $sum: {
+                $cond: [
+                  { $and: [
+                    { $eq: ['$status', 'completed'] },
+                    { $gte: ['$fillLevel', 80] }
+                  ]},
+                  1,
+                  0
+                ]
+              }
+            }
+          }
+        }
+      ]),
+
+      Route.aggregate([
+        {
+          $match: {
+            collectorId: req.user._id,
+            createdAt: timeframeFilter
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalRoutes: { $sum: 1 },
+            completedRoutes: {
+              $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+            }
+          }
+        }
+      ]),
+
+      Collection.find({
+        collectorId: req.user._id,
+        status: 'completed'
+      })
+      .sort({ completedAt: -1 })
+      .limit(5)
+      .populate('binId', 'binNumber location')
+    ]);
+
+    const stats = collectionStats[0] || {
+      totalCollections: 0,
+      completedCollections: 0,
+      onTimeCollections: 0,
+      avgCompletionTime: 0,
+      totalBins: 0,
+      priorityBins: 0,
+      completedPriorityBins: 0
+    };
+
+    const routes = routeStats[0] || {
+      totalRoutes: 0,
+      completedRoutes: 0
+    };
+
+    // Calculate performance metrics
+    const performance = {
+      collectionRate: Math.round((stats.completedCollections / Math.max(stats.totalCollections, 1)) * 100),
+      avgTime: Math.round(stats.avgCompletionTime || 0),
+      punctuality: Math.round((stats.onTimeCollections / Math.max(stats.totalCollections, 1)) * 100),
+      efficiency: Math.round(
+        ((stats.completedCollections / Math.max(stats.totalCollections, 1)) +
+        (stats.onTimeCollections / Math.max(stats.totalCollections, 1))) * 50
+      ),
+      completedRoutes: routes.completedRoutes,
+      totalRoutes: routes.totalRoutes,
+      collectedBins: stats.completedCollections,
+      totalBins: stats.totalBins,
+      priorityCompletionRate: Math.round(
+        (stats.completedPriorityBins / Math.max(stats.priorityBins, 1)) * 100
+      ),
+      recentCollections: recentCollections.map(collection => ({
+        _id: collection._id,
+        binId: collection.binId?.binNumber || 'N/A',
+        collectedAt: collection.completedAt,
+        onTime: collection.completionTime <= 30
+      }))
+    };
+
+    // Calculate achievements based on performance
+    const achievements = [
+      {
+        _id: '1',
+        name: 'Collection Master',
+        description: 'Complete waste collections',
+        target: 100,
+        current: stats.completedCollections,
+        completed: stats.completedCollections >= 100
+      },
+      {
+        _id: '2',
+        name: 'Speed Demon',
+        description: 'Maintain quick collection times',
+        target: 20,
+        current: Math.min(20, Math.max(0, 20 - (performance.avgTime - 10))),
+        completed: performance.avgTime <= 10
+      },
+      {
+        _id: '3',
+        name: 'Priority Handler',
+        description: 'Handle high-priority bins',
+        target: 50,
+        current: stats.completedPriorityBins,
+        completed: performance.priorityCompletionRate >= 90
+      },
+      {
+        _id: '4',
+        name: 'Route Champion',
+        description: 'Complete collection routes',
+        target: routes.totalRoutes,
+        current: routes.completedRoutes,
+        completed: routes.completedRoutes === routes.totalRoutes && routes.totalRoutes > 0
+      },
+      {
+        _id: '5',
+        name: 'Punctuality Pro',
+        description: 'Maintain on-time collections',
+        target: 100,
+        current: performance.punctuality,
+        completed: performance.punctuality >= 90
+      }
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        ...performance,
+        achievements
+      }
+    });
+
+  } catch (error) {
+    handleError(res, error);
+  }
 };
 
-// @desc    Get collector stats
-// @route   GET /api/collector/stats
-// @access  Private/Collector
-export const getCollectorStats = async (req, res) => {
-    try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+// Helper function to get date filter
+const getTimeframeFilter = (timeframe) => {
+  const now = new Date();
+  const startDate = new Date();
 
-        const stats = {
-            totalCollections: await Report.countDocuments({ collector: req.user.id }),
-            todayCollections: await Report.countDocuments({
-                collector: req.user.id,
-                createdAt: { $gte: today }
-            }),
-            completionRate: 0,
-            avgResponseTime: 0
-        };
+  switch (timeframe) {
+    case 'week':
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case 'month':
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case 'quarter':
+      startDate.setMonth(now.getMonth() - 3);
+      break;
+    case 'year':
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+    default:
+      startDate.setMonth(now.getMonth() - 1);
+  }
 
-        // Calculate completion rate
-        const totalAssignments = await Collection.countDocuments({
-            assignedCollector: req.user.id
-        });
-        
-        if (totalAssignments > 0) {
-            const completedCollections = await Collection.countDocuments({
-                assignedCollector: req.user.id,
-                status: 'collected'
-            });
-            stats.completionRate = (completedCollections / totalAssignments) * 100;
-        }
-
-        res.status(200).json({
-            success: true,
-            data: stats
-        });
-
-    } catch (error) {
-        handleError(res, error);
-    }
+  return { $gte: startDate, $lte: now };
 };
 
 // @desc    Get active routes
@@ -498,3 +650,193 @@ export const updateRouteStatus = async (req, res) => {
         handleError(res, error);
     }
 };
+
+
+export const getCollectorStats = async (req, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
+      const [todayCollections, completionRate, activeRoutes, avgResponseTime] = await Promise.all([
+        Collection.countDocuments({
+          collectorId: req.user._id,
+          collectionDate: { $gte: today }
+        }),
+        Collection.aggregate([
+          {
+            $match: { collectorId: req.user._id }
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              completed: {
+                $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+              }
+            }
+          }
+        ]),
+        Route.countDocuments({
+          collectorId: req.user._id,
+          status: 'in_progress'
+        }),
+        Report.aggregate([
+          {
+            $match: {
+              collectorId: req.user._id,
+              status: 'completed'
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              avgTime: { $avg: '$completionTime' }
+            }
+          }
+        ])
+      ]);
+  
+      const rate = completionRate[0] ? (completionRate[0].completed / completionRate[0].total) * 100 : 0;
+  
+      res.json({
+        success: true,
+        data: {
+          todayCollections,
+          completionRate: Math.round(rate),
+          activeRoutes,
+          avgResponseTime: Math.round(avgResponseTime[0]?.avgTime || 0)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };
+  
+  // Get recent collections
+  export const getRecentCollections = async (req, res) => {
+    try {
+      const collections = await Collection.find({
+        collectorId: req.user._id
+      })
+      .sort({ collectionDate: -1 })
+      .limit(5)
+      .populate('binId', 'binNumber location');
+  
+      res.json({
+        success: true,
+        data: collections
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };
+  
+  // Get upcoming schedules
+  export const getUpcomingSchedules = async (req, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
+      const schedules = await Schedule.find({
+        collectorId: req.user._id,
+        scheduledDate: { $gte: today },
+        status: 'pending'
+      })
+      .sort({ scheduledDate: 1 })
+      .limit(5)
+      .populate('binId', 'binNumber location');
+  
+      res.json({
+        success: true,
+        data: schedules
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };
+  
+  // Get urgent bins
+  export const getUrgentBins = async (req, res) => {
+    try {
+      const urgentBins = await Collection.find({
+        collectorId: req.user._id,
+        fillLevel: { $gte: 80 },
+        status: { $ne: 'completed' }
+      })
+      .sort({ fillLevel: -1 })
+      .limit(5)
+      .populate('binId', 'binNumber location');
+  
+      res.json({
+        success: true,
+        data: urgentBins
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };
+  
+  // Get collector performance
+  export const getPerformance = async (req, res) => {
+    try {
+      const [routeStats, collectionStats] = await Promise.all([
+        Route.aggregate([
+          {
+            $match: { collectorId: req.user._id }
+          },
+          {
+            $group: {
+              _id: null,
+              totalRoutes: { $sum: 1 },
+              completedRoutes: {
+                $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+              }
+            }
+          }
+        ]),
+        Collection.aggregate([
+          {
+            $match: { collectorId: req.user._id }
+          },
+          {
+            $group: {
+              _id: null,
+              collectionRate: {
+                $avg: { $cond: [{ $eq: ['$status', 'completed'] }, 100, 0] }
+              },
+              punctuality: {
+                $avg: { $cond: [{ $lte: ['$completionTime', 30] }, 100, 0] }
+              }
+            }
+          }
+        ])
+      ]);
+  
+      res.json({
+        success: true,
+        data: {
+          completedRoutes: routeStats[0]?.completedRoutes || 0,
+          totalRoutes: routeStats[0]?.totalRoutes || 0,
+          collectionRate: Math.round(collectionStats[0]?.collectionRate || 0),
+          punctuality: Math.round(collectionStats[0]?.punctuality || 0)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  };

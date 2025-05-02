@@ -39,6 +39,11 @@ import {
   Search,
   HelpCircle,
   LayoutDashboard,
+  Book,
+  TreeDeciduous,
+  LineChart,
+  Activity,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +72,7 @@ export function Header() {
 
   const location = useLocation();
 
+  // Fetch notifications when user is logged in
   useEffect(() => {
     if (user) {
       fetchNotifications();
@@ -111,7 +117,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Navigation configurations
+  // Public navigation for visitors
   const publicNavigation = [
     { name: "About", href: "/about", description: "Learn about our mission" },
     { name: "Services", href: "/services", description: "Our waste management services" },
@@ -119,6 +125,7 @@ export function Header() {
     { name: "FAQ", href: "/faq", description: "Frequently asked questions" },
   ];
 
+  // Navigation links based on user role
   const roleNavigation = {
     resident: [
       { name: "Dashboard", href: "/resident/dashboard", icon: LayoutDashboard, description: "Your overview" },
@@ -127,11 +134,17 @@ export function Header() {
       { name: "Rewards", href: "/resident/rewards", icon: Gift, description: "View available rewards", badge: "New" },
       { name: "Leaderboard", href: "/resident/leaderboard", icon: Trophy, description: "Community rankings" },
       { name: "Feedback", href: "/resident/feedback", icon: MessageSquare, description: "Share your thoughts" },
+      { name: "Schedule", href: "/resident/schedule", icon: Calendar, description: "Collection schedule" },
+      { name: "Impact", href: "/resident/impact", icon: TreeDeciduous, description: "Environmental impact" },
+      { name: "Education", href: "/resident/education", icon: Book, description: "Waste management guides" },
     ],
     garbage_collector: [
       { name: "Dashboard", href: "/collector/dashboard", icon: LayoutDashboard, description: "Your overview" },
       { name: "Active Routes", href: "/collector/routes", icon: Route, description: "View assigned routes" },
       { name: "Schedule", href: "/collector/schedule", icon: Calendar, description: "Your collection schedule" },
+      { name: "Reports", href: "/collector/reports", icon: FileText, description: "Collection reports" },
+      { name: "Performance", href: "/collector/performance", icon: Activity, description: "Your performance" },
+      { name: "Safety", href: "/collector/safety", icon: Shield, description: "Safety guidelines" },
     ],
     admin: [
       { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, description: "System overview" },
@@ -139,6 +152,10 @@ export function Header() {
       { name: "Bins", href: "/admin/bins", icon: Trash2, description: "Manage bins" },
       { name: "Routes", href: "/admin/routes", icon: Route, description: "Plan routes" },
       { name: "Reports", href: "/admin/reports", icon: FileText, description: "View reports" },
+      { name: "Analytics", href: "/admin/analytics", icon: LineChart, description: "System analytics" },
+      { name: "Settings", href: "/admin/settings", icon: Settings, description: "System settings" },
+      { name: "Rewards", href: "/admin/rewards", icon: Gift, description: "Manage rewards" },
+      { name: "Support", href: "/admin/support", icon: HelpCircle, description: "Support portal" },
     ],
   };
 
@@ -147,6 +164,7 @@ export function Header() {
     return roleNavigation[user.role] || [];
   };
 
+  // User menu always available to logged in users
   const userMenuItems = [
     { name: "View Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
@@ -266,12 +284,10 @@ export function Header() {
                               }
                             }}
                           >
-                            <div
-                              className={cn(
-                                "p-2 rounded-full",
-                                !notification.isRead ? "bg-primary/10" : "bg-muted"
-                              )}
-                            >
+                            <div className={cn(
+                              "p-2 rounded-full",
+                              !notification.isRead ? "bg-primary/10" : "bg-muted"
+                            )}>
                               <NotificationIcon
                                 className={cn(
                                   "h-4 w-4",
@@ -301,14 +317,8 @@ export function Header() {
 
                   <DropdownMenuSeparator />
                   <div className="p-2">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      asChild
-                    >
-                      <Link to="/notifications">
-                        View All Notifications
-                      </Link>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/notifications">View All Notifications</Link>
                     </Button>
                   </div>
                 </DropdownMenuContent>
@@ -349,10 +359,7 @@ export function Header() {
                   <DropdownMenuGroup>
                     {userMenuItems.map((item) => (
                       <DropdownMenuItem key={item.name} asChild>
-                        <Link
-                          to={item.href}
-                          className="flex items-center cursor-pointer"
-                        >
+                        <Link className="flex items-center cursor-pointer" to={item.href}>
                           <item.icon className="mr-2 h-4 w-4" />
                           <span>{item.name}</span>
                         </Link>
@@ -381,15 +388,10 @@ export function Header() {
             </div>
           )}
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu Trigger */}
           <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                aria-label="Open Menu"
-              >
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open Menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -412,7 +414,7 @@ export function Header() {
 
                   <Separator />
 
-                  {/* Navigation Links */}
+                  {/* Mobile Navigation Links */}
                   <div className="space-y-1">
                     {getNavLinks().map((item) => (
                       <Link
@@ -429,9 +431,7 @@ export function Header() {
                         {item.icon && <item.icon className="h-4 w-4" />}
                         <div className="flex flex-col">
                           <span>{item.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {item.description}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{item.description}</span>
                         </div>
                         {item.badge && (
                           <Badge variant="default" className="ml-auto">
