@@ -622,7 +622,7 @@ export const getRouteStats = async (req, res) => {
 export const optimizeRoutes = async (req, res) => {
     try {
         const { bins, startLocation, endLocation } = req.body;
-        
+
         if (!bins || !bins.length) {
             throw new Error('Please provide bins to optimize', 400);
         }
@@ -637,7 +637,7 @@ export const optimizeRoutes = async (req, res) => {
 
         // Reorder bins based on optimized sequence
         const optimizedBins = optimizedRoute.waypoints.map(wp => {
-            const bin = bins.find(b => 
+            const bin = bins.find(b =>
                 b.location.coordinates[0] === wp.location.coordinates[0] &&
                 b.location.coordinates[1] === wp.location.coordinates[1]
             );
