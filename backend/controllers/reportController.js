@@ -123,7 +123,6 @@ export const createReport = async (req, res) => {
                 }
             }
 
-            // Handle after photo
             if (req.files.photoAfter && req.files.photoAfter[0]) {
                 try {
                     const afterResult = await uploadImage(req.files.photoAfter[0], 'cleanbage/reports');
@@ -132,7 +131,6 @@ export const createReport = async (req, res) => {
                         url: afterResult.secure_url
                     };
                 } catch (error) {
-                    // If before photo was uploaded, delete it
                     if (imageUrls.photoBefore?.public_id) {
                         await deleteImage(imageUrls.photoBefore.public_id);
                     }
