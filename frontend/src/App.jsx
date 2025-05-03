@@ -216,7 +216,7 @@ const Temp = () => {
             <Route path="create" element={<CreateSchedule />} />
             <Route path=":id/edit" element={<EditSchedule />} />
             <Route path="calendar" element={<ScheduleCalendar />} />
-          </Route> 
+          </Route>
           <Route path="reports">
             <Route index element={<ReportManagement />} />
             <Route path=":id" element={<ReportDetails />} />
@@ -231,7 +231,7 @@ const Temp = () => {
           <Route path="rewards">
             <Route index element={<RewardManagement />} />
             <Route path="create" element={<CreateReward />} />
-            <Route path=":id" element={<AdminRewardDetails  />} />
+            <Route path=":id" element={<AdminRewardDetails />} />
             <Route path=":id/edit" element={<EditReward />} />
             <Route path="analytics" element={<RewardAnalytics />} />
           </Route>
