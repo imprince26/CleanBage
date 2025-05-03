@@ -115,9 +115,8 @@ const FeedbackDetails = () => {
     return Array.from({ length: 5 }).map((_, index) => (
       <Star
         key={index}
-        className={`h-4 w-4 ${
-          index < rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
-        }`}
+        className={`h-4 w-4 ${index < rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
+          }`}
       />
     ));
   };
@@ -237,30 +236,30 @@ const FeedbackDetails = () => {
 
           {/* Feedback Type */}
           <div className="flex items-center gap-2">
-  {(() => {
-    const feedbackType = FEEDBACK_TYPES[feedback.type];
-    if (feedbackType?.icon) {
-      const Icon = feedbackType.icon;
-      return (
-        <>
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Icon className="h-4 w-4 text-primary" />
+            {(() => {
+              const feedbackType = FEEDBACK_TYPES[feedback.type];
+              if (feedbackType?.icon) {
+                const Icon = feedbackType.icon;
+                return (
+                  <>
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Feedback Type</p>
+                      <p className="font-medium">{feedbackType.label}</p>
+                    </div>
+                  </>
+                );
+              }
+              return (
+                <div>
+                  <p className="text-sm text-muted-foreground">Feedback Type</p>
+                  <p className="font-medium">Unknown</p>
+                </div>
+              );
+            })()}
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Feedback Type</p>
-            <p className="font-medium">{feedbackType.label}</p>
-          </div>
-        </>
-      );
-    }
-    return (
-      <div>
-        <p className="text-sm text-muted-foreground">Feedback Type</p>
-        <p className="font-medium">Unknown</p>
-      </div>
-    );
-  })()}
-</div>
 
           {/* Feedback Content */}
           <div className="space-y-4">
