@@ -12,8 +12,8 @@ export const sendTokenResponse = (user, statusCode, res) => {
     const token = user.getSignedJwtToken();
   
     const options = {
-      expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
-      httpOnly: process.env.NODE_ENV === 'production',
+      maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict'
     };

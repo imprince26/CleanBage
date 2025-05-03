@@ -164,7 +164,7 @@ export const loginUser = async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+        maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
     });
 
     // Create notification for login
@@ -200,8 +200,8 @@ export const googleCallback = async (req, res) => {
         res.cookie('CleanBageToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax', // Changed to lax for OAuth redirects
-            expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+            sameSite: 'strict',
+            maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
         });
 
         // Redirect to frontend with success
