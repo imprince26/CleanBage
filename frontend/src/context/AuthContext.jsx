@@ -129,20 +129,18 @@ export function AuthProvider({ children }) {
   };
 
   // Update the Google callback handler
-  const handleGoogleCallback = async (token) => {
+  const handleGoogleCallback = async (code) => {
     try {
-      if (!token) {
-        throw new Error('No token received from Google');
+      const { data } = await api.get(`/auth/google/callback?code=${code}`);
+      if (data.success) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+        toast.success('Successfully logged in with Google!');
+        return true;
       }
-
-      setUser(JSON.parse(atob(token.split('.')[1])));
-      setIsAuthenticated(true);
-      navigate('/dashboard');
-      return true;
     } catch (error) {
       console.error('Google callback error:', error);
-      toast.error('Failed to authenticate with Google');
-      navigate('/login');
+      toast.error(error.response?.data?.message || 'Failed to authenticate with Google');
       return false;
     }
   };

@@ -156,16 +156,7 @@ export const loginUser = async (req, res) => {
     if (!user.verified) {
         throw new Error('Please verify your email address', 403);
     }
-
-    const token = user.getSignedJwtToken();
-
-    // Set cookie
-    res.cookie('CleanBageToken', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
-    });
+    sendTokenResponse(user, 200, res);
 
     // Create notification for login
     await Notification.createNotification({
@@ -177,7 +168,6 @@ export const loginUser = async (req, res) => {
         icon: 'log-in'
     });
 
-    sendTokenResponse(user, 200, res);
 };
 
 export const googleCallback = async (req, res) => {
@@ -193,38 +183,39 @@ export const googleCallback = async (req, res) => {
             read: false
         });
 
-        // Generate JWT token
+        // Set token in cookie and return success response
         const token = req.user.getSignedJwtToken();
-
-        // Set cookie
         res.cookie('CleanBageToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            domain: process.env.COOKIE_DOMAIN || undefined,
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         // Redirect to frontend with success
-        res.redirect(`${process.env.CLIENT_URL}/`);
+        return res.redirect(`${process.env.CLIENT_URL}/`);
     } catch (error) {
         console.error('Google callback error:', error);
         // Redirect to frontend with error
-        res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
+        return res.redirect(`${process.env.CLIENT_URL}/auth/google/error`);
     }
 };
 
 export const logoutUser = async (req, res) => {
     res.clearCookie('CleanBageToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/',
+      domain: process.env.COOKIE_DOMAIN || undefined
     });
-
+  
     res.status(200).json({
-        success: true,
-        data: {}
+      success: true,
+      data: {}
     });
-};
+  };
 
 export const getMe = async (req, res) => {
     try {

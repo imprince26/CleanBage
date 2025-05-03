@@ -7,20 +7,22 @@ export const generateToken = (id) => {
     });
 };
 
+export const getCookieOptions = () => ({
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  path: '/',
+  domain: process.env.COOKIE_DOMAIN || undefined,
+});
+
 // Send token response with cookie
 export const sendTokenResponse = (user, statusCode, res) => {
-    const token = user.getSignedJwtToken();
-  
-    const options = {
-      maxAge:  7 * 24 * 60 * 60 * 1000, // 7 days,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict'
-    };
-  
+    const token = generateToken(user._id);
+
     res
       .status(statusCode)
-      .cookie('CleanBageToken', token, options)
+      .cookie('CleanBageToken', token, getCookieOptions())
       .json({
         success: true,
         token,
