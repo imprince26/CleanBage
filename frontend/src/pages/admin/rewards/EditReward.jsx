@@ -102,7 +102,7 @@ const EditReward = () => {
   const fetchRewardDetails = async () => {
     try {
       const response = await api.get(`/rewards/items/${id}`);
-      
+
       if (response.data.success) {
         const reward = response.data.data;
         form.reset({

@@ -317,11 +317,10 @@ const RewardAnalytics = () => {
                   <TableCell>#{index + 1}</TableCell>
                   <TableCell className="text-right">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        index < 3
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${index < 3
                           ? "bg-green-100 text-green-800"
                           : "bg-blue-100 text-blue-800"
-                      }`}
+                        }`}
                     >
                       {index < 3 ? "Elite" : "Active"}
                     </span>
