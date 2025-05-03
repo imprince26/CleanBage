@@ -3,6 +3,7 @@ import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import { RewardTransaction } from '../models/rewardModel.js';
+import { optimizeRoute } from '../utils/geoUtils.js';
 
 export const getRoutes = async (req, res) => {
     // Pagination
@@ -616,4 +617,49 @@ export const getRouteStats = async (req, res) => {
             collectorPerformance
         }
     });
+};
+
+export const optimizeRoutes = async (req, res) => {
+    try {
+        const { bins, startLocation, endLocation } = req.body;
+        
+        if (!bins || !bins.length) {
+            throw new Error('Please provide bins to optimize', 400);
+        }
+
+        // Extract coordinates
+        const waypoints = bins.map(bin => bin.location.coordinates);
+        const origin = startLocation.coordinates;
+        const destination = endLocation ? endLocation.coordinates : origin;
+
+        // Get optimized route
+        const optimizedRoute = await optimizeRoute(origin, destination, waypoints);
+
+        // Reorder bins based on optimized sequence
+        const optimizedBins = optimizedRoute.waypoints.map(wp => {
+            const bin = bins.find(b => 
+                b.location.coordinates[0] === wp.location.coordinates[0] &&
+                b.location.coordinates[1] === wp.location.coordinates[1]
+            );
+            return {
+                ...bin,
+                estimated_time: Math.ceil(wp.duration)
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                bins: optimizedBins,
+                distance: optimizedRoute.totalDistance,
+                duration: optimizedRoute.totalDuration,
+                path: optimizedRoute.geometry
+            }
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message
+        });
+    }
 };

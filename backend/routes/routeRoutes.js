@@ -8,7 +8,8 @@ import {
     updateRouteStatus,
     collectBin,
     getCollectorActiveRoutes,
-    getRouteStats
+    getRouteStats,
+    optimizeRoutes
 } from '../controllers/routeController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 
@@ -27,6 +28,8 @@ router.route('/:id')
     .get(getRoute)
     .put(authorize('admin'), updateRoute)
     .delete(authorize('admin'), deleteRoute);
+
+router.post('/optimize', authorize('admin'), optimizeRoutes);
 
 router.put('/:id/status', authorize('garbage_collector'), updateRouteStatus);
 router.post('/:id/collect/:binId', authorize('garbage_collector'), collectBin);
