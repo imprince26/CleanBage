@@ -168,9 +168,9 @@ const reportSchema = new mongoose.Schema({
 });
 
 reportSchema.index({ bin: 1, collectionDate: -1 });
-reportSchema.index({ collector: 1 });
-reportSchema.index({ status: 1 });
 reportSchema.index({ createdAt: -1 });
+reportSchema.index({ collector: 1, createdAt: -1 });
+reportSchema.index({ status: 1, createdAt: -1 });
 
 reportSchema.pre('save', async function(next) {
     this.updatedAt = Date.now();

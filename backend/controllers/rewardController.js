@@ -161,33 +161,29 @@ export const createRewardItem = async (req, res) => {
         throw new Error('Not authorized to create reward items', 403);
     }
     
-    // Add creator
-    req.body.createdBy = req.user.id;
-    
-    // Check if required fields are provided
-    if (!req.body.name || !req.body.description || !req.body.pointsCost || !req.body.category || !req.body.validUntil) {
-        throw new Error('Please provide name, description, points cost, category, and validity period', 400);
-    }
+    const rewardData = {
+        name: req.body.name,
+        description: req.body.description,
+        category: req.body.category,
+        pointsCost: Number(req.body.pointsCost),
+        termsAndConditions: req.body.termsAndConditions,
+        validFrom: new Date(req.body.validFrom),
+        validUntil: new Date(req.body.validUntil),
+        totalQuantity: Number(req.body.totalQuantity),
+        isActive: req.body.isActive === 'true',
+        featuredOrder: Number(req.body.featuredOrder || 0),
+        createdBy: req.user.id
+    };
     
     // Process uploaded image
     if (req.files && req.files.image) {
-        const file = req.files.image;
-        
-        // Check file type
-        if (!file.mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file', 400);
-        }
-        
-        // Check file size
-        if (file.size > process.env.MAX_FILE_SIZE) {
-            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
-        }
+        const file = req.files.image[0];
         
         try {
             // Upload to cloudinary
             const result = await uploadImage(file, 'cleanbage/rewards');
             
-            req.body.image = {
+            rewardData.image = {
                 public_id: result.public_id,
                 url: result.secure_url
             };
@@ -197,12 +193,7 @@ export const createRewardItem = async (req, res) => {
         }
     }
     
-    // Set remaining quantity if total quantity is provided
-    if (req.body.totalQuantity && req.body.totalQuantity > 0) {
-        req.body.remainingQuantity = req.body.totalQuantity;
-    }
-    
-    const rewardItem = await RewardItem.create(req.body);
+    const rewardItem = await RewardItem.create(rewardData);
     
     res.status(201).json({
         success: true,
@@ -505,4 +496,127 @@ export const getRewardStats = async (req, res) => {
             topUsers
         }
     });
+};
+
+export const redeemReward = async (req, res) => {
+    try {
+        const reward = await RewardItem.findById(req.params.id);
+
+        if (!reward) {
+            return res.status(404).json({
+                success: false,
+                message: 'Reward not found'
+            });
+        }
+
+        // Validate redemption conditions
+        if (!reward.isActive) {
+            return res.status(400).json({
+                success: false,
+                message: 'This reward is not active'
+            });
+        }
+
+        if (new Date(reward.validUntil) < new Date()) {
+            return res.status(400).json({
+                success: false,
+                message: 'This reward has expired'
+            });
+        }
+
+        if (reward.remainingQuantity === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'This reward is out of stock'
+            });
+        }
+
+        if (req.user.rewardPoints < reward.pointsCost) {
+            return res.status(400).json({
+                success: false,
+                message: 'Insufficient reward points'
+            });
+        }
+
+        // Generate redemption code
+        const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+        // Update reward
+        reward.redemptions.push({
+            user: req.user.id,
+            code,
+            status: 'issued'
+        });
+
+        if (reward.remainingQuantity > 0) {
+            reward.remainingQuantity -= 1;
+        }
+
+        await reward.save();
+
+        // Create transaction
+        await RewardTransaction.create({
+            user: req.user.id,
+            type: 'redeemed',
+            points: -reward.pointsCost,
+            description: `Redeemed ${reward.name}`,
+            sourceType: 'redemption',
+            sourceId: reward._id,
+            sourceModel: 'RewardItem',
+            balance: req.user.rewardPoints - reward.pointsCost
+        });
+
+        // Update user points
+        req.user.rewardPoints -= reward.pointsCost;
+        await req.user.save();
+
+        // Create notification
+        await Notification.create({
+            recipient: req.user.id,
+            type: 'reward_redeemed',
+            title: 'Reward Redeemed Successfully',
+            message: `You have successfully redeemed ${reward.name}. Your redemption code is ${code}`,
+            priority: 'high'
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                code,
+                pointsDeducted: reward.pointsCost,
+                remainingPoints: req.user.rewardPoints
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+// @desc    Get reward item redemptions
+// @route   GET /api/rewards/items/:id/redemptions
+// @access  Private/Admin
+export const getRewardRedemptions = async (req, res) => {
+    try {
+        const reward = await RewardItem.findById(req.params.id)
+            .populate('redemptions.user', 'name email');
+
+        if (!reward) {
+            return res.status(404).json({
+                success: false,
+                message: 'Reward not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: reward.redemptions
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
 };

@@ -8,7 +8,9 @@ import {
     deleteRewardItem,
     redeemRewardItem,
     getUserRedemptions,
-    getRewardStats
+    getRewardStats,
+    getRewardRedemptions,
+    redeemReward
 } from '../controllers/rewardController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
@@ -23,13 +25,21 @@ router.get('/stats', authorize('admin'), getRewardStats);
 
 router.route('/items')
     .get(getRewardItems)
-    .post(authorize('admin'),handleImageUpload.array('images',3), createRewardItem);
+    .post(authorize('admin'),handleImageUpload.fields([{ name: 'image', maxCount: 1 }]), createRewardItem);
 
 router.route('/items/:id')
     .get(getRewardItem)
-    .put(authorize('admin'),handleImageUpload.array('images',3), updateRewardItem)
+    .put(
+        authorize('admin'),
+        handleImageUpload.fields([{ name: 'image', maxCount: 1 }]),
+        updateRewardItem
+    )
     .delete(authorize('admin'), deleteRewardItem);
 
 router.post('/items/:id/redeem', redeemRewardItem);
-
+router.get(
+    '/items/:id/redemptions',
+    authorize('admin'),
+    getRewardRedemptions
+);
 export default router;

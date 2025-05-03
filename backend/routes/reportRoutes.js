@@ -7,7 +7,9 @@ import {
     deleteReport,
     submitFeedback,
     getReportStats,
-    getReportHistory
+    getReportHistory,
+    exportReports,
+    getTopCollectors
 } from '../controllers/reportController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
 import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
@@ -15,6 +17,10 @@ import { handleImageUpload } from '../middlewares/uploadMiddleware.js';
 const router = express.Router();
 
 router.use(protect);
+
+router.get('/export-data', authorize('admin'), exportReports);
+router.get('/top-collectors', protect, authorize('admin'), getTopCollectors);
+
 
 router.route('/')
     .get(getReports)
@@ -40,7 +46,6 @@ router.route('/:id')
         updateReport
     )
     .delete(authorize('admin'), deleteReport);
-
 router.post('/:id/feedback', authorize('admin'), submitFeedback);
 
 export default router;

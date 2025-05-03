@@ -3,6 +3,16 @@ import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
+import { format } from 'date-fns';
+import ExcelJS from 'exceljs';
+import Papa from 'papaparse';
+import { getTimeframeFilter } from '../utils/dateUtils.js';
+
+const formatAddress = (location) => {
+    if (!location || !location.address) return 'No address available';
+    const { street, area, landmark, city, postalCode } = location.address;
+    return [street, area, landmark, city, postalCode].filter(Boolean).join(', ');
+  };
 
 export const getReports = async (req, res) => {
     // Pagination
@@ -362,115 +372,118 @@ export const submitFeedback = async (req, res) => {
 };
 
 export const getReportStats = async (req, res) => {
-    // Only allow admins
-    if (req.user.role !== 'admin') {
-        throw new Error('Not authorized to access this data', 403);
-    }
+    try {
+        // Get timeframe filter
+        const { timeframe = 'month' } = req.query;
+        const timeframeFilter = getTimeframeFilter(timeframe);
 
-    // Get total collected waste volume
-    const totalWaste = await Report.aggregate([
-        {
-            $match: {
-                status: 'completed'
-            }
-        },
-        {
-            $group: {
-                _id: null,
-                totalVolume: { $sum: '$wasteVolume' }
-            }
-        }
-    ]);
+        // Add timeframe to all aggregations
+        const baseMatch = {
+            createdAt: timeframeFilter
+        };
 
-    // Get average efficiency score
-    const avgEfficiency = await Report.aggregate([
-        {
-            $match: {
-                efficiency: { $ne: null }
+        // Get reports over time
+        const reportsOverTime = await Report.aggregate([
+            {
+                $match: baseMatch
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: {
+                            format: "%Y-%m-%d",
+                            date: "$createdAt"
+                        }
+                    },
+                    total: { $sum: 1 },
+                    completed: {
+                        $sum: {
+                            $cond: [{ $eq: ["$status", "completed"] }, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: "$_id",
+                    total: 1,
+                    completed: 1
+                }
             }
-        },
-        {
-            $group: {
-                _id: null,
-                avgEfficiency: { $avg: '$efficiency' }
-            }
-        }
-    ]);
+        ]);
 
-    // Get collections by waste category
-    const wasteCategories = await Report.aggregate([
-        {
-            $match: {
-                status: 'completed',
-                'wasteCategories.organic': { $gt: 0 }
+        // Get waste categories total
+        const wasteCategories = await Report.aggregate([
+            {
+                $match: {
+                    ...baseMatch,
+                    status: 'completed'
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    organic: { $sum: '$wasteCategories.organic' },
+                    recyclable: { $sum: '$wasteCategories.recyclable' },
+                    nonRecyclable: { $sum: '$wasteCategories.nonRecyclable' },
+                    hazardous: { $sum: '$wasteCategories.hazardous' }
+                }
             }
-        },
-        {
-            $group: {
-                _id: null,
-                organic: { $sum: '$wasteCategories.organic' },
-                recyclable: { $sum: '$wasteCategories.recyclable' },
-                nonRecyclable: { $sum: '$wasteCategories.nonRecyclable' },
-                hazardous: { $sum: '$wasteCategories.hazardous' }
+        ]);
+
+        // Get overall stats
+        const stats = await Report.aggregate([
+            {
+                $match: baseMatch
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalReports: { $sum: 1 },
+                    completedReports: {
+                        $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+                    },
+                    totalWasteVolume: { $sum: '$wasteVolume' },
+                    avgEfficiency: { $avg: '$efficiency' }
+                }
             }
-        }
-    ]);
+        ]);
 
-    // Get top collectors
-    const topCollectors = await Report.aggregate([
-        {
-            $match: {
-                status: 'completed'
-            }
-        },
-        {
-            $group: {
-                _id: '$collector',
-                collectionCount: { $sum: 1 },
-                totalVolume: { $sum: '$wasteVolume' }
-            }
-        },
-        {
-            $sort: { collectionCount: -1 }
-        },
-        {
-            $limit: 5
-        }
-    ]);
-
-    // Get collector details
-    const populatedCollectors = await User.populate(topCollectors, {
-        path: '_id',
-        select: 'name avatar'
-    });
-
-    const formattedCollectors = populatedCollectors.map(item => ({
-        collector: item._id,
-        collectionCount: item.collectionCount,
-        totalVolume: item.totalVolume
-    }));
-
-    res.status(200).json({
-        success: true,
-        data: {
-            totalReports: await Report.countDocuments(),
-            completedReports: await Report.countDocuments({ status: 'completed' }),
-            totalWasteVolume: totalWaste.length > 0 ? totalWaste[0].totalVolume : 0,
-            avgEfficiency: avgEfficiency.length > 0 ? Math.round(avgEfficiency[0].avgEfficiency) : 0,
-            wasteCategories: wasteCategories.length > 0 ? {
-                organic: wasteCategories[0].organic,
-                recyclable: wasteCategories[0].recyclable,
-                nonRecyclable: wasteCategories[0].nonRecyclable,
-                hazardous: wasteCategories[0].hazardous
+        const result = {
+            totalReports: stats[0]?.totalReports || 0,
+            completedReports: stats[0]?.completedReports || 0,
+            totalWasteVolume: Number((stats[0]?.totalWasteVolume || 0).toFixed(1)),
+            avgEfficiency: Math.round(stats[0]?.avgEfficiency || 0),
+            wasteCategories: wasteCategories[0] ? {
+                organic: Number(wasteCategories[0].organic.toFixed(1)),
+                recyclable: Number(wasteCategories[0].recyclable.toFixed(1)),
+                nonRecyclable: Number(wasteCategories[0].nonRecyclable.toFixed(1)),
+                hazardous: Number(wasteCategories[0].hazardous.toFixed(1))
             } : {
                 organic: 0,
                 recyclable: 0,
                 nonRecyclable: 0,
                 hazardous: 0
             },
-            topCollectors: formattedCollectors
-        }
-    });
+            reportsOverTime
+        };
+
+        res.status(200).json({
+            success: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error('Error getting report stats:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error getting report statistics'
+        });
+    }
 };
 
 export const getReportHistory = async (req, res) => {
@@ -539,6 +552,187 @@ export const getReportHistory = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching report history'
+        });
+    }
+};
+
+export const exportReports = async (req, res) => {
+    try {
+        const { format: exportFormat, startDate, endDate, status } = req.query;
+        
+        if (!['csv', 'excel'].includes(exportFormat)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid export format'
+            });
+        }
+ 
+        // Build filter object
+        const filter = {};
+        
+        if (startDate || endDate) {
+            filter.createdAt = {};
+            if (startDate) filter.createdAt.$gte = new Date(startDate);
+            if (endDate) filter.createdAt.$lte = new Date(endDate);
+        }
+        
+        if (status && status !== 'all') {
+            filter.status = status;
+        }
+
+        const reports = await Report.find(filter)
+            .populate('collector', 'name')
+            .populate('bin', 'binId location')
+            .sort({ createdAt: -1 });
+
+        if (reports.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No reports found matching the criteria'
+            });
+        }
+
+        const reportData = reports.map(report => ({
+            Date: format(new Date(report.createdAt), "yyyy-MM-dd HH:mm:ss"),
+            "Bin ID": report.bin.binId,
+            "Location": formatAddress(report.bin.location),
+            "Collector": report.collector.name,
+            "Status": report.status,
+            "Waste Volume": `${report.wasteVolume} ${report.wasteMeasurementUnit}`,
+            "Fill Level Before": `${report.fillLevelBefore}%`,
+            "Fill Level After": `${report.fillLevelAfter}%`,
+            "Issues": report.issues || 'None',
+            "Maintenance Required": report.maintenanceNeeded ? 'Yes' : 'No',
+            "Weather": `${report.weather?.condition || 'Unknown'} ${report.weather?.temperature ? `(${report.weather.temperature}°C)` : ''}`
+        }));
+
+        if (exportFormat === 'csv') {
+            const csv = Papa.unparse(reportData);
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename=reports-${format(new Date(), "yyyy-MM-dd")}.csv`);
+            return res.send(csv);
+        }
+
+        // Excel export
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Reports');
+
+        // Add headers
+        worksheet.columns = Object.keys(reportData[0]).map(key => ({
+            header: key,
+            key,
+            width: 20
+        }));
+
+        // Add data
+        worksheet.addRows(reportData);
+
+        // Style the header row
+        worksheet.getRow(1).font = { bold: true };
+        worksheet.getRow(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFE0E0E0' }
+        };
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=reports-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        return res.end();
+
+    } catch (error) {
+        console.error('Error exporting reports:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Error exporting reports'
+        });
+    }
+};
+
+export const getTopCollectors = async (req, res) => {
+    try {
+        const { timeframe = 'month', limit = 10 } = req.query;
+        const timeframeFilter = getTimeframeFilter(timeframe);
+
+        const topCollectors = await Report.aggregate([
+            {
+                $match: {
+                    createdAt: timeframeFilter
+                }
+            },
+            {
+                $group: {
+                    _id: '$collector',
+                    totalCollections: { $sum: 1 },
+                    completedCollections: {
+                        $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+                    },
+                    totalVolume: { $sum: '$wasteVolume' },
+                    onTimeCollections: {
+                        $sum: { $cond: [{ $lte: ['$completionTime', 30] }, 1, 0] }
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'collector'
+                }
+            },
+            {
+                $unwind: '$collector'
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: '$collector.name',
+                    avatar: '$collector.avatar',
+                    totalCollections: 1,
+                    completedCollections: 1,
+                    totalVolume: 1,
+                    efficiency: {
+                        $multiply: [
+                            {
+                                $divide: [
+                                    {
+                                        $add: [
+                                            { $divide: ['$completedCollections', { $max: ['$totalCollections', 1] }] },
+                                            { $divide: ['$onTimeCollections', { $max: ['$totalCollections', 1] }] }
+                                        ]
+                                    },
+                                    2
+                                ]
+                            },
+                            100
+                        ]
+                    }
+                }
+            },
+            {
+                $sort: { efficiency: -1, totalVolume: -1 }
+            },
+            {
+                $limit: parseInt(limit)
+            }
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: topCollectors.map(collector => ({
+                ...collector,
+                efficiency: Math.round(collector.efficiency || 0),
+                totalVolume: Number(collector.totalVolume.toFixed(1))
+            }))
+        });
+
+    } catch (error) {
+        console.error('Error getting top collectors:', error);
+        res.status(500).json({
+            success: false, 
+            message: error.message || 'Error fetching top collectors data'
         });
     }
 };
