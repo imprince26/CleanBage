@@ -105,14 +105,12 @@ export const createReport = async (req, res) => {
     try {
         req.body.collector = req.user.id;
 
-        // Handle photo uploads
         const imageUrls = {
             photoBefore: null,
             photoAfter: null
         };
 
         if (req.files) {
-            // Handle before photo
             if (req.files.photoBefore && req.files.photoBefore[0]) {
                 try {
                     const beforeResult = await uploadImage(req.files.photoBefore[0], 'cleanbage/reports');
