@@ -91,7 +91,7 @@ const RouteManagement = () => {
       });
 
       const response = await api.get(`/routes?${queryParams}`);
-      
+
       if (response.data.success) {
         setRoutes(response.data.data);
         setTotalRoutes(response.data.total);
