@@ -92,6 +92,7 @@ import FeedbackDetails from './pages/admin/feedback/FeedbackDetails'
 import FeedbackAnalytics from './pages/admin/feedback/FeedbackAnalytics'
 import RewardManagement from './pages/admin/rewards/RewardManagement'
 import CreateReward from './pages/admin/rewards/CreateReward'
+import AdminRewardDetails from './pages/admin/rewards/RewardDetails'
 import EditReward from './pages/admin/rewards/EditReward'
 import RewardAnalytics from './pages/admin/rewards/RewardAnalytics'
 import SystemAnalytics from './pages/admin/analytics/SystemAnalytics'
@@ -101,6 +102,7 @@ import UserAnalytics from './pages/admin/analytics/UserAnalytics'
 import SystemSettings from './pages/admin/settings/SystemSettings'
 import NotificationSettings from './pages/admin/settings/NotificationSettings'
 import APISettings from './pages/admin/settings/APISettings'
+import ReportExport from './pages/admin/reports/ReportExport'
 
 const Temp = () => {
   return (
@@ -214,11 +216,12 @@ const Temp = () => {
             <Route path="create" element={<CreateSchedule />} />
             <Route path=":id/edit" element={<EditSchedule />} />
             <Route path="calendar" element={<ScheduleCalendar />} />
-          </Route>
+          </Route> 
           <Route path="reports">
             <Route index element={<ReportManagement />} />
             <Route path=":id" element={<ReportDetails />} />
             <Route path="analytics" element={<ReportAnalytics />} />
+            <Route path="export" element={<ReportExport />} />
           </Route>
           <Route path="feedback">
             <Route index element={<FeedbackManagement />} />
@@ -228,6 +231,7 @@ const Temp = () => {
           <Route path="rewards">
             <Route index element={<RewardManagement />} />
             <Route path="create" element={<CreateReward />} />
+            <Route path=":id" element={<AdminRewardDetails  />} />
             <Route path=":id/edit" element={<EditReward />} />
             <Route path="analytics" element={<RewardAnalytics />} />
           </Route>
