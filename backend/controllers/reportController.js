@@ -205,7 +205,6 @@ export const createReport = async (req, res) => {
 
 export const updateReport = async (req, res) => {
     let report = await Report.findById(req.params.id);
-
     if (!report) {
         throw new Error(`Report not found with id of ${req.params.id}`, 404);
     }
@@ -244,7 +243,7 @@ export const updateReport = async (req, res) => {
     Object.keys(fieldsToUpdate).forEach(key =>
         fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
-
+    console.log(req.files.photoAfter);
     // Process after photo if provided
     if (req.files && req.files.photoAfter) {
         const file = req.files.photoAfter;
@@ -268,7 +267,7 @@ export const updateReport = async (req, res) => {
         }
     }
 
-    await Report.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+    report = await Report.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
         new: true,
         runValidators: true
     });
