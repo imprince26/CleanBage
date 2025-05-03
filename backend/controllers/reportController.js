@@ -139,7 +139,6 @@ export const createReport = async (req, res) => {
             }
         }
 
-        // Parse JSON strings back to objects
         const wasteCategories = typeof req.body.wasteCategories === 'string' 
             ? JSON.parse(req.body.wasteCategories)
             : req.body.wasteCategories;
@@ -148,7 +147,6 @@ export const createReport = async (req, res) => {
             ? JSON.parse(req.body.weather)
             : req.body.weather;
 
-        // Create report object with all fields from model
         const reportData = {
             bin: req.body.bin,
             collector: req.user.id,
@@ -251,16 +249,6 @@ export const updateReport = async (req, res) => {
     if (req.files && req.files.photoAfter) {
         const file = req.files.photoAfter;
 
-        // Check file type
-        if (!file.mimetype.startsWith('image')) {
-            throw new Error('Please upload an image file', 400);
-        }
-
-        // Check file size
-        if (file.size > process.env.MAX_FILE_SIZE) {
-            throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
-        }
-
         try {
             // Delete previous after photo if exists
             if (report.photoAfter && report.photoAfter.public_id) {
@@ -280,7 +268,7 @@ export const updateReport = async (req, res) => {
         }
     }
 
-    report = await Report.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
+    await Report.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
         new: true,
         runValidators: true
     });

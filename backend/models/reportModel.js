@@ -167,7 +167,6 @@ const reportSchema = new mongoose.Schema({
     }
 });
 
-// Adding indexes for frequently queried fields
 reportSchema.index({ bin: 1, collectionDate: -1 });
 reportSchema.index({ collector: 1 });
 reportSchema.index({ status: 1 });

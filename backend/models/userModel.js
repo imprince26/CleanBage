@@ -86,7 +86,7 @@ const userSchema = new mongoose.Schema({
         },
         url: {
             type: String,
-            default: 'https://res.cloudinary.com/dxayfkmrn/image/upload/v1654323457/avatars/default_avatar_ztruzk.png'
+            default: ""
         }
     },
     assignedVehicle: {
