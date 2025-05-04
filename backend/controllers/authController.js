@@ -189,7 +189,7 @@ export const googleCallback = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            domain: process.env.COOKIE_DOMAIN || undefined,
+            // domain: process.env.COOKIE_DOMAIN || undefined,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -203,13 +203,7 @@ export const googleCallback = async (req, res) => {
 };
 
 export const logoutUser = async (req, res) => {
-    res.clearCookie('CleanBageToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      path: '/',
-      domain: process.env.COOKIE_DOMAIN || undefined
-    });
+   res.clearCookie('CleanBageToken');
   
     res.status(200).json({
       success: true,

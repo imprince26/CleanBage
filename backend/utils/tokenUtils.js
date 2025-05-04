@@ -1,19 +1,21 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
+dotenv.config();
 // Generate JWT
-export const generateToken = (id) => {
+const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE
     });
 };
 
-export const getCookieOptions = () => ({
+const getCookieOptions = () => ({
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-  path: '/',
-  domain: process.env.COOKIE_DOMAIN || undefined,
+  // path: '/',
+  // domain: process.env.COOKIE_DOMAIN || undefined,
 });
 
 // Send token response with cookie
