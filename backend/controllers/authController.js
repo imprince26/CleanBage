@@ -4,6 +4,16 @@ import { RewardTransaction } from '../models/rewardModel.js';
 import Notification from '../models/notificationModel.js';
 import { sendTokenResponse } from '../utils/tokenUtils.js';
 import sendEmail from '../utils/emailService.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
+// Generate JWT
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE
+    });
+};
 
 export const registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -157,15 +167,28 @@ export const loginUser = async (req, res) => {
         throw new Error('Please verify your email address', 403);
     }
 
-    // Set token in cookie and return success response
-    // const token = user.getSignedJwtToken();
-    // res.cookie('CleanBageToken', token, {
-    //     httpOnly: true,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     sameSite: 'strict',
-    //     expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
-    // });
-    sendTokenResponse(user, 200, res);
+    const token = generateToken(user._id);
+
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days,      
+      })
+
+    res.status(200).json({
+        success: true,
+        token,
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            rewardPoints: user.rewardPoints,
+            verified: user.verified
+        }
+    });
 
     // Create notification for login
     await Notification.createNotification({
