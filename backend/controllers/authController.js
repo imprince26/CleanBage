@@ -191,15 +191,13 @@ export const googleCallback = async (req, res) => {
             icon: 'google',
             read: false
         });
-        console.log(req.user);
         // Set token in cookie and return success response
         const token = req.user.getSignedJwtToken();
         console.log(token);
         res.cookie('CleanBageToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-            // domain: process.env.COOKIE_DOMAIN || undefined,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
