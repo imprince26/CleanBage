@@ -156,7 +156,16 @@ export const loginUser = async (req, res) => {
     if (!user.verified) {
         throw new Error('Please verify your email address', 403);
     }
-    sendTokenResponse(user, 200, res);
+
+    // Set token in cookie and return success response
+    const token = user.getSignedJwtToken();
+    res.cookie('CleanBageToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000)
+    });
+    // sendTokenResponse(user, 200, res);
 
     // Create notification for login
     await Notification.createNotification({
@@ -182,9 +191,10 @@ export const googleCallback = async (req, res) => {
             icon: 'google',
             read: false
         });
-
+        console.log(req.user);
         // Set token in cookie and return success response
         const token = req.user.getSignedJwtToken();
+        console.log(token);
         res.cookie('CleanBageToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

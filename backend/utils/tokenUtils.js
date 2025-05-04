@@ -20,6 +20,7 @@ const getCookieOptions = () => ({
 
 // Send token response with cookie
 export const sendTokenResponse = (user, statusCode, res) => {
+  console.log(user);
     const token = generateToken(user._id);
 
     res
