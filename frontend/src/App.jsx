@@ -82,6 +82,7 @@ import EditRoute from './pages/admin/routes/EditRoute'
 import RouteOptimization from './pages/admin/routes/RouteOptimization'
 import ScheduleManagement from './pages/admin/schedules/ScheduleManagement'
 import CreateSchedule from './pages/admin/schedules/CreateSchedule'
+import AdminScheduleDetails from './pages/admin/schedules/AdminScheduleDetails'
 import EditSchedule from './pages/admin/schedules/EditSchedule'
 import ScheduleCalendar from './pages/admin/schedules/ScheduleCalendar'
 import ReportManagement from './pages/admin/reports/ReportManagement'
@@ -214,7 +215,8 @@ const Temp = () => {
           <Route path="schedules">
             <Route index element={<ScheduleManagement />} />
             <Route path="create" element={<CreateSchedule />} />
-            <Route path=":id/edit" element={<EditSchedule />} />
+            <Route path=":id/" element={<AdminScheduleDetails />} />
+            <Route path="edit/:id" element={<EditSchedule />} />
             <Route path="calendar" element={<ScheduleCalendar />} />
           </Route>
           <Route path="reports">
