@@ -149,7 +149,7 @@ export const createSchedule = async (req, res) => {
         },
         action: {
             text: 'View Schedule',
-            url: `/collector/schedules/${schedule._id}`
+            url: `/collector/schedule/${schedule._id}`
         }
     });
     

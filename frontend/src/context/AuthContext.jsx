@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import api from '@/utils/api';
+import { set } from 'date-fns';
 
 const AuthContext = createContext();
 
@@ -14,32 +15,50 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let mounted = true;
+    // let mounted = true;
 
+    // const checkAuth = async () => {
+    //   try {
+    //     const response = await api.get('/auth/me');
+    //     if (mounted) {
+    //       setUser(response.data.user);
+    //       setIsAuthenticated(true);
+    //     }
+    //   } catch (error) {
+    //     if (mounted) {
+    //       setUser(null);
+    //       setIsAuthenticated(false);
+    //     }
+    //   } finally {
+    //     if (mounted) {
+    //       setLoading(false);
+    //     }
+    //   }
+    // };
     const checkAuth = async () => {
+      setLoading(true);
       try {
         const response = await api.get('/auth/me');
-        if (mounted) {
+        if(response.data.success){
+          
           setUser(response.data.user);
           setIsAuthenticated(true);
         }
       } catch (error) {
-        if (mounted) {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        
+        setUser(null);
+        setIsAuthenticated(false);
+      }finally{
+
+        setLoading(false);
       }
-    };
+    }
 
     checkAuth();
 
-    return () => {
-      mounted = false;
-    };
+    // return () => {
+    //   mounted = false;
+    // };
 }, []);
   
   const login = async (credentials) => {

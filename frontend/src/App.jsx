@@ -53,6 +53,7 @@ import CollectorDashboard from './pages/collector/CollectorDashboard'
 import ActiveRoutes from './pages/collector/ActiveRoutes'
 import RouteDetails from './pages/collector/RouteDetails'
 import CollectionSchedule from './pages/collector/CollectionSchedule'
+import CollectorScheduleDetails from './pages/collector/CollectorScheduleDetails'
 import BinDetails from './pages/collector/BinDetails'
 import SubmitReport from './pages/collector/SubmitReport'
 import ReportHistory from './pages/collector/ReportHistory'
@@ -173,6 +174,7 @@ const Temp = () => {
           <Route path="schedule">
             <Route index element={<CollectionSchedule />} />
             <Route path="calendar" element={<CollectorCalendar />} />
+            <Route path=":id" element={<CollectorScheduleDetails />} />
           </Route>
           <Route path="bins">
             <Route index element={<AssignedBins />} />
@@ -250,11 +252,12 @@ const Temp = () => {
           </Route>
         </Route>
 
+      </Route>
+      
         {/* Error Routes */}
         <Route path="/error" element={<ErrorPage />} />
         <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="*" element={<NotFound />} />
-      </Route>
     </Routes>
   )
 }

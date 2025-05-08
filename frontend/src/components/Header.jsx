@@ -61,7 +61,7 @@ import api from "@/utils/api";
 import format from "date-fns/format";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const {  logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -69,15 +69,39 @@ export function Header() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const location = useLocation();
 
-  // Fetch notifications when user is logged in
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
+
+
+ const checkAuth = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/auth/me");
+      setUser(response.data.user);
+    } catch (error) {
+      setUser(null);
+    }finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+   // Fetch notifications when user is logged in
+  useEffect(() => {
+    const fetchUserNotifications = async () => {
+      if (user) {
+        await fetchNotifications();
+      }
+    };
+    fetchUserNotifications();
   }, [user]);
+
 
   const fetchNotifications = async () => {
     try {
@@ -170,6 +194,14 @@ export function Header() {
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Help Center", href: "/help", icon: HelpCircle },
   ];
+
+    // if(loading){
+  //   return (
+  //     <div className="w-full h-screen flex items-center justify-center">
+  //       <Loader2 className="animate-spin" />
+  //     </div>
+  //   );
+  // }
 
   return (
     <header
