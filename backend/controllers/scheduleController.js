@@ -182,13 +182,19 @@ export const updateSchedule = async (req, res) => {
         status: req.body.status,
         priority: req.body.priority,
         estimatedFillLevel: req.body.estimatedFillLevel,
-        route: req.body.route,
         recurrence: req.body.recurrence,
         recurrenceEndDate: req.body.recurrenceEndDate,
         notes: req.body.notes,
         isOptimized: req.body.isOptimized,
         updatedBy: req.user.id
     };
+
+    // Handle route field separately
+    if (req.body.route && req.body.route !== '') {
+        fieldsToUpdate.route = req.body.route;
+    } else {
+        fieldsToUpdate.route = null; // Set to null if empty or not provided
+    }
     
     // Remove undefined fields
     Object.keys(fieldsToUpdate).forEach(key => 

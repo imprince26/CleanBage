@@ -9,15 +9,7 @@ const generateToken = (id) => {
     });
 };
 
-const getCookieOptions = {
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-}
-
 // Send token response with cookie
-console.log(getCookieOptions);
 export const sendTokenResponse = (user, statusCode, res) => {
     const token = generateToken(user._id);
     res
