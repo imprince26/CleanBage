@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Settings, 
-  Clock, 
-  Info, 
-  AlertTriangle, 
-  Mail, 
-  ArrowLeft, 
+import {
+  Settings,
+  Clock,
+  Info,
+  AlertTriangle,
+  Mail,
+  ArrowLeft,
   RefreshCcw,
   Construction,
   Server
@@ -23,7 +23,7 @@ const MaintenancePage = () => {
     minutes: 0,
     seconds: 0
   });
-  
+
   const [progress, setProgress] = useState(0);
   const maintenanceInfo = {
     startTime: "10:00 AM GMT+5:30",
@@ -50,7 +50,7 @@ const MaintenancePage = () => {
           clearInterval(timer);
           return prev;
         }
-        
+
         let newHours = prev.hours;
         let newMinutes = prev.minutes;
         let newSeconds = prev.seconds - 1;
