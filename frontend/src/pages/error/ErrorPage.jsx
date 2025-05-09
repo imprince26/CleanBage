@@ -65,16 +65,14 @@ const ErrorPage = ({ error, resetError }) => {
     <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-6 lg:p-8">
       <Card className="w-full max-w-2xl mx-auto shadow-lg">
         <CardHeader className="text-center space-y-4 pb-6">
-          <div className={`mx-auto w-fit p-4 rounded-full transition-colors ${
-            errorDetails.variant === 'warning' 
-              ? 'bg-yellow-50 dark:bg-yellow-900/20' 
+          <div className={`mx-auto w-fit p-4 rounded-full transition-colors ${errorDetails.variant === 'warning'
+              ? 'bg-yellow-50 dark:bg-yellow-900/20'
               : 'bg-destructive/10 dark:bg-destructive/20'
-          }`}>
-            <Icon className={`h-10 w-10 sm:h-12 sm:w-12 transition-colors ${
-              errorDetails.variant === 'warning'
+            }`}>
+            <Icon className={`h-10 w-10 sm:h-12 sm:w-12 transition-colors ${errorDetails.variant === 'warning'
                 ? 'text-yellow-600 dark:text-yellow-500'
                 : 'text-destructive'
-            }`} />
+              }`} />
           </div>
           <div className="space-y-2">
             <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight">
