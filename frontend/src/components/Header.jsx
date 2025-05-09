@@ -61,7 +61,7 @@ import api from "@/utils/api";
 import format from "date-fns/format";
 
 export function Header() {
-  const {  logout } = useAuth();
+  const { logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -76,14 +76,14 @@ export function Header() {
 
 
 
- const checkAuth = async () => {
+  const checkAuth = async () => {
     setLoading(true);
     try {
       const response = await api.get("/auth/me");
       setUser(response.data.user);
     } catch (error) {
       setUser(null);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -92,7 +92,7 @@ export function Header() {
     checkAuth();
   }, []);
 
-   // Fetch notifications when user is logged in
+  // Fetch notifications when user is logged in
   useEffect(() => {
     const fetchUserNotifications = async () => {
       if (user) {
@@ -195,7 +195,7 @@ export function Header() {
     { name: "Help Center", href: "/help", icon: HelpCircle },
   ];
 
-    // if(loading){
+  // if(loading){
   //   return (
   //     <div className="w-full h-screen flex items-center justify-center">
   //       <Loader2 className="animate-spin" />
