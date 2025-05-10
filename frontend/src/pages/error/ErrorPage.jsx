@@ -32,7 +32,6 @@ const ErrorPage = ({ error, resetError }) => {
     return '/resident/dashboard';
   };
 
-  // Get error details based on error props
   const getErrorDetails = () => {
     if (error?.status === 404 || error?.message?.includes('not found')) {
       return {
