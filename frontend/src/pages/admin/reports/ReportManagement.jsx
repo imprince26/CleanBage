@@ -402,7 +402,7 @@ const ReportManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>#{report.bin.binId}</TableCell>
-                      <TableCell 
+                      <TableCell
                         className="max-w-[200px] truncate"
                         title={formatAddress(report.bin.location)}
                       >
