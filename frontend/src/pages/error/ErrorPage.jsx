@@ -24,7 +24,6 @@ const ErrorPage = ({ error, resetError }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Determine where to redirect based on user role
   const getHomeLink = () => {
     if (!user) return '/';
     if (user.role === 'garbage_collector') return '/collector/dashboard';
