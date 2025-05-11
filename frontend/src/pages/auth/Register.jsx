@@ -14,13 +14,15 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Icons } from "@/components/Icons"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-hot-toast"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Register() {
     const { register, initiateGoogleAuth, setToken } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const location = useLocation()
     const navigate = useNavigate()
 
@@ -73,6 +75,15 @@ export default function Register() {
         }
     }
 
+    const handlePasswordVisibility = (e) => {
+        e.preventDefault()
+        setShowPassword(!showPassword)
+    }
+    const handleConfirmPasswordVisibility = (e) => {
+        e.preventDefault()
+        setShowConfirmPassword(!showConfirmPassword)
+    }
+
     return (
         <div className="container relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8">
             <div className="w-full max-w-md space-y-6">
@@ -119,7 +130,13 @@ export default function Register() {
                                         <FormItem>
                                             <FormLabel>Password</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Create a password" {...field} />
+                                                <div className="relative">
+                                                    
+                                                <Input type={showPassword ? "text" : "password"} placeholder="Create a password" {...field} />
+
+                                                <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handlePasswordVisibility}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -132,7 +149,12 @@ export default function Register() {
                                         <FormItem>
                                             <FormLabel>Confirm Password</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Confirm your password" {...field} />
+                                                <div className="relative">
+
+                                                <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm your password" {...field} />
+                                                <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handleConfirmPasswordVisibility}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
