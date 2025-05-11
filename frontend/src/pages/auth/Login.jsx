@@ -71,6 +71,10 @@ export default function Login() {
       setIsLoading(false)
     }
   }
+  const handleTogglePassword = (e) => {
+    e.preventDefault()
+    setShowPassword(!showPassword)
+  }
 
   return (
     <div className="container relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -107,7 +111,7 @@ export default function Login() {
                       <FormControl>
                         <div className="relative">
                         <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" {...field} />
-                        <Button  className="absolute right-0 top-1/2 transform -translate-y-1/2" onClick={() => setShowPassword(!showPassword)}>
+                        <Button variant="ghost"  className="absolute right-0 top-1/2 transform -translate-y-1/2" onClick={handleTogglePassword}>
                           {showPassword ? (
                             <EyeOff className="absolute right-2 top-1/2 transform -translate-y-1/2" />
                           ) : (
