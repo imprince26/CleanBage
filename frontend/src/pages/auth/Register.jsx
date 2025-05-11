@@ -56,7 +56,7 @@ export default function Register() {
         try {
             await register(values)
             toast.success("Verification email sent! Please check your inbox.")
-           form.reset()
+            form.reset()
         } catch (error) {
             toast.error(error.message || "Registration failed. Please try again.")
         } finally {
@@ -131,11 +131,11 @@ export default function Register() {
                                             <FormLabel>Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
-                                                    
-                                                <Input type={showPassword ? "text" : "password"} placeholder="Create a password" {...field} />
 
-                                                <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handlePasswordVisibility}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </Button>
+                                                    <Input type={showPassword ? "text" : "password"} placeholder="Create a password" {...field} />
+
+                                                    <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handlePasswordVisibility}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
                                                 </div>
                                             </FormControl>
                                             <FormMessage />
@@ -151,9 +151,9 @@ export default function Register() {
                                             <FormControl>
                                                 <div className="relative">
 
-                                                <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm your password" {...field} />
-                                                <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handleConfirmPasswordVisibility}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </Button>
+                                                    <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm your password" {...field} />
+                                                    <Button variant="ghost" className="absolute right-0 top-1/2 -translate-y-1/2" onClick={handleConfirmPasswordVisibility}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
                                                 </div>
                                             </FormControl>
                                             <FormMessage />
