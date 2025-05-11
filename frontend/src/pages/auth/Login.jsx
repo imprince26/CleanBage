@@ -110,14 +110,14 @@ export default function Login() {
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <div className="relative">
-                        <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" {...field} />
-                        <Button variant="ghost"  className="absolute right-0 top-1/2 transform -translate-y-1/2" onClick={handleTogglePassword}>
-                          {showPassword ? (
-                            <EyeOff className="absolute right-2 top-1/2 transform -translate-y-1/2" />
-                          ) : (
-                            <Eye className="absolute right-2 top-1/2 transform -translate-y-1/2" />
-                          )}
-                        </Button>
+                          <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" {...field} />
+                          <Button variant="ghost" className="absolute right-0 top-1/2 transform -translate-y-1/2" onClick={handleTogglePassword}>
+                            {showPassword ? (
+                              <EyeOff className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+                            ) : (
+                              <Eye className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+                            )}
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />
