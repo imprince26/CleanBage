@@ -16,10 +16,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-hot-toast"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function Login() {
   const { login, initiateGoogleAuth } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const location = useLocation()
   const navigate = useNavigate()
 
   const form = useForm({
@@ -102,7 +105,16 @@ export default function Login() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Enter your password" {...field} />
+                        <div className="relative">
+                        <Input type={showPassword ? "text" : "password"} placeholder="Enter your password" {...field} />
+                        <Button  className="absolute right-0 top-1/2 transform -translate-y-1/2" onClick={() => setShowPassword(!showPassword)}>
+                          {showPassword ? (
+                            <EyeOff className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+                          ) : (
+                            <Eye className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+                          )}
+                        </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
