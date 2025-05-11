@@ -159,7 +159,7 @@ export default function Register() {
                             </div>
                         </div>
                         <Button variant="outline" className="w-full" onClick={handleGoogleAuth} disabled={isLoading}>
-                            <Icons.google className="mr-2 h-4 w-4" />
+                            <img src="/google.svg" alt="Google" className="mr-2 h-4 w-4" />
                             Google
                         </Button>
                         <p className="px-8 text-center text-sm text-muted-foreground">

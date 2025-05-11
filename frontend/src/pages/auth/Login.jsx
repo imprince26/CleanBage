@@ -14,14 +14,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Icons } from "@/components/Icons"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-hot-toast"
 
 export default function Login() {
   const { login, initiateGoogleAuth } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
-  const location = useLocation()
   const navigate = useNavigate()
 
   const form = useForm({
@@ -136,7 +134,7 @@ export default function Login() {
               </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleAuth} disabled={isLoading}>
-              <Icons.google className="mr-2 h-4 w-4" />
+              <img src="/google.svg" alt="Google" className="mr-1 h-4 w-4" />
               Google
             </Button>
             <p className="px-8 text-center text-sm text-muted-foreground">
