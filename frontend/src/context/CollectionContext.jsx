@@ -7,163 +7,163 @@ const CollectionContext = createContext();
 export const useCollection = () => useContext(CollectionContext);
 
 export function CollectionProvider({ children }) {
-    const [collections, setCollections] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [collections, setCollections] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // Get all collections with pagination and filters
-    const getCollections = async (params = {}) => {
-        try {
-            const { data } = await api.get('/collections', { params });
-            setCollections(data.data);
-            return data;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error fetching collections');
-            return null;
-        } finally {
-            setLoading(false);
-        }
-    };
+  // Get all collections with pagination and filters
+  const getCollections = async (params = {}) => {
+    try {
+      const { data } = await api.get('/collections', { params });
+      setCollections(data.data);
+      return data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error fetching collections');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Get single collection by ID
-    const getCollection = async (id) => {
-        try {
-            const { data } = await api.get(`/collections/${id}`);
-            return data.data;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error fetching collection');
-            return null;
-        }
-    };
+  // Get single collection by ID
+  const getCollection = async (id) => {
+    try {
+      const { data } = await api.get(`/collections/${id}`);
+      return data.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error fetching collection');
+      return null;
+    }
+  };
 
-    // Create new collection
-    const createCollection = async (collectionData) => {
-        try {
-          const { data } = await api.post('/collections', collectionData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            },
-            onUploadProgress: (progressEvent) => {
-              const percentCompleted = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-            }
-          });
-          
-          setCollections((prev) => [...prev, data.data]);
-          toast.success('Collection reported successfully');
-          return data.data;
-        } catch (error) {
-          console.error('Error creating collection:', error);
-          throw error; // Rethrow to handle in the component
+  // Create new collection
+  const createCollection = async (collectionData) => {
+    try {
+      const { data } = await api.post('/collections', collectionData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
         }
-      };
+      });
 
-    // Update collection
-    const updateCollection = async (id, updateData) => {
-        try {
-            const { data } = await api.put(`/collections/${id}`, updateData);
-            setCollections(collections.map(c => c._id === id ? data.data : c));
-            toast.success('Collection updated successfully');
-            return data.data;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error updating collection');
-            return null;
-        }
-    };
+      setCollections((prev) => [...prev, data.data]);
+      toast.success('Collection reported successfully');
+      return data.data;
+    } catch (error) {
+      console.error('Error creating collection:', error);
+      throw error; // Rethrow to handle in the component
+    }
+  };
 
-    // Delete collection
-    const deleteCollection = async (id) => {
-        try {
-            await api.delete(`/collections/${id}`);
-            setCollections(collections.filter(c => c._id !== id));
-            toast.success('Collection deleted successfully');
-            return true;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error deleting collection');
-            return false;
-        }
-    };
+  // Update collection
+  const updateCollection = async (id, updateData) => {
+    try {
+      const { data } = await api.put(`/collections/${id}`, updateData);
+      setCollections(collections.map(c => c._id === id ? data.data : c));
+      toast.success('Collection updated successfully');
+      return data.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error updating collection');
+      return null;
+    }
+  };
 
-    // Assign collector to collection
-    const assignCollector = async (id, collectorId) => {
-        try {
-            const { data } = await api.put(`/collections/${id}/assign`, { collectorId });
-            setCollections(collections.map(c => c._id === id ? data.data : c));
-            toast.success('Collector assigned successfully');
-            return data.data;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error assigning collector');
-            return null;
-        }
-    };
+  // Delete collection
+  const deleteCollection = async (id) => {
+    try {
+      await api.delete(`/collections/${id}`);
+      setCollections(collections.filter(c => c._id !== id));
+      toast.success('Collection deleted successfully');
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error deleting collection');
+      return false;
+    }
+  };
 
-    // Get nearby collections
-    const getNearbyCollections = async (coordinates, distance, wasteType) => {
-        console.log("getNearbyCollections called with:", { coordinates, distance, wasteType });
-        try {
-          const { data } = await api.get('/collections/nearby', {
-            params: {
-              longitude: coordinates[0],
-              latitude: coordinates[1],
-              distance,
-              wasteType: wasteType ? wasteType : undefined
-            }
-          });
-    
-          if (!data || !Array.isArray(data.data)) {
-            throw new Error("Invalid response format from API");
-          }
-    
-          return data.data;
-        } catch (error) {
-          console.error("Error in getNearbyCollections:", error.response?.data || error.message);
-          toast.error(error.response?.data?.message || 'Error fetching nearby collections');
-          return [];
-        }
-      };
+  // Assign collector to collection
+  const assignCollector = async (id, collectorId) => {
+    try {
+      const { data } = await api.put(`/collections/${id}/assign`, { collectorId });
+      setCollections(collections.map(c => c._id === id ? data.data : c));
+      toast.success('Collector assigned successfully');
+      return data.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error assigning collector');
+      return null;
+    }
+  };
 
-    // Get collection statistics
-    const getCollectionStats = async () => {
-        try {
-            const { data } = await api.get('/collections/stats');
-            return data.data;
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error fetching collection stats');
-            return null;
+  // Get nearby collections
+  const getNearbyCollections = async (coordinates, distance, wasteType) => {
+    console.log("getNearbyCollections called with:", { coordinates, distance, wasteType });
+    try {
+      const { data } = await api.get('/collections/nearby', {
+        params: {
+          longitude: coordinates[0],
+          latitude: coordinates[1],
+          distance,
+          wasteType: wasteType ? wasteType : undefined
         }
-    };
-    const submitComplaint = async (id, complaintData) => {
-      try {
-        const { data } = await api.post(`/collections/${id}/complaint`, complaintData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-        toast.success('Complaint submitted successfully');
-        return data.data;
-      } catch (error) {
-        toast.error(error.response?.data?.message || 'Error submitting complaint');
-        return null;
+      });
+
+      if (!data || !Array.isArray(data.data)) {
+        throw new Error("Invalid response format from API");
       }
-    };
 
-    const value = {
-        collections,
-        loading,
-        getCollections,
-        getCollection,
-        createCollection,
-        updateCollection,
-        deleteCollection,
-        assignCollector,
-        getNearbyCollections,
-        getCollectionStats,
-        submitComplaint
-    };
+      return data.data;
+    } catch (error) {
+      console.error("Error in getNearbyCollections:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || 'Error fetching nearby collections');
+      return [];
+    }
+  };
 
-    return (
-        <CollectionContext.Provider value={value}>
-            {children}
-        </CollectionContext.Provider>
-    );
+  // Get collection statistics
+  const getCollectionStats = async () => {
+    try {
+      const { data } = await api.get('/collections/stats');
+      return data.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error fetching collection stats');
+      return null;
+    }
+  };
+  const submitComplaint = async (id, complaintData) => {
+    try {
+      const { data } = await api.post(`/collections/${id}/complaint`, complaintData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      toast.success('Complaint submitted successfully');
+      return data.data;
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error submitting complaint');
+      return null;
+    }
+  };
+
+  const value = {
+    collections,
+    loading,
+    getCollections,
+    getCollection,
+    createCollection,
+    updateCollection,
+    deleteCollection,
+    assignCollector,
+    getNearbyCollections,
+    getCollectionStats,
+    submitComplaint
+  };
+
+  return (
+    <CollectionContext.Provider value={value}>
+      {children}
+    </CollectionContext.Provider>
+  );
 }
