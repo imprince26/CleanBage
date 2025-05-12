@@ -25,7 +25,6 @@ export function UserProvider({ children }) {
     }
   };
 
-  // Get single user by ID
   const getUser = async (id) => {
     try {
       const { data } = await api.get(`/users/${id}`);
