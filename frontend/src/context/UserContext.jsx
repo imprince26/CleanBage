@@ -11,7 +11,6 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
 
-  // Get all users with pagination and filters
   const getUsers = async (params = {}) => {
     setLoading(true);
     try {
