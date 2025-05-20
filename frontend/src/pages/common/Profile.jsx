@@ -163,11 +163,9 @@ const Profile = () => {
     try {
       const formData = new FormData();
       formData.append("avatar", avatar);
-      await uploadAvatar(user._id, avatar);
-      console.log(avatar);
-      // const formData = new FormData();
-      // formData.append("avatar", avatar);
-      // await updateProfile(formData);
+      await uploadAvatar(user._id, formData);
+      setAvatar(null);
+      setAvatarPreview(user?.avatar?.url);
 
       setUploadProgress(100);
       toast.success("Avatar updated successfully");

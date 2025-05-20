@@ -75,21 +75,18 @@ export function UserProvider({ children }) {
   };
 
   // Upload avatar
-  const uploadAvatar = async (id, file) => {
+  const uploadAvatar = async (id, formData) => {
     try {
-      const formData = new FormData();
-      formData.append('avatar', file);
       const { data } = await api.put(`/users/${id}/avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
-      setUsers(users.map(user => user._id === id ? data.data : user));
+      setUsers(users.map(user => user._id === id ? { ...user, avatar: data.data.avatar } : user));
       toast.success('Avatar uploaded successfully');
       return data.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error uploading avatar');
+      toast.error(error.response?.data?.message || 'Error uploading avatar gg');
       return null;
     }
   };

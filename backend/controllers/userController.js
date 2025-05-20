@@ -221,34 +221,36 @@ export const uploadAvatar = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        throw new Error(`User not found with id of ${req.params.id}`, 404);
+        return res.status(404).json({
+            success: false,
+            message: `User not found with id of ${req.params.id}`
+        });
     }
 
-    if (!req.files || !req.files.avatar) {
-        throw new Error('Please upload a file', 400);
+    if (!req.file ) {
+        return res.status(400).json({
+            success: false,
+            message: 'Please upload an image file'
+        });
     }
 
-    const file = req.files.avatar;
+    const file = req.file;
 
-    // Check file type
-    if (!file.mimetype.startsWith('image')) {
-        throw new Error('Please upload an image file', 400);
-    }
-
-    // Check file size
-    if (file.size > process.env.MAX_FILE_SIZE) {
-        throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
-    }
+   
 
     try {
         // Delete previous avatar if exists
         if (user.avatar.public_id) {
             await deleteImage(user.avatar.public_id);
         }
+        console.log(file);
 
         // Upload to cloudinary
         const result = await uploadImage(file, 'cleanbage/avatars');
-
+        console.log('Cloudinary upload result:', result);
+        if (!result || !result.secure_url) {
+            throw new Error('Failed to upload image to Cloudinary', 500);
+        }
         // Update user avatar
         user.avatar = {
             public_id: result.public_id,
