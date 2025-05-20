@@ -262,8 +262,8 @@ const Profile = () => {
 
         <TabsContent value="overview" className="space-y-8">
           {/* Profile Overview */}
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="col-span-1">
+          <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-3">
+            <Card className="md:col-span-1 col-span-2 space-y-6">
               <CardHeader className="text-center">
                 <div className="relative w-32 h-32 mx-auto">
                   <img
@@ -405,9 +405,9 @@ const Profile = () => {
             </Card>
 
             {/* Achievement Cards */}
-            <div className="col-span-2 space-y-6">
+            <div className="col-span-2 md:col-span-2 space-y-6">
               <h3 className="text-lg font-semibold">Recent Achievements</h3>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {achievements.map((achievement) => (
                   <Card key={achievement.title}>
                     <CardHeader>
@@ -425,7 +425,7 @@ const Profile = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Progress</span>
-                          <span>{achievement.progress}%</span>
+                          <span>{achievement.progress.toPrecision(2)}%</span>
                         </div>
                         <Progress value={achievement.progress} className="h-2" />
                       </div>
