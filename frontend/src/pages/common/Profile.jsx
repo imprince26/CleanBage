@@ -254,7 +254,7 @@ const Profile = () => {
   return (
     <div className="container py-8 space-y-8">
       <Tabs defaultValue="overview" className="space-y-8">
-        <TabsList>
+        <TabsList className="grid md:max-w-2xl md:mx-auto w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="edit">Edit Profile</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
@@ -438,7 +438,7 @@ const Profile = () => {
         </TabsContent>
 
         <TabsContent value="edit">
-          <Card>
+          <Card className="mx-auto max-w-2xl">
             <CardHeader>
               <CardTitle>Edit Profile</CardTitle>
               <CardDescription>
