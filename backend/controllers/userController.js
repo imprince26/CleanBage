@@ -227,7 +227,7 @@ export const uploadAvatar = async (req, res) => {
         });
     }
 
-    if (!req.file ) {
+    if (!req.file) {
         return res.status(400).json({
             success: false,
             message: 'Please upload an image file'
@@ -236,7 +236,7 @@ export const uploadAvatar = async (req, res) => {
 
     const file = req.file;
 
-   
+
 
     try {
         // Delete previous avatar if exists
