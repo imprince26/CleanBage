@@ -142,12 +142,10 @@ export function AuthProvider({ children }) {
     }
   };
   const initiateGoogleAuth = () => {
-    // Use the full Google OAuth URL with all required parameters
     const googleAuthUrl = `${import.meta.env.VITE_API_URL}/auth/google`;
     window.location.href = googleAuthUrl;
   };
 
-  // Update the Google callback handler
   const handleGoogleCallback = async (code) => {
     try {
       const { data } = await api.get(`/auth/google/callback?code=${code}`);
