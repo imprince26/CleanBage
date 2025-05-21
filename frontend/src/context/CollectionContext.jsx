@@ -122,7 +122,6 @@ export function CollectionProvider({ children }) {
     }
   };
 
-  // Get collection statistics
   const getCollectionStats = async () => {
     try {
       const { data } = await api.get('/collections/stats');
