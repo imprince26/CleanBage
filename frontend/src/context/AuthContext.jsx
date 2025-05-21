@@ -39,16 +39,16 @@ export function AuthProvider({ children }) {
       setLoading(true);
       try {
         const response = await api.get('/auth/me');
-        if(response.data.success){
-          
+        if (response.data.success) {
+
           setUser(response.data.user);
           setIsAuthenticated(true);
         }
       } catch (error) {
-        
+
         setUser(null);
         setIsAuthenticated(false);
-      }finally{
+      } finally {
 
         setLoading(false);
       }
@@ -59,8 +59,8 @@ export function AuthProvider({ children }) {
     // return () => {
     //   mounted = false;
     // };
-}, []);
-  
+  }, []);
+
   const login = async (credentials) => {
     try {
       const { data } = await api.post('/auth/login', credentials);
