@@ -15,26 +15,6 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // let mounted = true;
-
-    // const checkAuth = async () => {
-    //   try {
-    //     const response = await api.get('/auth/me');
-    //     if (mounted) {
-    //       setUser(response.data.user);
-    //       setIsAuthenticated(true);
-    //     }
-    //   } catch (error) {
-    //     if (mounted) {
-    //       setUser(null);
-    //       setIsAuthenticated(false);
-    //     }
-    //   } finally {
-    //     if (mounted) {
-    //       setLoading(false);
-    //     }
-    //   }
-    // };
     const checkAuth = async () => {
       setLoading(true);
       try {
@@ -55,10 +35,6 @@ export function AuthProvider({ children }) {
     }
 
     checkAuth();
-
-    // return () => {
-    //   mounted = false;
-    // };
   }, []);
 
   const login = async (credentials) => {
