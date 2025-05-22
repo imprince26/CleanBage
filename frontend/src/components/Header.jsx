@@ -184,7 +184,6 @@ export function Header() {
     return roleNavigation[user.role] || [];
   };
 
-  // User menu always available to logged in users
   const userMenuItems = [
     { name: "View Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
