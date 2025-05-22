@@ -191,13 +191,13 @@ export function Header() {
     { name: "Help Center", href: "/help", icon: HelpCircle },
   ];
 
-  // if(loading){
-  //   return (
-  //     <div className="w-full h-screen flex items-center justify-center">
-  //       <Loader2 className="animate-spin" />
-  //     </div>
-  //   );
-  // }
+  if(loading){
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <header
