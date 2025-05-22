@@ -138,7 +138,6 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Public navigation for visitors
   const publicNavigation = [
     { name: "About", href: "/about", description: "Learn about our mission" },
     { name: "Services", href: "/services", description: "Our waste management services" },
