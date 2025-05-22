@@ -71,10 +71,7 @@ export function Header() {
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const location = useLocation();
-
-
 
   const checkAuth = async () => {
     setLoading(true);
