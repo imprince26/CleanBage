@@ -41,7 +41,7 @@ const Leaderboard = () => {
         console.log("Leaderboard data:", response.data);
         if (response.data) {
           setLeaderboard(response.data.data);
-          
+
           // Find user's rank
           const userIndex = response.data.data.findIndex(
             (leader) => leader._id === user?._id
@@ -74,7 +74,7 @@ const Leaderboard = () => {
 
   const getPointsChange = (change) => {
     if (!change) return null;
-    
+
     if (change > 0) {
       return (
         <span className="flex items-center text-green-500 text-sm">
@@ -90,7 +90,7 @@ const Leaderboard = () => {
         </span>
       );
     }
-    
+
     return (
       <span className="flex items-center text-gray-500 text-sm">
         <Minus className="h-4 w-4" />
@@ -145,11 +145,10 @@ const Leaderboard = () => {
           {leaderboard.map((leader, index) => (
             <Card
               key={leader._id}
-              className={`${
-                leader._id === user?._id
+              className={`${leader._id === user?._id
                   ? "bg-primary/5 border-primary/20"
                   : ""
-              }`}
+                }`}
             >
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
