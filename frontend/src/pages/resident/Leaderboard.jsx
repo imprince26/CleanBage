@@ -24,6 +24,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
 
 const Leaderboard = () => {
   const { user } = useAuth();
@@ -36,14 +37,16 @@ const Leaderboard = () => {
     const fetchLeaderboard = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/users/leaderboard?timeframe=${timeframe}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setLeaderboard(data.data);
-          // Find current user's rank
-          const rank = data.data.findIndex((u) => u._id === user?._id) + 1;
-          setUserRank(rank > 0 ? rank : null);
+        const response = await api.get(`users/leaderboard/?limit=10`);
+        console.log("Leaderboard data:", response.data);
+        if (response.data) {
+          setLeaderboard(response.data.data);
+          
+          // Find user's rank
+          const userIndex = response.data.data.findIndex(
+            (leader) => leader._id === user?._id
+          );
+          setUserRank(userIndex !== -1 ? userIndex + 1 : null);
         }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
