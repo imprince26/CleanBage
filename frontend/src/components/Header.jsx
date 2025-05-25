@@ -43,7 +43,8 @@ import {
   TreeDeciduous,
   LineChart,
   Activity,
-  Shield
+  Shield,
+  Truck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +90,6 @@ export function Header() {
     checkAuth();
   }, []);
 
-  // Fetch notifications when user is logged in
   useEffect(() => {
     const fetchUserNotifications = async () => {
       if (user) {
@@ -98,7 +98,6 @@ export function Header() {
     };
     fetchUserNotifications();
   }, [user]);
-
 
   const fetchNotifications = async () => {
     try {
@@ -138,59 +137,193 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const publicNavigation = [
-    { name: "About", href: "/about", description: "Learn about our mission" },
-    { name: "Services", href: "/services", description: "Our waste management services" },
-    { name: "Contact", href: "/contact", description: "Get in touch with us" },
-    { name: "FAQ", href: "/faq", description: "Frequently asked questions" },
+  const publicNavLinks = [
+    { name: "About", href: "/about", icon: User, description: "Learn about our mission" },
+    { name: "Services", href: "/services", icon: Gift, description: "Our services" },
+    { name: "Contact", href: "/contact", icon: MessageSquare, description: "Get in touch" },
+    { name: "FAQ", href: "/faq", icon: HelpCircle, description: "Common questions" },
   ];
 
-  // Navigation links based on user role
-  const roleNavigation = {
-    resident: [
-      { name: "Dashboard", href: "/resident/dashboard", icon: LayoutDashboard, description: "Your overview" },
-      { name: "Report Bin", href: "/resident/report-bin", icon: Bell, description: "Report waste issues" },
-      { name: "Bin Map", href: "/resident/bin-map", icon: Map, description: "Find nearby bins" },
-      { name: "Rewards", href: "/resident/rewards", icon: Gift, description: "View available rewards", badge: "New" },
-      { name: "Leaderboard", href: "/resident/leaderboard", icon: Trophy, description: "Community rankings" },
-      { name: "Feedback", href: "/resident/feedback", icon: MessageSquare, description: "Share your thoughts" },
-      { name: "Schedule", href: "/resident/schedule", icon: Calendar, description: "Collection schedule" },
-      { name: "Impact", href: "/resident/impact", icon: TreeDeciduous, description: "Environmental impact" },
-      { name: "Education", href: "/resident/education", icon: Book, description: "Waste management guides" },
-    ],
-    garbage_collector: [
-      { name: "Dashboard", href: "/collector/dashboard", icon: LayoutDashboard, description: "Your overview" },
-      { name: "Active Routes", href: "/collector/routes", icon: Route, description: "View assigned routes" },
-      { name: "Schedule", href: "/collector/schedule", icon: Calendar, description: "Your collection schedule" },
-      { name: "Reports", href: "/collector/reports", icon: FileText, description: "Collection reports" },
-      { name: "Performance", href: "/collector/performance", icon: Activity, description: "Your performance" },
-      { name: "Safety", href: "/collector/safety", icon: Shield, description: "Safety guidelines" },
-    ],
-    admin: [
-      { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, description: "System overview" },
-      { name: "Users", href: "/admin/users", icon: Users, description: "Manage users" },
-      { name: "Bins", href: "/admin/bins", icon: Trash2, description: "Manage bins" },
-      { name: "Routes", href: "/admin/routes", icon: Route, description: "Plan routes" },
-      { name: "Reports", href: "/admin/reports", icon: FileText, description: "View reports" },
-      { name: "Analytics", href: "/admin/analytics", icon: LineChart, description: "System analytics" },
-      { name: "Settings", href: "/admin/settings", icon: Settings, description: "System settings" },
-      { name: "Rewards", href: "/admin/rewards", icon: Gift, description: "Manage rewards" },
-      { name: "Support", href: "/admin/support", icon: HelpCircle, description: "Support portal" },
-    ],
-  };
+  const residentNavLinks = [
+    { name: "Dashboard", href: "/resident/dashboard", icon: LayoutDashboard },
+    { name: "Report Bin", href: "/resident/report-bin", icon: AlertTriangle },
+    { name: "Bin Map", href: "/resident/bin-map", icon: Map },
+    { name: "Collections", href: "/resident/collections", icon: Truck },
+    {
+      name: "Rewards",
+      href: "/resident/rewards",
+      icon: Gift,
+      children: [
+        { name: "Reward Store", href: "/resident/rewards" },
+        { name: "Reward History", href: "/resident/rewards/history" },
+      ],
+    },
+    { name: "Leaderboard", href: "/resident/leaderboard", icon: Trophy },
+    {
+      name: "Feedback",
+      href: "/resident/feedback",
+      icon: MessageSquare,
+      children: [
+        { name: "Submit Feedback", href: "/resident/feedback" },
+        { name: "Feedback History", href: "/resident/feedback/history" },
+      ],
+    },
+    { name: "Schedule", href: "/resident/schedule", icon: Calendar },
+    { name: "Environmental Impact", href: "/resident/impact", icon: TreeDeciduous },
+    { name: "Education", href: "/resident/education", icon: Book },
+  ];
+
+  const collectorNavLinks = [
+    { name: "Dashboard", href: "/collector/dashboard", icon: LayoutDashboard },
+    {
+      name: "Routes",
+      href: "/collector/routes",
+      icon: Route,
+      children: [
+        { name: "Active Routes", href: "/collector/routes" },
+        { name: "Route History", href: "/collector/routes/history" },
+      ],
+    },
+    {
+      name: "Schedule",
+      href: "/collector/schedule",
+      icon: Calendar,
+      children: [
+        { name: "View Schedule", href: "/collector/schedule" },
+        { name: "Calendar View", href: "/collector/schedule/calendar" },
+      ],
+    },
+    {
+      name: "Bins",
+      href: "/collector/bins",
+      icon: Trash2,
+      children: [
+        { name: "Assigned Bins", href: "/collector/bins" },
+        { name: "Collection History", href: "/collector/bins/history" },
+      ],
+    },
+    {
+      name: "Reports",
+      href: "/collector/reports",
+      icon: FileText,
+      children: [
+        { name: "View Reports", href: "/collector/reports" },
+        { name: "Submit Report", href: "/collector/reports/submit" },
+        { name: "Report History", href: "/collector/reports/history" },
+      ],
+    },
+    { name: "Performance", href: "/collector/performance", icon: Activity },
+    { name: "Safety Guidelines", href: "/collector/safety", icon: Shield },
+  ];
+
+  const adminNavLinks = [
+    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    {
+      name: "Users",
+      href: "/admin/users",
+      icon: Users,
+      children: [
+        { name: "User Management", href: "/admin/users" },
+        { name: "Create User", href: "/admin/users/create" },
+      ],
+    },
+    {
+      name: "Bins",
+      href: "/admin/bins",
+      icon: Trash2,
+      children: [
+        { name: "Bin Management", href: "/admin/bins" },
+        { name: "Create Bin", href: "/admin/bins/create" },
+        { name: "Bin Map", href: "/admin/bins/map" },
+      ],
+    },
+    {
+      name: "Routes",
+      href: "/admin/routes",
+      icon: Route,
+      children: [
+        { name: "Route Management", href: "/admin/routes" },
+        { name: "Create Route", href: "/admin/routes/create" },
+        { name: "Route Optimization", href: "/admin/routes/optimize" },
+      ],
+    },
+    {
+      name: "Schedules",
+      href: "/admin/schedules",
+      icon: Calendar,
+      children: [
+        { name: "Schedule Management", href: "/admin/schedules" },
+        { name: "Create Schedule", href: "/admin/schedules/create" },
+        { name: "Calendar View", href: "/admin/schedules/calendar" },
+      ],
+    },
+    {
+      name: "Reports",
+      href: "/admin/reports",
+      icon: FileText,
+      children: [
+        { name: "Report Management", href: "/admin/reports" },
+        { name: "Report Analytics", href: "/admin/reports/analytics" },
+        { name: "Export Reports", href: "/admin/reports/export" },
+      ],
+    },
+    {
+      name: "Feedback",
+      href: "/admin/feedback",
+      icon: MessageSquare,
+      children: [
+        { name: "Feedback Management", href: "/admin/feedback" },
+        { name: "Feedback Analytics", href: "/admin/feedback/analytics" },
+      ],
+    },
+    {
+      name: "Rewards",
+      href: "/admin/rewards",
+      icon: Gift,
+      children: [
+        { name: "Reward Management", href: "/admin/rewards" },
+        { name: "Create Reward", href: "/admin/rewards/create" },
+        { name: "Reward Analytics", href: "/admin/rewards/analytics" },
+      ],
+    },
+    {
+      name: "Analytics",
+      href: "/admin/analytics",
+      icon: LineChart,
+      children: [
+        { name: "System Analytics", href: "/admin/analytics" },
+        { name: "Waste Analytics", href: "/admin/analytics/waste" },
+        { name: "Performance Analytics", href: "/admin/analytics/performance" },
+        { name: "User Analytics", href: "/admin/analytics/user" },
+      ],
+    },
+    {
+      name: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
+      children: [
+        { name: "System Settings", href: "/admin/settings" },
+        { name: "Notification Settings", href: "/admin/settings/notifications" },
+        { name: "API Settings", href: "/admin/settings/api" },
+      ],
+    },
+  ];
 
   const getNavLinks = () => {
-    if (!user) return publicNavigation;
-    return roleNavigation[user.role] || [];
+    if (!user) return publicNavLinks;
+    switch (user.role) {
+      case "resident":
+        return residentNavLinks;
+      case "garbage_collector":
+        return collectorNavLinks;
+      case "admin":
+        return adminNavLinks;
+      default:
+        return publicNavLinks;
+    }
   };
 
-  const userMenuItems = [
-    { name: "View Profile", href: "/profile", icon: User },
-    { name: "Settings", href: "/settings", icon: Settings },
-    { name: "Help Center", href: "/help", icon: HelpCircle },
-  ];
-
-  if(loading){
+  if (loading) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <Loader2 className="animate-spin" />
@@ -218,30 +351,6 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-6">
-          {getNavLinks().map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={cn(
-                "group flex items-center gap-2 text-sm font-medium transition-all hover:text-primary relative px-2 py-1.5 rounded-md hover:bg-accent",
-                location.pathname === item.href
-                  ? "text-primary bg-accent"
-                  : "text-muted-foreground"
-              )}
-            >
-              {item.icon && <item.icon className="h-4 w-4" />}
-              <span>{item.name}</span>
-              {item.badge && (
-                <Badge variant="default" className="ml-1 px-1 py-0 text-xs">
-                  {item.badge}
-                </Badge>
-              )}
-            </Link>
-          ))}
-        </div>
-
         {/* Right Section */}
         <div className="flex items-center gap-2">
           {/* Theme Toggle */}
@@ -260,12 +369,62 @@ export function Header() {
 
           {user ? (
             <>
+              {/* Navigation Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 hidden lg:flex">
+                    <Menu className="h-4 w-4" />
+                    <span className="hidden sm:block">Menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-[280px] max-h-[500px] overflow-y-auto"
+                >
+                  {getNavLinks().map((item) => (
+                    <div key={item.name}>
+                      {item.children ? (
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel className="flex items-center gap-2">
+                            <item.icon className="h-4 w-4" />
+                            {item.name}
+                          </DropdownMenuLabel>
+                          {item.children.map((child) => (
+                            <DropdownMenuItem key={child.href} asChild>
+                              <Link to={child.href} className="cursor-pointer">
+                                {child.name}
+                              </Link>
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuSeparator />
+                        </DropdownMenuGroup>
+                      ) : (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              to={item.href}
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {item.name}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
-                    <span className="absolute top-1 right-1.5 w-2 h-2 bg-primary rounded-full" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1.5 w-2 h-2 bg-primary rounded-full" />
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80">
@@ -287,11 +446,15 @@ export function Header() {
                     ) : notifications.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
                         <Bell className="h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="text-sm text-muted-foreground">No notifications yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          No notifications yet
+                        </p>
                       </div>
                     ) : (
                       notifications.map((notification) => {
-                        const NotificationIcon = getNotificationIcon(notification.type);
+                        const NotificationIcon = getNotificationIcon(
+                          notification.type
+                        );
                         return (
                           <Link
                             key={notification._id}
@@ -303,27 +466,43 @@ export function Header() {
                             onClick={async () => {
                               if (!notification.isRead) {
                                 try {
-                                  await api.put(`/notifications/${notification._id}/read`);
+                                  await api.put(
+                                    `/notifications/${notification._id}/read`
+                                  );
                                   fetchNotifications();
                                 } catch (error) {
-                                  console.error("Error marking notification as read:", error);
+                                  console.error(
+                                    "Error marking notification as read:",
+                                    error
+                                  );
                                 }
                               }
                             }}
                           >
-                            <div className={cn(
-                              "p-2 rounded-full",
-                              !notification.isRead ? "bg-primary/10" : "bg-muted"
-                            )}>
+                            <div
+                              className={cn(
+                                "p-2 rounded-full",
+                                !notification.isRead
+                                  ? "bg-primary/10"
+                                  : "bg-muted"
+                              )}
+                            >
                               <NotificationIcon
                                 className={cn(
                                   "h-4 w-4",
-                                  !notification.isRead ? "text-primary" : "text-muted-foreground"
+                                  !notification.isRead
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
                                 )}
                               />
                             </div>
                             <div className="flex-1 space-y-1">
-                              <p className={cn("text-sm", !notification.isRead && "font-medium")}>
+                              <p
+                                className={cn(
+                                  "text-sm",
+                                  !notification.isRead && "font-medium"
+                                )}
+                              >
                                 {notification.title}
                               </p>
                               <p className="text-xs text-muted-foreground line-clamp-2">
@@ -332,7 +511,10 @@ export function Header() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
                                 <span>
-                                  {format(new Date(notification.createdAt), "MMM d, h:mm a")}
+                                  {format(
+                                    new Date(notification.createdAt),
+                                    "MMM d, h:mm a"
+                                  )}
                                 </span>
                               </div>
                             </div>
@@ -367,7 +549,9 @@ export function Header() {
                       <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
                     </div>
                     <div className="hidden sm:block text-left">
-                      <p className="text-sm font-medium line-clamp-1">{user.name}</p>
+                      <p className="text-sm font-medium line-clamp-1">
+                        {user.name}
+                      </p>
                       <p className="text-xs text-muted-foreground capitalize">
                         {user.role.replace("_", " ")}
                       </p>
@@ -379,27 +563,37 @@ export function Header() {
                   <div className="flex items-center gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       <p className="font-medium">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    {userMenuItems.map((item) => (
-                      <DropdownMenuItem key={item.name} asChild>
-                        <Link className="flex items-center cursor-pointer" to={item.href}>
-                          <item.icon className="mr-2 h-4 w-4" />
-                          <span>{item.name}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/help" className="cursor-pointer">
+                      <HelpCircle className="mr-2 h-4 w-4" />
+                      Help
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    className="text-red-600 dark:text-red-400"
                     onClick={logout}
+                    className="text-red-600 dark:text-red-400 cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -415,10 +609,15 @@ export function Header() {
             </div>
           )}
 
-          {/* Mobile Menu Trigger */}
+          {/* Mobile Menu */}
           <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open Menu">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Open Menu"
+              >
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -441,52 +640,39 @@ export function Header() {
 
                   <Separator />
 
-                  {/* Mobile Navigation Links */}
+                  {/* Mobile Navigation */}
                   <div className="space-y-1">
                     {getNavLinks().map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setIsMobileOpen(false)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
-                          location.pathname === item.href
-                            ? "bg-accent text-primary"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {item.icon && <item.icon className="h-4 w-4" />}
-                        <div className="flex flex-col">
-                          <span>{item.name}</span>
-                          <span className="text-xs text-muted-foreground">{item.description}</span>
-                        </div>
-                        {item.badge && (
-                          <Badge variant="default" className="ml-auto">
-                            {item.badge}
-                          </Badge>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-
-                  {user && (
-                    <>
-                      <Separator />
-                      <div className="space-y-1">
-                        {userMenuItems.map((item) => (
+                      <div key={item.name}>
+                        {item.children ? (
+                          <div className="space-y-1">
+                            <p className="px-3 py-2 text-sm font-medium">
+                              {item.name}
+                            </p>
+                            {item.children.map((child) => (
+                              <Link
+                                key={child.href}
+                                to={child.href}
+                                onClick={() => setIsMobileOpen(false)}
+                                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent"
+                              >
+                                {child.name}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
                           <Link
-                            key={item.name}
                             to={item.href}
                             onClick={() => setIsMobileOpen(false)}
-                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent text-muted-foreground"
+                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
                           >
                             <item.icon className="h-4 w-4" />
-                            <span>{item.name}</span>
+                            {item.name}
                           </Link>
-                        ))}
+                        )}
                       </div>
-                    </>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </ScrollArea>
             </SheetContent>
