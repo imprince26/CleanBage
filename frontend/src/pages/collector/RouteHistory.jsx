@@ -39,15 +39,13 @@ import {
   Route as RoutePath,
   Calendar,
   Clock,
-  CheckCircle2,
-  XCircle,
-  Filter,
   Search,
   ArrowUpDown,
   Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -81,13 +79,11 @@ const RouteHistory = () => {
         ...(filters.search && { search: filters.search }),
       });
 
-      const response = await fetch(`/api/collector/routes/history?${queryParams}`);
-      const data = await response.json();
+      const response = await api.get(`/collector/routes/history?${queryParams}`);
 
-      if (data.success) {
-        setRoutes(data.data);
-        setTotalRoutes(data.total);
-      }
+        setRoutes(response.data.data);
+        setTotalRoutes(response.data.total);
+     
     } catch (error) {
       console.error("Error fetching route history:", error);
       toast.error("Failed to load route history");
