@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
+import api from "@/utils/api";
 
 const RouteDetails = () => {
   const { id } = useParams();
@@ -65,12 +66,8 @@ const RouteDetails = () => {
 
   const fetchRouteDetails = async () => {
     try {
-      const response = await fetch(`/api/routes/${id}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setRoute(data.data);
-      }
+      const response = await api.get(`/routes/${id}`);
+      setRoute(response.data.data);
     } catch (error) {
       console.error("Error fetching route details:", error);
       toast.error("Failed to load route details");
@@ -81,15 +78,8 @@ const RouteDetails = () => {
 
   const handleStatusChange = async (status) => {
     try {
-      const response = await fetch(`/api/routes/${id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      const data = await response.json();
+      const response = await api.post(`/routes/${id}/status`, { status });
+      const data = response.data;
 
       if (data.success) {
         setRoute(data.data);
@@ -104,19 +94,19 @@ const RouteDetails = () => {
 
   const handleBinCollection = async (binId) => {
     try {
-      const response = await fetch(`/api/routes/${id}/collect/${binId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await api.post(`/bins/${binId}/collect`, {
+        routeId: id,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setRoute(data.data);
+      if (response.data.success) {
         toast.success("Bin marked as collected");
         fetchRouteDetails();
+        setRoute((prevRoute) => {
+          const updatedBins = prevRoute.bins.map((bin) =>
+            bin.bin._id === binId ? { ...bin, isCollected: true } : bin
+          );
+          return { ...prevRoute, bins: updatedBins };
+        });
       }
     } catch (error) {
       console.error("Error marking bin as collected:", error);
