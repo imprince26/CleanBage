@@ -57,7 +57,6 @@ import {
   ArrowUpDown,
   Loader2,
   ChevronRight,
-  Trash2,
   Scale,
   ThermometerSun,
   Wind,
@@ -65,7 +64,6 @@ import {
   XCircle,
   AlertTriangle,
   Activity,
-  ChevronLeft,
   BarChart3,
   ImageIcon,
   CheckCircle

@@ -1,6 +1,5 @@
 import Report from '../models/reportModel.js';
 import Collection from '../models/collectionModel.js';
-import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
 import { format } from 'date-fns';
