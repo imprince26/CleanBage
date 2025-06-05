@@ -12,7 +12,7 @@ const formatAddress = (location) => {
     if (!location || !location.address) return 'No address available';
     const { street, area, landmark, city, postalCode } = location.address;
     return [street, area, landmark, city, postalCode].filter(Boolean).join(', ');
-  };
+};
 
 export const getReports = async (req, res) => {
     // Pagination
@@ -149,7 +149,7 @@ export const createReport = async (req, res) => {
             }
         }
 
-        const wasteCategories = typeof req.body.wasteCategories === 'string' 
+        const wasteCategories = typeof req.body.wasteCategories === 'string'
             ? JSON.parse(req.body.wasteCategories)
             : req.body.wasteCategories;
 
@@ -666,23 +666,23 @@ export const getReportHistory = async (req, res) => {
 export const exportReports = async (req, res) => {
     try {
         const { format: exportFormat, startDate, endDate, status } = req.query;
-        
+
         if (!['csv', 'excel'].includes(exportFormat)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid export format'
             });
         }
- 
+
         // Build filter object
         const filter = {};
-        
+
         if (startDate || endDate) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = new Date(startDate);
             if (endDate) filter.createdAt.$lte = new Date(endDate);
         }
-        
+
         if (status && status !== 'all') {
             filter.status = status;
         }
@@ -838,7 +838,7 @@ export const getTopCollectors = async (req, res) => {
     } catch (error) {
         console.error('Error getting top collectors:', error);
         res.status(500).json({
-            success: false, 
+            success: false,
             message: error.message || 'Error fetching top collectors data'
         });
     }
