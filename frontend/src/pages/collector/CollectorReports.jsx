@@ -567,37 +567,37 @@ const CollectorReports = () => {
 
                     {(selectedReport.issues ||
                       selectedReport.maintenanceNeeded) && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">
-                            Issues & Maintenance
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          {selectedReport.issues && (
-                            <div className="space-y-2">
-                              <p className="text-sm text-muted-foreground">
-                                Reported Issues
-                              </p>
-                              <p className="bg-muted p-3 rounded-lg">
-                                {selectedReport.issues}
-                              </p>
-                            </div>
-                          )}
-                          {selectedReport.maintenanceNeeded && (
-                            <div className="space-y-2">
-                              <p className="text-sm text-muted-foreground">
-                                Maintenance Details
-                              </p>
-                              <p className="bg-muted p-3 rounded-lg">
-                                {selectedReport.maintenanceDetails ||
-                                  "No specific details provided"}
-                              </p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">
+                              Issues & Maintenance
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {selectedReport.issues && (
+                              <div className="space-y-2">
+                                <p className="text-sm text-muted-foreground">
+                                  Reported Issues
+                                </p>
+                                <p className="bg-muted p-3 rounded-lg">
+                                  {selectedReport.issues}
+                                </p>
+                              </div>
+                            )}
+                            {selectedReport.maintenanceNeeded && (
+                              <div className="space-y-2">
+                                <p className="text-sm text-muted-foreground">
+                                  Maintenance Details
+                                </p>
+                                <p className="bg-muted p-3 rounded-lg">
+                                  {selectedReport.maintenanceDetails ||
+                                    "No specific details provided"}
+                                </p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
                   </TabsContent>
 
                   <TabsContent value="waste" className="space-y-6">
@@ -684,8 +684,8 @@ const CollectorReports = () => {
                       </CardHeader>
                       <CardContent>
                         {selectedReport.photos &&
-                        (selectedReport.photos.before?.url ||
-                          selectedReport.photos.after?.url) ? (
+                          (selectedReport.photos.before?.url ||
+                            selectedReport.photos.after?.url) ? (
                           <div className="grid gap-4 md:grid-cols-2">
                             {selectedReport.photos.before?.url && (
                               <div className="space-y-2">
