@@ -437,27 +437,109 @@ export const rescheduleCollection = async (req, res) => {
     });
 };
 
-// @desc    Get collector's upcoming schedules
-// @route   GET /api/schedules/collector/upcoming
-// @access  Private/Garbage Collector
 export const getCollectorUpcomingSchedules = async (req, res) => {
-    if (req.user.role !== "garbage_collector")
-        throw new Error("Not authorized to access this data", 403);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const schedules = await Schedule.find({
-        collector: req.user.id,
-        status: "pending",
-        scheduledDate: { $gte: today },
-    })
-        .populate("bin", "binId location fillLevel wasteType")
-        .sort({ scheduledDate: 1, priority: -1 })
-        .limit(10);
-    res.status(200).json({
-        success: true,
-        count: schedules.length,
-        data: schedules,
-    });
+    try {
+        // Verify collector authorization
+        if (req.user.role !== "garbage_collector") {
+            return res.status(403).json({
+                success: false,
+                message: "Not authorized to access this data"
+            });
+        }
+
+        // Get date range from query params or use current month
+        const { startDate, endDate } = req.query;
+        const queryStartDate = startDate ? new Date(startDate) : new Date();
+        const queryEndDate = endDate ? new Date(endDate) : new Date();
+
+        // Set time to start and end of day respectively
+        queryStartDate.setHours(0, 0, 0, 0);
+        queryEndDate.setHours(23, 59, 59, 999);
+
+        // Build query
+        const query = {
+            collector: req.user.id,
+            scheduledDate: {
+                $gte: queryStartDate,
+                $lte: queryEndDate
+            }
+        };
+
+        // Get schedules with populated data
+        const schedules = await Schedule.find(query)
+            .populate({
+                path: 'bin',
+                select: 'binId location fillLevel wasteType status',
+                populate: {
+                    path: 'location',
+                    select: 'address coordinates'
+                }
+            })
+            .populate({
+                path: 'route',
+                select: 'name routeNumber'
+            })
+            .sort({ scheduledDate: 1, priority: -1 });
+
+        // Format schedules for calendar view
+        const formattedSchedules = schedules.map(schedule => ({
+            _id: schedule._id,
+            scheduledDate: schedule.scheduledDate,
+            status: schedule.status,
+            priority: schedule.priority,
+            timeSlot: schedule.timeSlot,
+            bin: {
+                _id: schedule.bin._id,
+                binId: schedule.bin.binId,
+                location: {
+                    address: schedule.bin.location?.address || {},
+                    coordinates: schedule.bin.location?.coordinates || []
+                },
+                fillLevel: schedule.bin.fillLevel,
+                wasteType: schedule.bin.wasteType,
+                status: schedule.bin.status
+            },
+            route: schedule.route ? {
+                _id: schedule.route._id,
+                name: schedule.route.name,
+                routeNumber: schedule.route.routeNumber
+            } : null,
+            notes: schedule.notes,
+            estimatedDuration: schedule.estimatedDuration,
+            completionDetails: schedule.completionDetails || null
+        }));
+
+        // Group schedules by date for easier frontend processing
+        const groupedSchedules = formattedSchedules.reduce((acc, schedule) => {
+            const date = schedule.scheduledDate.toISOString().split('T')[0];
+            if (!acc[date]) {
+                acc[date] = [];
+            }
+            acc[date].push(schedule);
+            return acc;
+        }, {});
+
+        res.status(200).json({
+            success: true,
+            data: {
+                schedules: formattedSchedules,
+                groupedSchedules,
+                total: schedules.length,
+                dateRange: {
+                    start: queryStartDate,
+                    end: queryEndDate
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getCollectorUpcomingSchedules:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching collector schedules',
+            error: error.message
+        });
+    }
 };
 
 // @desc    Get schedule statistics

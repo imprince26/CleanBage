@@ -55,28 +55,31 @@ const CollectorCalendar = () => {
     return eachDayOfInterval({ start: startDate, end: endDate });
   }, [currentDate]);
 
-  // Fetch upcoming schedules for the collector using api utils
-  const fetchMonthSchedules = async () => {
+ const fetchMonthSchedules = async () => {
     setLoading(true);
     try {
-      const startDate = startOfMonth(currentDate);
-      const endDate = endOfMonth(currentDate);
-      const { data } = await api.get("/schedules/collector/upcoming", {
-        params: {
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        },
-      });
-      if (data.success) {
-        setSchedules(data.data);
-      }
+        const startDate = startOfMonth(currentDate);
+        const endDate = endOfMonth(currentDate);
+        
+        const response = await api.get("/schedules/collector/upcoming", {
+            params: {
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            }
+        });
+
+        if (response.data.success) {
+            setSchedules(response.data.data.schedules);
+        } else {
+            throw new Error(response.data.message || "Failed to fetch schedules");
+        }
     } catch (error) {
-      console.error("Error fetching schedules:", error);
-      toast.error("Failed to load schedules");
+        console.error("Error fetching schedules:", error);
+        toast.error("Failed to load schedules");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   useEffect(() => {
     fetchMonthSchedules();
