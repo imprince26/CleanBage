@@ -9,6 +9,7 @@ import {
     getReportStats,
     getReportHistory,
     exportReports,
+    getReportsByCollector,
     getTopCollectors
 } from '../controllers/reportController.js';
 import { protect, authorize } from '../middlewares/authMiddleware.js';
@@ -32,7 +33,9 @@ router.route('/')
         ]), 
         createReport
     );
+    
 router.get('/history', authorize('garbage_collector'), getReportHistory);
+router.get('/collector',authorize('garbage_collector'), getReportsByCollector);
 
 router.get('/stats', authorize('admin'), getReportStats);
 

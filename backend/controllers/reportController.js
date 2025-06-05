@@ -371,6 +371,113 @@ export const submitFeedback = async (req, res) => {
     });
 };
 
+export const getReportsByCollector = async (req, res) => {
+    try {
+        // Get pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+
+        // Build filter object
+        const filter = {
+            collector: req.user.id // Only get reports for current collector
+        };
+
+        // Add status filter
+        if (req.query.status && req.query.status !== 'all') {
+            filter.status = req.query.status;
+        }
+
+        // Add date range filter
+        if (req.query.startDate || req.query.endDate) {
+            filter.collectionDate = {};
+            if (req.query.startDate) {
+                filter.collectionDate.$gte = new Date(req.query.startDate);
+            }
+            if (req.query.endDate) {
+                filter.collectionDate.$lte = new Date(req.query.endDate);
+            }
+        }
+
+        // Add search filter
+        if (req.query.search) {
+            filter.$or = [
+                { 'bin.binId': new RegExp(req.query.search, 'i') },
+                { notes: new RegExp(req.query.search, 'i') }
+            ];
+        }
+
+        // Build sort object based on frontend sort config
+        let sort = {};
+        if (req.query.sort) {
+            const [field, direction] = req.query.sort.split(':');
+            sort[field] = direction === 'desc' ? -1 : 1;
+        } else {
+            sort.collectionDate = -1; // Default sort by date desc
+        }
+
+        // Execute query with population
+        const reports = await Report.find(filter)
+            .populate({
+                path: 'bin',
+                select: 'binId location fillLevel wasteType'
+            })
+            .populate({
+                path: 'collector',
+                select: 'name avatar'
+            })
+            .sort(sort)
+            .skip(startIndex)
+            .limit(limit);
+
+        // Get total count for pagination
+        const totalCount = await Report.countDocuments(filter);
+
+        // Format response to match frontend expectations
+        const formattedReports = reports.map(report => ({
+            _id: report._id,
+            collectionDate: report.collectionDate,
+            startTime: report.startTime,
+            endTime: report.endTime,
+            status: report.status,
+            bin: {
+                binId: report.bin?.binId,
+                location: report.bin?.location,
+                fillLevel: report.bin?.fillLevel
+            },
+            wasteVolume: report.wasteVolume,
+            wasteCategories: report.wasteCategories,
+            fillLevelBefore: report.fillLevelBefore,
+            fillLevelAfter: report.fillLevelAfter,
+            issues: report.issues,
+            maintenanceNeeded: report.maintenanceNeeded,
+            maintenanceDetails: report.maintenanceDetails,
+            weather: report.weather,
+            notes: report.notes,
+            photos: {
+                before: report.photoBefore,
+                after: report.photoAfter
+            },
+            completionTime: report.completionTime
+        }));
+
+        res.status(200).json({
+            success: true,
+            reports: reports,
+            totalCount,
+            page,
+            totalPages: Math.ceil(totalCount / limit)
+        });
+
+    } catch (error) {
+        console.error('Error fetching collector reports:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching reports'
+        });
+    }
+};
+
 export const getReportStats = async (req, res) => {
     try {
         // Get timeframe filter
