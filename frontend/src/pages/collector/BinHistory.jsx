@@ -50,7 +50,7 @@ import { toast } from "react-hot-toast";
 import api from "@/utils/api";
 import { formatAddress } from "@/utils/formatters";
 
-const BinCollectionHistory = () => {
+const BinHistory = () => {
   const { id: binId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -360,4 +360,4 @@ const BinCollectionHistory = () => {
   );
 };
 
-export default BinCollectionHistory;
+export default BinHistory;

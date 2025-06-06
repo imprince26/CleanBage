@@ -99,6 +99,127 @@ export const getBinDetails = async (req, res) => {
     }
 };
 
+export const getBinCollectionHistory = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        // Build query
+        let query = {
+            collector: req.user._id
+        };
+
+        // Add date range filter
+        if (req.query.startDate || req.query.endDate) {
+            query.collectionDate = {};
+            if (req.query.startDate) {
+                query.collectionDate.$gte = new Date(req.query.startDate);
+            }
+            if (req.query.endDate) {
+                const endDate = new Date(req.query.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                query.collectionDate.$lte = endDate;
+            }
+        }
+
+        // Add status filter
+        if (req.query.status && req.query.status !== 'all') {
+            query.status = req.query.status;
+        }
+
+        // Add search filter for bin ID or location
+        if (req.query.search) {
+            const searchRegex = new RegExp(req.query.search, 'i');
+            const bins = await Collection.find({
+                $or: [
+                    { binId: searchRegex },
+                    { 'location.address.street': searchRegex },
+                    { 'location.address.area': searchRegex }
+                ]
+            }).select('_id');
+            
+            if (bins.length > 0) {
+                query.bin = { $in: bins.map(b => b._id) };
+            }
+        }
+
+        // Build sort
+        const sort = {};
+        if (req.query.sort) {
+            const [field, direction] = req.query.sort.split(':');
+            sort[field] = direction === 'desc' ? -1 : 1;
+        } else {
+            sort.collectionDate = -1; // Default sort by date desc
+        }
+
+        // Execute query
+        const [reports, total] = await Promise.all([
+            Report.find(query)
+                .populate({
+                    path: 'bin',
+                    select: 'binId location fillLevel status wasteType',
+                    populate: {
+                        path: 'location',
+                        select: 'address coordinates'
+                    }
+                })
+                .sort(sort)
+                .skip(skip)
+                .limit(limit),
+            Report.countDocuments(query)
+        ]);
+
+        // Format response
+        const formattedReports = reports.map(report => ({
+            _id: report._id,
+            collectionDate: report.collectionDate,
+            bin: {
+                _id: report.bin?._id,
+                binId: report.bin?.binId,
+                location: report.bin?.location,
+                fillLevel: report.bin?.fillLevel,
+                status: report.bin?.status,
+                wasteType: report.bin?.wasteType
+            },
+            fillLevelBefore: report.fillLevelBefore,
+            fillLevelAfter: report.fillLevelAfter,
+            wasteVolume: report.wasteVolume,
+            wasteCategories: report.wasteCategories,
+            status: report.status,
+            notes: report.notes,
+            issues: report.issues,
+            maintenanceNeeded: report.maintenanceNeeded,
+            maintenanceDetails: report.maintenanceDetails,
+            weather: report.weather,
+            photos: {
+                before: report.photoBefore,
+                after: report.photoAfter
+            },
+            completionTime: report.completionTime
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: formattedReports,
+            pagination: {
+                total,
+                totalPages: Math.ceil(total / limit),
+                currentPage: page,
+                perPage: limit
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getBinCollectionHistory:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching collection history',
+            error: error.message
+        });
+    }
+};
+
 // Get bin collection history with filters
 export const getBinHistory = async (req, res) => {
     try {

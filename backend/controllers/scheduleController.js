@@ -3,9 +3,6 @@ import Collection from '../models/collectionModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 
-// @desc    Get all schedules
-// @route   GET /api/schedules
-// @access  Private
 export const getSchedules = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
@@ -55,9 +52,6 @@ export const getSchedules = async (req, res) => {
     });
 };
 
-// @desc    Get single schedule
-// @route   GET /api/schedules/:id
-// @access  Private
 export const getSchedule = async (req, res) => {
     const schedule = await Schedule.findById(req.params.id)
         .populate('bin', 'binId location fillLevel wasteType')
@@ -76,9 +70,6 @@ export const getSchedule = async (req, res) => {
     });
 };
 
-// @desc    Create new schedule
-// @route   POST /api/schedules
-// @access  Private/Admin
 export const createSchedule = async (req, res) => {
     // Add assigner
     req.body.assignedBy = req.user.id;
@@ -159,9 +150,6 @@ export const createSchedule = async (req, res) => {
     });
 };
 
-// @desc    Update schedule
-// @route   PUT /api/schedules/:id
-// @access  Private/Admin
 export const updateSchedule = async (req, res) => {
     let schedule = await Schedule.findById(req.params.id);
     
@@ -251,9 +239,6 @@ export const updateSchedule = async (req, res) => {
     });
 };
 
-// @desc    Delete schedule
-// @route   DELETE /api/schedules/:id
-// @access  Private/Admin
 export const deleteSchedule = async (req, res) => {
     const schedule = await Schedule.findById(req.params.id);
     
@@ -281,10 +266,6 @@ export const deleteSchedule = async (req, res) => {
     });
 };
 
-
-// @desc    Complete schedule
-// @route   PUT /api/schedules/:id/complete
-// @access  Private/Garbage Collector
 export const completeSchedule = async (req, res) => {
     const { fillLevel, collectionTime, reportId } = req.body;
     if (!fillLevel) throw new Error("Please provide fill level", 400);
@@ -369,9 +350,6 @@ export const completeSchedule = async (req, res) => {
     });
 };
 
-// @desc    Reschedule collection
-// @route   PUT /api/schedules/:id/reschedule
-// @access  Private/Admin or Garbage Collector
 export const rescheduleCollection = async (req, res) => {
     const { newDate, reason } = req.body;
     if (!newDate) throw new Error("Please provide new date", 400);
@@ -542,9 +520,6 @@ export const getCollectorUpcomingSchedules = async (req, res) => {
     }
 };
 
-// @desc    Get schedule statistics
-// @route   GET /api/schedules/stats
-// @access  Private/Admin
 export const getScheduleStats = async (req, res) => {
     if (req.user.role !== "admin")
         throw new Error("Not authorized to access this data", 403);

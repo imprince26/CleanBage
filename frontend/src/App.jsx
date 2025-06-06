@@ -58,12 +58,13 @@ import BinDetails from './pages/collector/BinDetails'
 import SubmitReport from './pages/collector/SubmitReport'
 import ReportHistory from './pages/collector/ReportHistory'
 import CollectorReports from './pages/collector/CollectorReports'
+import BinHistory from './pages/collector/BinHistory'
 import RouteHistory from './pages/collector/RouteHistory'
+import BinCollectionHistory from './pages/collector/BinCollectionHistory.'
 import AssignedBins from './pages/collector/AssignedBins'
 import CollectorCalendar from './pages/collector/CollectorCalendar'
 import SafetyGuidelines from './pages/collector/SafetyGuidelines'
 import CollectorPerformance from './pages/collector/CollectorPerformance'
-import BinCollectionHistory from './pages/collector/BinCollectionHistory'
 
 {/* Admin pages */ }
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -179,7 +180,8 @@ const Temp = () => {
           <Route path="bins">
             <Route index element={<AssignedBins />} />
             <Route path=":id" element={<BinDetails />} />
-            <Route path=":id/history" element={<BinCollectionHistory />} />
+            <Route path=":id/history" element={<BinHistory />} />
+            <Route path="history" element={<BinCollectionHistory />} />
           </Route>
           <Route path="reports">
             <Route index element={<CollectorReports />} />

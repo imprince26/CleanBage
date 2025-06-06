@@ -208,7 +208,7 @@ export function Header() {
       icon: FileText,
       children: [
         { name: "View Reports", href: "/collector/reports" },
-        { name: "Submit Report", href: "/collector/reports/submit" },
+        // { name: "Submit Report", href: "/collector/reports/submit" },
         { name: "Report History", href: "/collector/reports/history" },
       ],
     },

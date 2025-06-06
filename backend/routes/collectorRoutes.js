@@ -16,7 +16,8 @@ import {
     getRouteHistory,
     getCollectorActivity,
     getCollectorRoutes,
-    updateRouteStatus
+    updateRouteStatus,
+    getBinCollectionHistory
 } from '../controllers/collectorController.js';
 
 const router = express.Router();
@@ -26,6 +27,7 @@ router.use(authorize('garbage_collector'));
 
 router.get('/bins', getAssignedBins);
 router.get('/bins/:id', getBinDetails);
+router.get('/bins-history', getBinCollectionHistory);
 router.get('/bins/:id/history', getBinHistory);
 router.post('/bins/:id/report', submitReport);
 router.put('/bins/:id/status', updateBinStatus);
