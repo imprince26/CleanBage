@@ -562,78 +562,78 @@ export default function BinCollectionHistory() {
                   selectedRecord.maintenanceNeeded ||
                   selectedRecord.notes ||
                   selectedRecord.weather?.condition) && (
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Additional Details</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {selectedRecord.weather?.condition && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Weather</p>
-                          <div className="flex items-center gap-2">
-                            <ThermometerSun className="h-4 w-4 text-muted-foreground" />
-                            <span className="capitalize">
-                              {selectedRecord.weather.condition}
-                              {selectedRecord.weather.temperature &&
-                                ` (${selectedRecord.weather.temperature}°C)`}
-                            </span>
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Additional Details</h4>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {selectedRecord.weather?.condition && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Weather</p>
+                            <div className="flex items-center gap-2">
+                              <ThermometerSun className="h-4 w-4 text-muted-foreground" />
+                              <span className="capitalize">
+                                {selectedRecord.weather.condition}
+                                {selectedRecord.weather.temperature &&
+                                  ` (${selectedRecord.weather.temperature}°C)`}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {selectedRecord.notes && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Notes</p>
-                          <p className="text-sm">{selectedRecord.notes}</p>
-                        </div>
-                      )}
-                      {selectedRecord.issues && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Issues</p>
-                          <p className="text-sm">{selectedRecord.issues}</p>
-                        </div>
-                      )}
-                      {selectedRecord.maintenanceNeeded && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">
-                            Maintenance Details
-                          </p>
-                          <p className="text-sm">
-                            {selectedRecord.maintenanceDetails ||
-                              "Maintenance required"}
-                          </p>
-                        </div>
-                      )}
+                        )}
+                        {selectedRecord.notes && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Notes</p>
+                            <p className="text-sm">{selectedRecord.notes}</p>
+                          </div>
+                        )}
+                        {selectedRecord.issues && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Issues</p>
+                            <p className="text-sm">{selectedRecord.issues}</p>
+                          </div>
+                        )}
+                        {selectedRecord.maintenanceNeeded && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              Maintenance Details
+                            </p>
+                            <p className="text-sm">
+                              {selectedRecord.maintenanceDetails ||
+                                "Maintenance required"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Photos */}
                 {(selectedRecord.photos?.before?.url ||
                   selectedRecord.photos?.after?.url) && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Collection Photos</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {selectedRecord.photos.before?.url && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Before</p>
-                          <img
-                            src={selectedRecord.photos.before.url}
-                            alt="Before collection"
-                            className="rounded-lg object-cover aspect-square w-full"
-                          />
-                        </div>
-                      )}
-                      {selectedRecord.photos.after?.url && (
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">After</p>
-                          <img
-                            src={selectedRecord.photos.after.url}
-                            alt="After collection"
-                            className="rounded-lg object-cover aspect-square w-full"
-                          />
-                        </div>
-                      )}
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Collection Photos</h4>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {selectedRecord.photos.before?.url && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Before</p>
+                            <img
+                              src={selectedRecord.photos.before.url}
+                              alt="Before collection"
+                              className="rounded-lg object-cover aspect-square w-full"
+                            />
+                          </div>
+                        )}
+                        {selectedRecord.photos.after?.url && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">After</p>
+                            <img
+                              src={selectedRecord.photos.after.url}
+                              alt="After collection"
+                              className="rounded-lg object-cover aspect-square w-full"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
               <DialogFooter>
