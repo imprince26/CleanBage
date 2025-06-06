@@ -255,11 +255,11 @@ const Temp = () => {
         </Route>
 
       </Route>
-      
-        {/* Error Routes */}
-        <Route path="/error" element={<ErrorPage />} />
-        <Route path="/maintenance" element={<MaintenancePage />} />
-        <Route path="*" element={<NotFound />} />
+
+      {/* Error Routes */}
+      <Route path="/error" element={<ErrorPage />} />
+      <Route path="/maintenance" element={<MaintenancePage />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
