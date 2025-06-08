@@ -54,6 +54,7 @@ export default function Login() {
       await login(values)
       toast.success("Successfully logged in!")
       navigate('/')
+      window.location.reload()
     } catch (error) {
       toast.error(error.message || "Login failed. Please try again.")
     } finally {
