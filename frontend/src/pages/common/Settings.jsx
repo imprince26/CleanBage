@@ -12,32 +12,32 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+// import {
+//   Form,
+//   FormControl,
+//   FormDescription,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage,
+// } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "@/components/ui/dialog";
 import {
   Alert,
   AlertDescription,
@@ -45,8 +45,6 @@ import {
 } from "@/components/ui/alert";
 import {
   Bell,
-  Lock,
-  Mail,
   Shield,
   User,
   AlertTriangle,
@@ -55,24 +53,24 @@ import {
   LogOut
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+// import { useForm } from "react-hook-form";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import * as z from "zod";
 import api from "@/utils/api";
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(6, "Current password is required"),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+// const passwordSchema = z.object({
+//   currentPassword: z.string().min(6, "Current password is required"),
+//   newPassword: z.string().min(6, "Password must be at least 6 characters"),
+//   confirmPassword: z.string()
+// }).refine((data) => data.newPassword === data.confirmPassword, {
+//   message: "Passwords don't match",
+//   path: ["confirmPassword"],
+// });
 
 const Settings = () => {
   const { user, logout, updateUserSettings } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  // const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const navigate = useNavigate();
 
   const [settings, setSettings] = useState({
@@ -89,14 +87,14 @@ const Settings = () => {
     }
   });
 
-  const passwordForm = useForm({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    }
-  });
+  // const passwordForm = useForm({
+  //   resolver: zodResolver(passwordSchema),
+  //   defaultValues: {
+  //     currentPassword: "",
+  //     newPassword: "",
+  //     confirmPassword: ""
+  //   }
+  // });
 
   const handleSettingChange = (category, setting, value) => {
     setSettings((prev) => ({
@@ -121,19 +119,19 @@ const Settings = () => {
     }
   };
 
-  const onPasswordSubmit = async (data) => {
-    try {
-      await api.put("/auth/updatepassword", {
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword
-      });
-      toast.success("Password updated successfully");
-      setShowPasswordDialog(false);
-      passwordForm.reset();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update password");
-    }
-  };
+  // const onPasswordSubmit = async (data) => {
+  //   try {
+  //     await api.put("/auth/updatepassword", {
+  //       currentPassword: data.currentPassword,
+  //       newPassword: data.newPassword
+  //     });
+  //     toast.success("Password updated successfully");
+  //     setShowPasswordDialog(false);
+  //     passwordForm.reset();
+  //   } catch (error) {
+  //     toast.error(error.response?.data?.message || "Failed to update password");
+  //   }
+  // };
 
   const handleDeactivateAccount = async () => {
     if (window.confirm("Are you sure you want to deactivate your account? This action cannot be undone.")) {
