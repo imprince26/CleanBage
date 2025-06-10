@@ -25,13 +25,13 @@ router.get('/stats', authorize('admin'), getRewardStats);
 
 router.route('/items')
     .get(getRewardItems)
-    .post(authorize('admin'),handleImageUpload.fields([{ name: 'image', maxCount: 1 }]), createRewardItem);
+    .post(authorize('admin'), handleImageUpload.single('image'), createRewardItem);
 
 router.route('/items/:id')
     .get(getRewardItem)
     .put(
         authorize('admin'),
-        handleImageUpload.fields([{ name: 'image', maxCount: 1 }]),
+       handleImageUpload.single('image'),
         updateRewardItem
     )
     .delete(authorize('admin'), deleteRewardItem);

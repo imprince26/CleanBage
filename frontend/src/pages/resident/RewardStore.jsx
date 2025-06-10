@@ -44,6 +44,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 import { useUser } from "@/context/UserContext";
+import api from "@/utils/api";
 
 const RewardStore = () => {
   const { user } = useAuth();
@@ -75,9 +76,8 @@ const RewardStore = () => {
       if (filters.maxPoints) params.append("maxPoints", filters.maxPoints);
       if (filters.search) params.append("search", filters.search);
 
-      const response = await fetch(`/api/rewards/items?${params}`);
-      const data = await response.json();
-      setRewards(data.data);
+      const response = await api.get("/rewards/items");
+      setRewards(response.data.data || []);
     } catch (error) {
       console.error("Error fetching rewards:", error);
       toast.error("Failed to load rewards");
@@ -93,22 +93,17 @@ const RewardStore = () => {
   // Handle reward redemption
   const handleRedeem = async () => {
     try {
-      const response = await fetch(`/api/rewards/items/${selectedReward._id}/redeem`, {
-        method: "POST",
-      });
-      const data = await response.json();
-
-      if (data.success) {
+      const response = await api.post(`/rewards/items/${selectedReward._id}/redeem`);
+      if (response.data.success) {
         toast.success("Reward redeemed successfully!");
         setIsRedeemDialogOpen(false);
-        // Refresh rewards list
-        fetchRewards();
       }
     } catch (error) {
       console.error("Error redeeming reward:", error);
       toast.error(error.response?.data?.message || "Failed to redeem reward");
     }
   };
+console.log("Rewards:", rewards);
 
   return (
     <div className="container py-8 space-y-8">

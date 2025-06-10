@@ -174,10 +174,9 @@ export const createRewardItem = async (req, res) => {
         featuredOrder: Number(req.body.featuredOrder || 0),
         createdBy: req.user.id
     };
-    
     // Process uploaded image
-    if (req.files && req.files.image) {
-        const file = req.files.image[0];
+    if (req.file) {
+        const file = req.file;
         
         try {
             // Upload to cloudinary
@@ -237,9 +236,9 @@ export const updateRewardItem = async (req, res) => {
     );
     
     // Process uploaded image
-    if (req.files && req.files.image) {
-        const file = req.files.image;
-        
+    if (req.file) {
+        const file = req.file;
+        console.log('File received for update:', file);
         // Check file type
         if (!file.mimetype.startsWith('image')) {
             throw new Error('Please upload an image file', 400);
