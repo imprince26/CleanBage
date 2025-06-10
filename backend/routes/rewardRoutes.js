@@ -31,7 +31,7 @@ router.route('/items/:id')
     .get(getRewardItem)
     .put(
         authorize('admin'),
-       handleImageUpload.single('image'),
+        handleImageUpload.single('image'),
         updateRewardItem
     )
     .delete(authorize('admin'), deleteRewardItem);
