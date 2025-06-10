@@ -12,47 +12,47 @@ export const getUserTransactions = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
+
     // Filter
     const filter = { user: req.user.id };
-    
+
     // Filter by type
     if (req.query.type) {
         filter.type = req.query.type;
     }
-    
+
     // Filter by source type
     if (req.query.sourceType) {
         filter.sourceType = req.query.sourceType;
     }
-    
+
     // Sort
     const sort = { createdAt: -1 };
-    
+
     const total = await RewardTransaction.countDocuments(filter);
-    
+
     const transactions = await RewardTransaction.find(filter)
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
-    
+
     // Pagination result
     const pagination = {};
-    
+
     if (endIndex < total) {
         pagination.next = {
             page: page + 1,
             limit
         };
     }
-    
+
     if (startIndex > 0) {
         pagination.prev = {
             page: page - 1,
             limit
         };
     }
-    
+
     res.status(200).json({
         success: true,
         count: transactions.length,
@@ -71,23 +71,23 @@ export const getRewardItems = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    
+
     // Filter
-    const filter = { 
+    const filter = {
         isActive: true,
         validUntil: { $gte: new Date() }
     };
-    
+
     // Filter by category
     if (req.query.category) {
         filter.category = req.query.category;
     }
-    
+
     // Filter by points range
     if (req.query.maxPoints) {
         filter.pointsCost = { $lte: parseInt(req.query.maxPoints) };
     }
-    
+
     // Sort
     const sort = {};
     if (req.query.sortBy) {
@@ -97,31 +97,31 @@ export const getRewardItems = async (req, res) => {
         sort.featuredOrder = -1;
         sort.pointsCost = 1;
     }
-    
+
     const total = await RewardItem.countDocuments(filter);
-    
+
     const rewardItems = await RewardItem.find(filter)
         .sort(sort)
         .skip(startIndex)
         .limit(limit);
-    
+
     // Pagination result
     const pagination = {};
-    
+
     if (endIndex < total) {
         pagination.next = {
             page: page + 1,
             limit
         };
     }
-    
+
     if (startIndex > 0) {
         pagination.prev = {
             page: page - 1,
             limit
         };
     }
-    
+
     res.status(200).json({
         success: true,
         count: rewardItems.length,
@@ -136,16 +136,16 @@ export const getRewardItems = async (req, res) => {
 // @access  Private
 export const getRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
-    
+
     if (!rewardItem) {
         throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
-    
+
     // If not active and not admin, don't show
     if (!rewardItem.isActive && req.user.role !== 'admin') {
         throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
-    
+
     res.status(200).json({
         success: true,
         data: rewardItem
@@ -160,7 +160,7 @@ export const createRewardItem = async (req, res) => {
     if (req.user.role !== 'admin') {
         throw new Error('Not authorized to create reward items', 403);
     }
-    
+
     const rewardData = {
         name: req.body.name,
         description: req.body.description,
@@ -177,11 +177,11 @@ export const createRewardItem = async (req, res) => {
     // Process uploaded image
     if (req.file) {
         const file = req.file;
-        
+
         try {
             // Upload to cloudinary
             const result = await uploadImage(file, 'cleanbage/rewards');
-            
+
             rewardData.image = {
                 public_id: result.public_id,
                 url: result.secure_url
@@ -191,9 +191,9 @@ export const createRewardItem = async (req, res) => {
             throw new Error('Problem with file upload', 500);
         }
     }
-    
+
     const rewardItem = await RewardItem.create(rewardData);
-    
+
     res.status(201).json({
         success: true,
         data: rewardItem
@@ -208,13 +208,13 @@ export const updateRewardItem = async (req, res) => {
     if (req.user.role !== 'admin') {
         throw new Error('Not authorized to update reward items', 403);
     }
-    
+
     let rewardItem = await RewardItem.findById(req.params.id);
-    
+
     if (!rewardItem) {
         throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Fields to update
     const fieldsToUpdate = {
         name: req.body.name,
@@ -229,12 +229,12 @@ export const updateRewardItem = async (req, res) => {
         isActive: req.body.isActive,
         featuredOrder: req.body.featuredOrder
     };
-    
+
     // Remove undefined fields
-    Object.keys(fieldsToUpdate).forEach(key => 
+    Object.keys(fieldsToUpdate).forEach(key =>
         fieldsToUpdate[key] === undefined && delete fieldsToUpdate[key]
     );
-    
+
     // Process uploaded image
     if (req.file) {
         const file = req.file;
@@ -243,21 +243,21 @@ export const updateRewardItem = async (req, res) => {
         if (!file.mimetype.startsWith('image')) {
             throw new Error('Please upload an image file', 400);
         }
-        
+
         // Check file size
         if (file.size > process.env.MAX_FILE_SIZE) {
             throw new Error(`Please upload an image less than ${process.env.MAX_FILE_SIZE / 1000000}MB`, 400);
         }
-        
+
         try {
             // Delete previous image if exists
             if (rewardItem.image && rewardItem.image.public_id) {
                 await deleteImage(rewardItem.image.public_id);
             }
-            
+
             // Upload to cloudinary
             const result = await uploadImage(file, 'cleanbage/rewards');
-            
+
             fieldsToUpdate.image = {
                 public_id: result.public_id,
                 url: result.secure_url
@@ -267,12 +267,12 @@ export const updateRewardItem = async (req, res) => {
             throw new Error('Problem with file upload', 500);
         }
     }
-    
+
     rewardItem = await RewardItem.findByIdAndUpdate(req.params.id, fieldsToUpdate, {
         new: true,
         runValidators: true
     });
-    
+
     res.status(200).json({
         success: true,
         data: rewardItem
@@ -287,20 +287,20 @@ export const deleteRewardItem = async (req, res) => {
     if (req.user.role !== 'admin') {
         throw new Error('Not authorized to delete reward items', 403);
     }
-    
+
     const rewardItem = await RewardItem.findById(req.params.id);
-    
+
     if (!rewardItem) {
         throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Delete image from cloudinary
     if (rewardItem.image && rewardItem.image.public_id) {
         await deleteImage(rewardItem.image.public_id);
     }
-    
+
     await rewardItem.deleteOne();
-    
+
     res.status(200).json({
         success: true,
         data: {}
@@ -312,35 +312,35 @@ export const deleteRewardItem = async (req, res) => {
 // @access  Private
 export const redeemRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
-    
+
     if (!rewardItem) {
         throw new Error(`Reward item not found with id of ${req.params.id}`, 404);
     }
-    
+
     // Check if reward is active
     if (!rewardItem.isActive) {
         throw new Error('This reward is not active', 400);
     }
-    
+
     // Check if reward has expired
     if (rewardItem.validUntil < new Date()) {
         throw new Error('This reward has expired', 400);
     }
-    
+
     // Check if reward is out of stock
     if (rewardItem.remainingQuantity === 0) {
         throw new Error('This reward is out of stock', 400);
     }
-    
+
     // Check if user has enough points
     if (req.user.rewardPoints < rewardItem.pointsCost) {
         throw new Error('Insufficient reward points', 400);
     }
-    
+
     try {
         // Redeem the reward
         const redemptionResult = await rewardItem.redeem(req.user.id);
-        
+
         res.status(200).json({
             success: true,
             data: {
@@ -361,15 +361,15 @@ export const getUserRedemptions = async (req, res) => {
     const rewardItems = await RewardItem.find({
         'redemptions.user': req.user.id
     });
-    
+
     // Extract user's redemptions from each reward item
     const redemptions = [];
-    
+
     rewardItems.forEach(item => {
         const userRedemptions = item.redemptions.filter(
             r => r.user.toString() === req.user.id
         );
-        
+
         userRedemptions.forEach(redemption => {
             redemptions.push({
                 _id: redemption._id,
@@ -388,10 +388,10 @@ export const getUserRedemptions = async (req, res) => {
             });
         });
     });
-    
+
     // Sort by redemption date (newest first)
     redemptions.sort((a, b) => b.redeemedAt - a.redeemedAt);
-    
+
     res.status(200).json({
         success: true,
         count: redemptions.length,
@@ -407,7 +407,7 @@ export const getRewardStats = async (req, res) => {
     if (req.user.role !== 'admin') {
         throw new Error('Not authorized to access this data', 403);
     }
-    
+
     // Get total points earned and redeemed
     const pointsStats = await RewardTransaction.aggregate([
         {
@@ -417,7 +417,7 @@ export const getRewardStats = async (req, res) => {
             }
         }
     ]);
-    
+
     // Get transactions by source type
     const transactionsBySource = await RewardTransaction.aggregate([
         {
@@ -428,7 +428,7 @@ export const getRewardStats = async (req, res) => {
             }
         }
     ]);
-    
+
     // Get redemptions by category
     const redemptionsByCategory = await RewardItem.aggregate([
         {
@@ -447,19 +447,19 @@ export const getRewardStats = async (req, res) => {
             }
         }
     ]);
-    
+
     // Get top users by points
     const topUsers = await User.find({ role: 'resident' })
         .sort({ rewardPoints: -1 })
         .limit(10)
         .select('name avatar rewardPoints');
-    
+
     // Format points stats into an object
     const formattedPointsStats = {
         earned: 0,
         redeemed: 0
     };
-    
+
     pointsStats.forEach(item => {
         if (item._id === 'earned') {
             formattedPointsStats.earned = item.totalPoints;
@@ -467,7 +467,7 @@ export const getRewardStats = async (req, res) => {
             formattedPointsStats.redeemed = Math.abs(item.totalPoints);
         }
     });
-    
+
     // Format transactions by source into an object
     const formattedTransactionsBySource = {};
     transactionsBySource.forEach(item => {
@@ -476,7 +476,7 @@ export const getRewardStats = async (req, res) => {
             totalPoints: item.totalPoints
         };
     });
-    
+
     // Format redemptions by category into an object
     const formattedRedemptionsByCategory = {};
     redemptionsByCategory.forEach(item => {
@@ -485,7 +485,7 @@ export const getRewardStats = async (req, res) => {
             totalPoints: item.totalPoints
         };
     });
-    
+
     res.status(200).json({
         success: true,
         data: {
