@@ -2,10 +2,6 @@ import { RewardTransaction, RewardItem } from '../models/rewardModel.js';
 import User from '../models/userModel.js';
 import Notification from '../models/notificationModel.js';
 import { uploadImage, deleteImage } from '../utils/cloudinary.js';
-
-// @desc    Get user's reward transactions
-// @route   GET /api/rewards/transactions
-// @access  Private
 export const getUserTransactions = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
@@ -61,10 +57,6 @@ export const getUserTransactions = async (req, res) => {
         data: transactions
     });
 };
-
-// @desc    Get all reward items
-// @route   GET /api/rewards/items
-// @access  Private
 export const getRewardItems = async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page, 10) || 1;
