@@ -262,9 +262,6 @@ export const updateRewardItem = async (req, res) => {
     });
 };
 
-// @desc    Delete reward item
-// @route   DELETE /api/rewards/items/:id
-// @access  Private/Admin
 export const deleteRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
