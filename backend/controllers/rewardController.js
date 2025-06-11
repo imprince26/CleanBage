@@ -123,9 +123,6 @@ export const getRewardItems = async (req, res) => {
     });
 };
 
-// @desc    Get single reward item
-// @route   GET /api/rewards/items/:id
-// @access  Private
 export const getRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
 
@@ -144,9 +141,6 @@ export const getRewardItem = async (req, res) => {
     });
 };
 
-// @desc    Create reward item
-// @route   POST /api/rewards/items
-// @access  Private/Admin
 export const createRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
@@ -192,9 +186,6 @@ export const createRewardItem = async (req, res) => {
     });
 };
 
-// @desc    Update reward item
-// @route   PUT /api/rewards/items/:id
-// @access  Private/Admin
 export const updateRewardItem = async (req, res) => {
     // Check if user is admin
     if (req.user.role !== 'admin') {
