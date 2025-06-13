@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,10 @@ import {
   HelpCircle,
   Clock,
   Loader2,
+  Home,
+  Info,
+  Phone,
+  Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +36,7 @@ import api from "@/utils/api";
 export function Header({ className }) {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -67,6 +72,13 @@ export function Header({ className }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Navigation items for public pages
+  const publicNavItems = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/about", label: "About", icon: Info },
+    { href: "/contact", label: "Contact", icon: Phone },
+  ];
+
   return (
     <header
       className={cn(
@@ -86,6 +98,29 @@ export function Header({ className }) {
           </span>
         </Link>
 
+        {/* Center Navigation - Show only on public pages */}
+        {!user && (
+          <nav className="hidden md:flex items-center gap-6">
+            {publicNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={cn(
+                    "flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+
         {/* Right Section */}
         <div className="flex items-center gap-2">
           {/* Theme Toggle */}
@@ -101,6 +136,19 @@ export function Header({ className }) {
             )}
           </Button>
 
+          {/* Unauthenticated User Actions */}
+          {!user && (
+            <div className="flex items-center gap-2">
+              <Link to="/login">
+                <Button variant="ghost">Log in</Button>
+              </Link>
+              <Link to="/signup">
+                <Button>Sign up</Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Authenticated User Actions */}
           {user && (
             <>
               {/* Notifications */}
@@ -136,7 +184,7 @@ export function Header({ className }) {
                       notifications.map((notification) => (
                         <div
                           key={notification._id}
-                          className="p-3 hover:bg-muted"
+                          className="p-3 hover:bg-muted cursor-pointer"
                         >
                           <p className="text-sm font-medium">
                             {notification.title}
@@ -158,7 +206,7 @@ export function Header({ className }) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* User Menu */}
+              {/* Quick Actions Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -170,6 +218,9 @@ export function Header({ className }) {
                       alt={user.name}
                       className="h-8 w-8 rounded-full"
                     />
+                    <span className="hidden sm:inline-block font-medium">
+                      {user.name}
+                    </span>
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -183,6 +234,12 @@ export function Header({ className }) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to={`/${user.role}/dashboard`}>
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/profile">
                       <User className="mr-2 h-4 w-4" />
@@ -198,7 +255,7 @@ export function Header({ className }) {
                   <DropdownMenuItem asChild>
                     <Link to="/help">
                       <HelpCircle className="mr-2 h-4 w-4" />
-                      Help
+                      Help Center
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -212,6 +269,43 @@ export function Header({ className }) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
+          )}
+
+          {/* Mobile Navigation Menu - Show only on public pages */}
+          {!user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {publicNavItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link to={item.href} className="flex items-center">
+                        <Icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/login" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    Log in
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/signup" className="flex items-center font-medium">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign up
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
