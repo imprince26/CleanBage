@@ -235,7 +235,7 @@ export function Header({ className }) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={`/${user.role}/dashboard`}>
+                    <Link to={`/${user.role === "garbage_collector" ? "collector" : `${user.role}`}/dashboard`}>
                       <User className="mr-2 h-4 w-4" />
                       Dashboard
                     </Link>
