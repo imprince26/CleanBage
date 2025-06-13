@@ -638,7 +638,7 @@ const Profile = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Progress</span>
-                          <span>{achievement.progress}%</span>
+                          <span>{achievement.progress.toPrecision(2)}%</span>
                         </div>
                         <Progress value={achievement.progress} className="h-2" />
                       </div>
