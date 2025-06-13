@@ -2,6 +2,7 @@ import React from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom'
 
 import Layout from './components/Layout'
+import DashboardLayout from './components/DashboardLayout'
 
 {/* Public pages */ }
 import Home from './pages/public/Home'
@@ -138,9 +139,11 @@ const Temp = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
+        </Route>
+
 
         {/* Resident Routes */}
-        <Route path="/resident">
+        <Route path="/resident" element={<DashboardLayout />}>
           <Route path="dashboard" element={<ResidentDashboard />} />
           <Route path="report-bin" element={<ReportBin />} />
           <Route path="bin-map" element={<BinMap />} />
@@ -165,7 +168,7 @@ const Temp = () => {
 
 
         {/* Collector Routes */}
-        <Route path="/collector">
+        <Route path="/collector" element={<DashboardLayout />}>
           <Route path="dashboard" element={<CollectorDashboard />} />
           <Route path="routes">
             <Route index element={<ActiveRoutes />} />
@@ -194,7 +197,7 @@ const Temp = () => {
 
 
         {/* Admin Routes */}
-        <Route path="/admin">
+        <Route path="/admin" element={<DashboardLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users">
             <Route index element={<UserManagement />} />
@@ -254,7 +257,6 @@ const Temp = () => {
           </Route>
         </Route>
 
-      </Route>
 
       {/* Error Routes */}
       <Route path="/error" element={<ErrorPage />} />

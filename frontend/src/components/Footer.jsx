@@ -14,8 +14,9 @@ import {
   Shield,
   Users,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export function Footer() {
+export function Footer({ className }) {
   const { user } = useAuth()
 
   // Role-based quick links
@@ -85,7 +86,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t bg-background">
+    <footer className={cn("border-t bg-background", className)}>
       <div className="container px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Logo and Description */}
