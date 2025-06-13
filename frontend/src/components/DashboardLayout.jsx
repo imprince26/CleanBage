@@ -8,6 +8,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -99,13 +104,28 @@ const DashboardLayout = () => {
               onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
             >
               {isDesktopSidebarOpen ? (
+                <Tooltip>
+                  <TooltipTrigger>
                 <ChevronLeft className="h-5 w-5" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        Close sidebar
+                    </TooltipContent>
+                </Tooltip>
               ) : (
-                <ChevronRight className="h-5 w-5" />
+                <Tooltip>
+                  <TooltipTrigger>
+                    <ChevronRight className="h-5 w-5" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Open sidebar
+                  </TooltipContent>
+                </Tooltip>
               )}
-              <span className="sr-only">
+{/*         
+              <span className="sr-only " >
                 {isDesktopSidebarOpen ? "Close sidebar" : "Open sidebar"}
-              </span>
+              </span> */}
             </Button>
           </div>
 

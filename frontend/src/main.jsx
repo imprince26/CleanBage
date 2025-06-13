@@ -9,6 +9,7 @@ import { AuthProvider } from './context/AuthContext'
 import { CollectionProvider } from './context/CollectionContext'
 import UserProvider from './context/UserContext'
 import ErrorBoundary from './components/ErrorBoundary'
+import { TooltipProvider } from './components/ui/tooltip'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -18,7 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <AuthProvider>
             <CollectionProvider>
               <UserProvider>
+                <TooltipProvider>
                 <App/>
+                </TooltipProvider>
               </UserProvider>
             </CollectionProvider>
             <Toaster position="top-center" />
