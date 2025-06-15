@@ -287,9 +287,6 @@ export const deleteRewardItem = async (req, res) => {
     });
 };
 
-// @desc    Redeem reward item
-// @route   POST /api/rewards/items/:id/redeem
-// @access  Private
 export const redeemRewardItem = async (req, res) => {
     const rewardItem = await RewardItem.findById(req.params.id);
 
@@ -334,9 +331,6 @@ export const redeemRewardItem = async (req, res) => {
     }
 };
 
-// @desc    Get user's reward redemptions
-// @route   GET /api/rewards/redemptions
-// @access  Private
 export const getUserRedemptions = async (req, res) => {
     const rewardItems = await RewardItem.find({
         'redemptions.user': req.user.id
