@@ -373,9 +373,6 @@ export const getUserRedemptions = async (req, res) => {
     });
 };
 
-// @desc    Get reward statistics
-// @route   GET /api/rewards/stats
-// @access  Private/Admin
 export const getRewardStats = async (req, res) => {
     // Only allow admins
     if (req.user.role !== 'admin') {
