@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Mail, 
-  Phone, 
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Mail,
+  Phone,
   MapPin,
   MessageSquare,
   FileText,
@@ -98,7 +98,7 @@ export function Footer({ className }) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <rect width="32" height="32" rx="8" fill="currentColor"/>
+                <rect width="32" height="32" rx="8" fill="currentColor" />
                 <path
                   d="M22.667 12.667v8a2 2 0 01-2 2H11.333a2 2 0 01-2-2v-8m13.334 0H9.333m13.334 0l-1.334-2.667H10.667L9.333 12.667m6.667 4v3m0-3l-2-2m2 2l2-2"
                   stroke="white"
@@ -125,8 +125,8 @@ export function Footer({ className }) {
             <ul className="space-y-2 text-sm">
               {getCurrentLinks().map((link) => (
                 <li key={link.name}>
-                  <Link 
-                    to={link.href} 
+                  <Link
+                    to={link.href}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {link.name}
@@ -142,8 +142,8 @@ export function Footer({ className }) {
             <ul className="space-y-2 text-sm">
               {getCurrentResources().map((resource) => (
                 <li key={resource.name}>
-                  <Link 
-                    to={resource.href} 
+                  <Link
+                    to={resource.href}
                     className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <resource.icon className="h-4 w-4" />
@@ -171,25 +171,25 @@ export function Footer({ className }) {
                 JMC Office, Jamnagar, Gujarat, India
               </li>
               <li className="mt-4 flex space-x-4">
-                <a 
-                  href="https://facebook.com/cleanbage" 
-                  target="_blank" 
+                <a
+                  href="https://facebook.com/cleanbage"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Facebook className="h-5 w-5" />
                 </a>
-                <a 
-                  href="https://twitter.com/cleanbage" 
-                  target="_blank" 
+                <a
+                  href="https://twitter.com/cleanbage"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Twitter className="h-5 w-5" />
                 </a>
-                <a 
-                  href="https://instagram.com/cleanbage" 
-                  target="_blank" 
+                <a
+                  href="https://instagram.com/cleanbage"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
