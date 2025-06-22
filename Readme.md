@@ -1,81 +1,47 @@
-# Smart Waste Management App - SGH_CLEANBAGE
+# CleanBage 🚮
 
-## 🏗️ Project Overview
-This is a **Smart Waste Management System** designed for **Jamnagar Municipal Corporation (JMC)**. The platform helps residents report waste collection issues, allows garbage collectors to manage pickups, and provides administrators with insights into waste management operations.
-
-## 📁 Project Structure
-```
-SGH_CLEAN/
-│── backend/            # Node.js (Express) Backend
-│   ├── config/         # Configuration files (DB, env, etc.)
-│   ├── controllers/    # Route handlers and business logic
-│   ├── middlewares/    # Custom middleware
-│   ├── models/         # Mongoose schemas
-│   ├── routes/         # API routes
-│   ├── public/         # Public assets
-│   ├── .env            # Environment variables
-│   ├── .gitignore      # Ignored files
-│   ├── app.js          # Main backend entry
-│   ├── package.json    # Backend dependencies
-│
-│── frontend/           # React (Vite) Frontend
-|   |── src/
-|   |   │── assets/         # Images, icons, logos
-|   |   │── components/     # Reusable UI components (Navbar, Footer, Button, etc.)
-|   |   │── context/        # State management (Auth, Theme, etc.)
-|   |   │── styles/         # Global styles (CSS, Tailwind)
-|   |   │── utils/          # Helper functions (API calls, formatting)
-|   |   │── App.jsx         # Main application file
-|   |   │── main.jsx        # Entry file
-│
-│── Readme.md           # Project documentation
-```
-
-## 🚀 Features
-- **User Roles:** Resident, Garbage Collector, Admin
-- **User Authentication:** Secure login/signup system
-- **Reporting Issues:** Residents can report uncollected waste
-- **Task Management:** Admins assign and track garbage collection tasks
-- **Real-time Location Tracking:** Garbage collectors update their location (to be added with WebSockets)
-- **Dark Mode / Light Mode**
-
-## 🛠️ Tech Stack
-- **Frontend:** React (Vite), Tailwind CSS
-- **Backend:** Node.js, Express.js, MongoDB (Atlas)
-- **Database:** MongoDB Atlas (Cloud Database)
-- **Authentication:** JWT (JSON Web Tokens)
-- **API Integration:** Google Maps API
-- **Deployment:** (To be decided)
-
-## ⚡ Setup Guide
-### 1️⃣ Backend Setup
-```sh
-cd backend
-npm install
-node app.js
-```
-**Environment Variables (`.env`):**
-```
-PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/
-JWT_SECRET=your_secret_key
-```
-
-### 2️⃣ Frontend Setup
-```sh 
-cd frontend 
-npm install
-npm run dev
-```
-
-## 📌 Future Enhancements
-- 📍 **Live Tracking** using WebSockets
-- 📊 **Admin Dashboard** with analytics
-- 📱 **Mobile Responsive UI**
-- 📦 **Optimized Database Queries** for large-scale data
+<!-- [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) -->
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18%2B-blue.svg)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express.js-4.x-black.svg)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green.svg)](https://www.mongodb.com/atlas)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38bdf8.svg)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-4.x-646cff.svg)](https://vitejs.dev/)
+[![JWT](https://img.shields.io/badge/JWT-Auth-orange.svg)](https://jwt.io/)
+[![Map APIs](https://img.shields.io/badge/Map%20APIs-Google%20%7C%20OpenStreetMap-blue.svg)](https://www.openstreetmap.org/)
 
 ---
-**👨‍💻 Contributors:** _CleanBage & Team._
 
-🚀 *Let's make waste management smarter!*
+**CleanBage** is a smart waste management platform for Jamnagar Municipal Corporation, transforming city waste collection through technology, real-time data, and community engagement.
 
+---
+
+## 🚀 Features
+
+- **Role-Based Dashboards:** Custom portals for residents, collectors, and administrators.
+- **Smart Bin Locator:** Interactive city map to find, report, and monitor bins by waste type and location.
+- **Live Bin Status:** Real-time monitoring of bin fill levels and collection status.
+- **Automated Scheduling:** Flexible, recurring, and on-demand waste collection scheduling.
+- **Route Optimization:** AI-powered route planning for efficient collection.
+- **Photo-Based Reporting:** Residents can upload images for bin status and issues.
+- **Reward System:** Earn and redeem points for responsible waste management and reporting.
+- **Instant Notifications:** Real-time alerts for collections, reminders, and updates.
+- **Analytics & Reports:** Visual insights for waste trends, collection rates, and performance.
+- **Community Engagement:** Feedback, leaderboards, and educational resources.
+- **Secure Authentication:** Multi-role access with JWT and robust privacy controls.
+- **Responsive UI:** Modern, mobile-friendly design using React and Tailwind CSS.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** [React](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/)
+- **Backend:** [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/)
+- **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas), [Mongoose](https://mongoosejs.com/)
+- **Authentication:** [JWT](https://jwt.io/)
+- **Maps:** [Google Maps API](https://developers.google.com/maps) / [OpenStreetMap](https://www.openstreetmap.org/)
+- **Other:** REST API, Cloud Storage, ESLint, Prettier
+
+---
+
+> **CleanBage – For a cleaner, greener Jamnagar!** 🌱
