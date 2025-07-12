@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import connectDB from './config/db.js';
 import configurePassport from './config/passport.js';
+import job from './config/cron.js';
+
 // Route imports
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -38,6 +40,8 @@ app.use(cookieParser());
 app.use(passport.initialize());
 configurePassport();
 
+if (process.env.NODE_ENV === "production") job.start();
+
 // Enable CORS
 app.use(cors({
     origin: process.env.CLIENT_URL,
@@ -64,19 +68,12 @@ app.use('/api/rewards', rewardRoutes);
 app.use('/api/collector', collectorRoutes);
 app.use('/api/admin',adminRoutes);
 
-// app.post("/upload",handleImageUpload('images'), async (req, res) => {
-//     const file = req.files.images;
-//     try {
-//         const result = await uploadImage(file);
-//         res.status(200).json(result);
-//     } catch (error) {
-//         console.error('Image upload error:', error);
-//         return next(new ErrorResponse('Problem with file upload', 500));
-//     }
-
-// })
 app.get('/', (req, res) => {
     res.send('API is running...');
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ message: 'Server is healthy' });
 });
 
 const PORT = process.env.PORT || 5000;
