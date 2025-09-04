@@ -174,7 +174,7 @@ export const loginUser = async (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days,      
-      })
+    })
 
     res.status(200).json({
         success: true,
@@ -234,13 +234,17 @@ export const googleCallback = async (req, res) => {
 };
 
 export const logoutUser = async (req, res) => {
-   res.clearCookie('CleanBageToken');
-  
-    res.status(200).json({
-      success: true,
-      data: {}
+    res.clearCookie('CleanBageToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
-  };
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
+};
 
 export const getMe = async (req, res) => {
     try {
