@@ -40,11 +40,23 @@ app.use(cookieParser());
 app.use(passport.initialize());
 configurePassport();
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://clean-bage.vercel.app",
+    "https://cleanbage.princepatel.me"
+];
+
 if (process.env.NODE_ENV === "production") job.start();
 
 // Enable CORS
 app.use(cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error("CORS policy: This origin is not allowed"));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -66,7 +78,7 @@ app.use('/api/feedback', feedbackRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/collector', collectorRoutes);
-app.use('/api/admin',adminRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
