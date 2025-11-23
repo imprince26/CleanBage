@@ -67,6 +67,14 @@ app.use(cors({
 // const __dirname = path.dirname(__filename);
 // app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+    res.send('API is running...');
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ message: 'Server is healthy' });
+});
+
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -79,14 +87,6 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/collector', collectorRoutes);
 app.use('/api/admin', adminRoutes);
-
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
-
-app.get('/health', (req, res) => {
-    res.status(200).json({ message: 'Server is healthy' });
-});
 
 const PORT = process.env.PORT || 5000;
 
